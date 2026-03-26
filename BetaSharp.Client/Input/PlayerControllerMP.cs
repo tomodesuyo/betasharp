@@ -23,6 +23,8 @@ public class PlayerControllerMP : PlayerController
     private bool isHittingBlock;
     private readonly ClientNetworkHandler netClientHandler;
     private int currentPlayerItem;
+    private int creativeBlockHitDelay;
+    private int currentGameMode;
 
     public PlayerControllerMP(BetaSharp var1, ClientNetworkHandler var2) : base(var1)
     {
@@ -37,6 +39,16 @@ public class PlayerControllerMP : PlayerController
 
     public override bool sendBlockRemoved(int x, int y, int z, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return false;
+        }
+
+        if (GameMode.IsCreative(currentGameMode))
+        {
+            return false;
+        }
+
         int blockId = Game.world.Reader.GetBlockId(x, y, z);
         bool var6 = base.sendBlockRemoved(x, y, z, var4);
         ItemStack var7 = Game.player.getHand();
@@ -55,6 +67,24 @@ public class PlayerControllerMP : PlayerController
 
     public override void clickBlock(int var1, int var2, int var3, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return;
+        }
+
+        if (GameMode.IsCreative(currentGameMode))
+        {
+            if (PlayerControllerCreative.IsBlockBreakingRestricted(Game))
+            {
+                return;
+            }
+
+            netClientHandler.addToSendQueue(PlayerActionC2SPacket.Get(0, var1, var2, var3, var4));
+            PlayerControllerCreative.clickBlockCreative(Game, this, var1, var2, var3, var4);
+            creativeBlockHitDelay = 5;
+            return;
+        }
+
         if (!isHittingBlock || var1 != currentBlockX || var2 != currentBlockY || var3 != currentblockZ)
         {
             netClientHandler.addToSendQueue(PlayerActionC2SPacket.Get(0, var1, var2, var3, var4));
@@ -90,6 +120,33 @@ public class PlayerControllerMP : PlayerController
 
     public override void sendBlockRemoving(int var1, int var2, int var3, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return;
+        }
+
+        if (GameMode.IsCreative(currentGameMode))
+        {
+            if (PlayerControllerCreative.IsBlockBreakingRestricted(Game))
+            {
+                return;
+            }
+
+            syncCurrentPlayItem();
+            if (creativeBlockHitDelay > 0)
+            {
+                --creativeBlockHitDelay;
+            }
+            else
+            {
+                creativeBlockHitDelay = 5;
+                netClientHandler.addToSendQueue(PlayerActionC2SPacket.Get(0, var1, var2, var3, var4));
+                PlayerControllerCreative.clickBlockCreative(Game, this, var1, var2, var3, var4);
+            }
+
+            return;
+        }
+
         if (isHittingBlock)
         {
             syncCurrentPlayItem();
@@ -154,7 +211,7 @@ public class PlayerControllerMP : PlayerController
 
     public override float getBlockReachDistance()
     {
-        return 4.0F;
+        return GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode) ? 5.0F : 4.0F;
     }
 
     public override void func_717_a(World var1)
@@ -192,12 +249,35 @@ public class PlayerControllerMP : PlayerController
     {
         syncCurrentPlayItem();
         netClientHandler.addToSendQueue(PlayerInteractBlockC2SPacket.Get(blockX, blockY, blockZ, blockSide, player.inventory.getSelectedItem()));
-        bool placed = base.sendPlaceBlock(player, world, selectedItem, blockX, blockY, blockZ, blockSide);
+        bool placed;
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return false;
+        }
+
+        if (GameMode.IsCreative(currentGameMode) && selectedItem != null)
+        {
+            int damage = selectedItem.getDamage();
+            int count = selectedItem.count;
+            placed = base.sendPlaceBlock(player, world, selectedItem, blockX, blockY, blockZ, blockSide);
+            selectedItem.setDamage(damage);
+            selectedItem.count = count;
+        }
+        else
+        {
+            placed = base.sendPlaceBlock(player, world, selectedItem, blockX, blockY, blockZ, blockSide);
+        }
+
         return placed;
     }
 
     public override bool sendUseItem(EntityPlayer var1, World var2, ItemStack var3)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return false;
+        }
+
         syncCurrentPlayItem();
         netClientHandler.addToSendQueue(PlayerInteractBlockC2SPacket.Get(-1, -1, -1, 255, var1.inventory.getSelectedItem()));
         bool var4 = base.sendUseItem(var1, var2, var3);
@@ -206,7 +286,9 @@ public class PlayerControllerMP : PlayerController
 
     public override EntityPlayer createPlayer(World var1)
     {
-        return new EntityClientPlayerMP(Game, var1, Game.session, netClientHandler);
+        EntityClientPlayerMP player = new(Game, var1, Game.session, netClientHandler);
+        player.capabilities.SetGameMode(currentGameMode);
+        return player;
     }
 
     public override void attackEntity(EntityPlayer var1, Entity var2)
@@ -236,5 +318,64 @@ public class PlayerControllerMP : PlayerController
         if (var1 != -9999)
         {
         }
+    }
+
+    public void SetCreativeMode(bool enabled)
+    {
+        SetGameMode(enabled ? GameMode.Creative : GameMode.Survival);
+    }
+
+    public void SetGameMode(int gameMode)
+    {
+        bool enteringSpectator = !GameMode.IsSpectator(currentGameMode) && GameMode.IsSpectator(gameMode);
+        currentGameMode = gameMode;
+        if (Game.player != null)
+        {
+            Game.player.capabilities.SetGameMode(gameMode);
+            if (enteringSpectator && Game.player is ClientPlayerEntity clientPlayer)
+            {
+                clientPlayer.EnterSpectatorModeClient();
+            }
+        }
+    }
+
+    public override bool shouldDrawHUD()
+    {
+        return !(GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode));
+    }
+
+    public override bool isInCreativeMode()
+    {
+        return GameMode.IsCreative(currentGameMode);
+    }
+
+    public override int getGameMode()
+    {
+        return currentGameMode;
+    }
+
+    public override bool extendedReach()
+    {
+        return GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode);
+    }
+
+    public void SendCreativeSlotAction(ItemStack? stack, int slot)
+    {
+        if (!GameMode.IsCreative(currentGameMode))
+        {
+            return;
+        }
+
+        netClientHandler.addToSendQueue(CreativeInventoryActionC2SPacket.Get(slot, stack));
+    }
+
+    public void SendCreativeDropAction(ItemStack stack)
+    {
+        if (!GameMode.IsCreative(currentGameMode))
+        {
+            return;
+        }
+
+        netClientHandler.addToSendQueue(CreativeInventoryActionC2SPacket.Get(-1, stack));
     }
 }

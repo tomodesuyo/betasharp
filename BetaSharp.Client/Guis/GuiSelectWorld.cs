@@ -133,7 +133,6 @@ public class GuiSelectWorld : GuiScreen
         {
             selected = true;
             Game.statFileWriter.ReadStat(Stats.Stats.LoadWorldStat, 1);
-            Game.playerController = new PlayerControllerSP(Game);
             string worldFileName = getSaveFileName(worldIndex) ?? $"World{worldIndex}";
 
             IWorldStorageSource worldStorage = Game.getSaveLoader();
@@ -142,13 +141,20 @@ public class GuiSelectWorld : GuiScreen
             WorldSettings settings;
             if (props != null)
             {
-                settings = new WorldSettings(props.RandomSeed, props.TerrainType, props.GeneratorOptions);
+                settings = new WorldSettings(props.RandomSeed, props.TerrainType, props.GeneratorOptions, props.GameType);
             }
             else
             {
                 settings = new WorldSettings(0L, WorldType.Default);
             }
 
+            Game.playerController = settings.IsCreativeMode
+                ? new PlayerControllerCreative(Game)
+                : new PlayerControllerSP(Game);
+            if (Game.playerController is PlayerControllerSP playerControllerSp)
+            {
+                playerControllerSp.SetGameMode(settings.GameType);
+            }
             Game.startWorld(worldFileName, getSaveName(worldIndex), settings);
         }
     }

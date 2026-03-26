@@ -1097,6 +1097,16 @@ public partial class BetaSharp
     {
         if (mouseButton != 0 || leftClickCounter <= 0)
         {
+            if (player.capabilities.IsSpectatorMode)
+            {
+                if (objectMouseOver.Type == HitResultType.ENTITY && mouseButton == 1 && objectMouseOver.Entity is EntityLiving living)
+                {
+                    SetCameraEntity(living);
+                }
+
+                return;
+            }
+
             if (mouseButton == 0)
             {
                 player.swingHand();
@@ -1271,9 +1281,11 @@ public partial class BetaSharp
         if (objectMouseOver.Type != HitResultType.MISS)
         {
             int blockId = world.Reader.GetBlockId(objectMouseOver.BlockX, objectMouseOver.BlockY, objectMouseOver.BlockZ);
+            int blockMeta = world.Reader.GetBlockMeta(objectMouseOver.BlockX, objectMouseOver.BlockY, objectMouseOver.BlockZ);
             if (blockId == Block.GrassBlock.id)
             {
                 blockId = Block.Dirt.id;
+                blockMeta = 0;
             }
 
             if (blockId == Block.DoubleSlab.id)
@@ -1284,6 +1296,21 @@ public partial class BetaSharp
             if (blockId == Block.Bedrock.id)
             {
                 blockId = Block.Stone.id;
+                blockMeta = 0;
+            }
+
+            if (playerController.isInCreativeMode())
+            {
+                int selectedSlot = player.inventory.selectedSlot;
+                ItemStack pickedStack = new(blockId, 1, blockMeta);
+                player.inventory.main[selectedSlot] = pickedStack;
+
+                if (playerController is PlayerControllerMP playerControllerMp)
+                {
+                    playerControllerMp.SendCreativeSlotAction(pickedStack, 36 + selectedSlot);
+                }
+
+                return;
             }
 
             player.inventory.setCurrentItem(blockId, false);
@@ -1374,6 +1401,14 @@ public partial class BetaSharp
 
         if (currentScreen == null || currentScreen.AllowUserInput)
         {
+            if (player != null && camera != null)
+            {
+                if (!player.capabilities.IsSpectatorMode || camera.dead)
+                {
+                    ResetCameraEntity();
+                }
+            }
+
             processInputEvents();
         }
 
@@ -1437,8 +1472,9 @@ public partial class BetaSharp
 
             if (!isGamePaused && world != null)
             {
-                world.displayTick(MathHelper.Floor(player.x),
-                    MathHelper.Floor(player.y), MathHelper.Floor(player.z));
+                EntityLiving displayEntity = camera ?? player;
+                world.displayTick(MathHelper.Floor(displayEntity.x),
+                    MathHelper.Floor(displayEntity.y), MathHelper.Floor(displayEntity.z));
             }
 
             if (!isGamePaused)
@@ -1486,10 +1522,19 @@ public partial class BetaSharp
                         }
 
                         options.ZoomScale = System.Math.Clamp(options.ZoomScale, 1.25F, 20.0F);
-                    }
+                }
                     else
                     {
-                        player.inventory.changeCurrentItem(mouseWheelDelta);
+                        int mouseWheelDirection = mouseWheelDelta < 0 ? -1 : 1;
+                        if (player.capabilities.IsSpectatorMode)
+                        {
+                            player.AdjustSpectatorFlySpeed(mouseWheelDirection);
+                        }
+                        else
+                        {
+                            player.inventory.changeCurrentItem(mouseWheelDelta);
+                        }
+
                         if (options.InvertScrolling)
                         {
                             if (mouseWheelDelta > 0)
@@ -1610,12 +1655,18 @@ public partial class BetaSharp
 
                         if (Keyboard.getEventKey() == options.KeyBindInventory.keyCode)
                         {
-                            displayGuiScreen(new GuiInventory(player));
+                            if (!player.capabilities.IsSpectatorMode)
+                            {
+                                displayGuiScreen(new GuiInventory(player));
+                            }
                         }
 
                         if (Keyboard.getEventKey() == options.KeyBindDrop.keyCode)
                         {
-                            player.dropSelectedItem();
+                            if (!player.capabilities.IsSpectatorMode)
+                            {
+                                player.dropSelectedItem();
+                            }
                         }
 
                         if (Keyboard.getEventKey() == options.KeyBindChat.keyCode)
@@ -1631,10 +1682,18 @@ public partial class BetaSharp
 
                     for (int slotIndex = 0; slotIndex < 9; ++slotIndex)
                     {
-                        if (Keyboard.getEventKey() == Keyboard.KEY_1 + slotIndex)
+                        if (!player.capabilities.IsSpectatorMode && Keyboard.getEventKey() == Keyboard.KEY_1 + slotIndex)
                         {
                             player.inventory.selectedSlot = slotIndex;
                         }
+                    }
+
+                    if (player.capabilities.IsSpectatorMode
+                        && camera != null
+                        && !ReferenceEquals(camera, player)
+                        && Keyboard.getEventKey() == options.KeyBindSneak.keyCode)
+                    {
+                        ResetCameraEntity();
                     }
 
                     if (Keyboard.getEventKey() == options.KeyBindToggleFog.keyCode)
@@ -1668,6 +1727,29 @@ public partial class BetaSharp
         }
 
         func_6254_a(0, currentScreen == null && (Mouse.isButtonDown(0) || Controller.RightTrigger > 0.5f) && inGameHasFocus);
+    }
+
+    public bool IsSpectatingEntity()
+    {
+        return camera != null && player != null && !ReferenceEquals(camera, player);
+    }
+
+    public void SetCameraEntity(EntityLiving target)
+    {
+        if (player == null || !player.capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
+        camera = target;
+    }
+
+    public void ResetCameraEntity()
+    {
+        if (player != null)
+        {
+            camera = player;
+        }
     }
 
     private void forceReload()
@@ -1723,6 +1805,7 @@ public partial class BetaSharp
             }
 
             player.movementInput = new MovementInputFromOptions(options);
+            player.capabilities.SetGameMode(playerController.getGameMode());
             terrainRenderer?.changeWorld(newWorld);
 
             particleManager?.clearEffects(newWorld);
@@ -1904,6 +1987,7 @@ public partial class BetaSharp
         playerController.flipPlayer(player);
         world.AddPlayer(player);
         player.movementInput = new MovementInputFromOptions(options);
+        player.capabilities.SetGameMode(playerController.getGameMode());
         player.id = previousPlayerId;
         player.spawn();
         playerController.fillHotbar(player);

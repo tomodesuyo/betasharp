@@ -369,7 +369,7 @@ public class EntityWolf : EntityAnimal
 
     protected override Entity findPlayerToAttack()
     {
-        return isWolfAngry() ? world.Entities.GetClosestPlayer(this.x, this.y, this.z, 16.0D) : null;
+        return isWolfAngry() ? world.Entities.GetClosestAttackablePlayer(this.x, this.y, this.z, 16.0D) : null;
     }
 
     protected override void attackEntity(Entity entity, float distance)

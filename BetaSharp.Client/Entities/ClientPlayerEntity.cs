@@ -14,12 +14,17 @@ namespace BetaSharp.Client.Entities;
 
 public class ClientPlayerEntity : EntityPlayer
 {
+    private const float SprintThreshold = 0.8F;
+    private const float DefaultFlySpeed = 0.05F;
+
     public override EntityType Type => EntityRegistry.Player;
     public MovementInput movementInput;
     protected BetaSharp Game;
     private readonly MouseFilter field_21903_bJ = new();
     private readonly MouseFilter field_21904_bK = new();
     private readonly MouseFilter field_21902_bL = new();
+    private int sprintToggleTimer;
+    private bool _wasSpectatorMode;
 
     public ClientPlayerEntity(BetaSharp game, IWorldContext world, Session session, int dimensionId) : base(world)
     {
@@ -38,11 +43,31 @@ public class ClientPlayerEntity : EntityPlayer
         base.tickLiving();
         sidewaysSpeed = movementInput.moveStrafe;
         forwardSpeed = movementInput.moveForward;
+
         jumping = movementInput.jump;
     }
 
     public override void tickMovement()
     {
+        if (capabilities.IsSpectatorMode)
+        {
+            if (!_wasSpectatorMode)
+            {
+                EnterSpectatorModeClient();
+            }
+
+            _wasSpectatorMode = true;
+        }
+        else
+        {
+            _wasSpectatorMode = false;
+        }
+
+        if (sprintToggleTimer > 0)
+        {
+            --sprintToggleTimer;
+        }
+
         if (!Game.statFileWriter.HasAchievementUnlocked(global::BetaSharp.Achievements.OpenInventory))
         {
             Game.guiAchievement.QueueAchievementInformation(global::BetaSharp.Achievements.OpenInventory);
@@ -66,7 +91,7 @@ public class ClientPlayerEntity : EntityPlayer
                 Game.sndManager.PlaySoundFX("portal.trigger", 1.0F, random.NextFloat() * 0.4F + 0.8F);
             }
 
-            changeDimensionCooldown += 0.0125F;
+            changeDimensionCooldown += capabilities.IsCreativeMode ? 1.0F : 0.0125F;
             if (changeDimensionCooldown >= 1.0F)
             {
                 changeDimensionCooldown = 1.0F;
@@ -92,17 +117,142 @@ public class ClientPlayerEntity : EntityPlayer
             --portalCooldown;
         }
 
+        if (capabilities.IsSpectatorMode && Game.IsSpectatingEntity() && Game.camera != null && !ReferenceEquals(Game.camera, this))
+        {
+            EntityLiving target = Game.camera;
+            setSprinting(false);
+            sidewaysSpeed = 0.0F;
+            forwardSpeed = 0.0F;
+            rotationSpeed = 0.0F;
+            jumping = false;
+            velocityX = 0.0D;
+            velocityY = 0.0D;
+            velocityZ = 0.0D;
+            prevStepBobbingAmount = stepBobbingAmount = 0.0F;
+            setPosition(target.x, target.y, target.z);
+            prevX = lastTickX = x;
+            prevY = lastTickY = y;
+            prevZ = lastTickZ = z;
+            prevYaw = yaw = target.yaw;
+            prevPitch = pitch = target.pitch;
+            noClip = true;
+            return;
+        }
+
+        bool wasJumping = movementInput.jump;
+        bool wasSneaking = movementInput.sneak;
+        bool wasMovingForward = movementInput.moveForward >= SprintThreshold;
         movementInput.updatePlayerMoveState(this);
+        noClip = capabilities.IsSpectatorMode;
+        bool canSprint = capabilities.IsCreativeMode || capabilities.IsSpectatorMode;
+
+        if (!canSprint || wasSneaking || !wasMovingForward || movementInput.moveForward < SprintThreshold)
+        {
+            sprintToggleTimer = 0;
+        }
+
+        if (onGround && !wasSneaking && !wasMovingForward && movementInput.moveForward >= SprintThreshold && !isSprinting() && canSprint)
+        {
+            if (sprintToggleTimer <= 0 && !movementInput.sprint)
+            {
+                sprintToggleTimer = 7;
+            }
+            else
+            {
+                setSprinting(true);
+            }
+        }
+
+        if (!isSprinting() && movementInput.moveForward >= SprintThreshold && canSprint && movementInput.sprint)
+        {
+            setSprinting(true);
+        }
+
+        if (isSprinting() && (movementInput.moveForward < SprintThreshold || horizontalCollison || !canSprint))
+        {
+            setSprinting(false);
+        }
+
+        if (capabilities.allowFlying)
+        {
+            if (capabilities.IsSpectatorMode)
+            {
+                if (!capabilities.isFlying)
+                {
+                    capabilities.isFlying = true;
+                    sendPlayerAbilities();
+                }
+            }
+            else if (!wasJumping && movementInput.jump)
+            {
+                if (flyToggleTimer == 0)
+                {
+                    flyToggleTimer = 7;
+                }
+                else
+                {
+                    capabilities.isFlying = !capabilities.isFlying;
+                    sendPlayerAbilities();
+                    flyToggleTimer = 0;
+                }
+            }
+        }
+
+        if (capabilities.isFlying)
+        {
+            if (movementInput.sneak)
+            {
+                velocityY -= (double)(capabilities.GetFlySpeed() * 3.0F);
+            }
+
+            if (movementInput.jump)
+            {
+                velocityY += (double)(capabilities.GetFlySpeed() * 3.0F);
+            }
+        }
+
         if (movementInput.sneak && cameraOffset < 0.2F)
         {
             cameraOffset = 0.2F;
         }
 
-        pushOutOfBlocks(x - (double)width * 0.35D, boundingBox.MinY + 0.5D, z + (double)width * 0.35D);
-        pushOutOfBlocks(x - (double)width * 0.35D, boundingBox.MinY + 0.5D, z - (double)width * 0.35D);
-        pushOutOfBlocks(x + (double)width * 0.35D, boundingBox.MinY + 0.5D, z - (double)width * 0.35D);
-        pushOutOfBlocks(x + (double)width * 0.35D, boundingBox.MinY + 0.5D, z + (double)width * 0.35D);
+        if (!capabilities.IsSpectatorMode)
+        {
+            pushOutOfBlocks(x - (double)width * 0.35D, boundingBox.MinY + 0.5D, z + (double)width * 0.35D);
+            pushOutOfBlocks(x - (double)width * 0.35D, boundingBox.MinY + 0.5D, z - (double)width * 0.35D);
+            pushOutOfBlocks(x + (double)width * 0.35D, boundingBox.MinY + 0.5D, z - (double)width * 0.35D);
+            pushOutOfBlocks(x + (double)width * 0.35D, boundingBox.MinY + 0.5D, z + (double)width * 0.35D);
+        }
         base.tickMovement();
+        if (!capabilities.IsSpectatorMode && onGround && capabilities.isFlying)
+        {
+            capabilities.isFlying = false;
+            sendPlayerAbilities();
+        }
+    }
+
+    public virtual void EnterSpectatorModeClient()
+    {
+        ResetMotionForSpectatorTransition();
+        resetPlayerKeyState();
+        sidewaysSpeed = 0.0F;
+        forwardSpeed = 0.0F;
+        rotationSpeed = 0.0F;
+        jumping = false;
+        sprintToggleTimer = 0;
+        flyToggleTimer = 0;
+        horizontalSpeed = 0.0F;
+        prevHorizontalSpeed = 0.0F;
+        prevStepBobbingAmount = 0.0F;
+        stepBobbingAmount = 0.0F;
+        onGround = false;
+        horizontalCollison = false;
+        verticalCollision = false;
+        hasCollided = false;
+        prevX = lastTickX = x;
+        prevY = lastTickY = y;
+        prevZ = lastTickZ = z;
+        noClip = true;
     }
 
     public void resetPlayerKeyState()
@@ -113,6 +263,27 @@ public class ClientPlayerEntity : EntityPlayer
     public void handleKeyPress(int key, bool isPressed)
     {
         movementInput.checkKeyForMovementInput(key, isPressed);
+    }
+
+    public virtual void sendPlayerAbilities()
+    {
+    }
+
+    public void AdjustSpectatorFlySpeed(int wheelDirection)
+    {
+        if (!capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
+        float flySpeed = System.Math.Clamp(capabilities.GetFlySpeed() + wheelDirection * 0.005F, 0.0F, 0.2F);
+        capabilities.SetFlySpeed(flySpeed);
+        if (capabilities.GetWalkSpeed() == 0.1F)
+        {
+            capabilities.SetWalkSpeed(DefaultFlySpeed == 0.0F ? 0.1F : flySpeed * (0.1F / DefaultFlySpeed));
+        }
+
+        sendPlayerAbilities();
     }
 
     public override void writeNbt(NBTTagCompound nbt)

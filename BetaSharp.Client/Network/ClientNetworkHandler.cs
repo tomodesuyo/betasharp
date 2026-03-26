@@ -22,6 +22,7 @@ using BetaSharp.Util.Maths;
 using BetaSharp.Worlds;
 using BetaSharp.Worlds.Chunks;
 using BetaSharp.Worlds.Mechanics;
+using BetaSharp.Worlds.Core.Systems;
 using BetaSharp.Worlds.Storage;
 using Microsoft.Extensions.Logging;
 using Socket = System.Net.Sockets.Socket;
@@ -45,6 +46,14 @@ public class ClientNetworkHandler : NetHandler
 
     private int ticks;
     private int lastKeepAliveTime;
+    private bool _pendingDisableDamage;
+    private bool _pendingIsFlying;
+    private bool _pendingAllowFlying;
+    private bool _pendingIsCreativeMode;
+    private int _pendingGameMode;
+    private float _pendingFlySpeed;
+    private float _pendingWalkSpeed;
+    private bool _hasPendingCapabilities;
 
     public ClientNetworkHandler(BetaSharp game, string address, int port)
     {
@@ -96,7 +105,9 @@ public class ClientNetworkHandler : NetHandler
 
     public override void onHello(LoginHelloPacket packet)
     {
-        _game.playerController = new PlayerControllerMP(_game, this);
+        PlayerControllerMP playerController = new(_game, this);
+        playerController.SetGameMode(packet.gameMode);
+        _game.playerController = playerController;
         _game.statFileWriter.ReadStat(Stats.Stats.JoinMultiplayerStat, 1);
         worldClient = new ClientWorld(this, packet.worldSeed, packet.dimensionId)
         {
@@ -503,6 +514,7 @@ public class ClientNetworkHandler : NetHandler
 
     public override void onHandshake(HandshakePacket packet)
     {
+        netManager.betaSharpClient = true;
         if (packet.username.Equals("-"))
         {
             addToSendQueue(new LoginHelloPacket(_game.session.username, 14, LoginHelloPacket.BETASHARP_CLIENT_SIGNATURE, 0));
@@ -531,6 +543,58 @@ public class ClientNetworkHandler : NetHandler
                 _logger.LogError(e, e.Message);
                 netManager.disconnect("disconnect.genericReason", "Internal client error: " + e.Message);
             }
+        }
+    }
+
+    public override void onPlayerCapabilities(PlayerCapabilitiesS2CPacket packet)
+    {
+        _pendingDisableDamage = packet.disableDamage;
+        _pendingIsFlying = packet.isFlying;
+        _pendingAllowFlying = packet.allowFlying;
+        _pendingIsCreativeMode = packet.isCreativeMode;
+        _pendingGameMode = packet.gameMode;
+        _pendingFlySpeed = packet.flySpeed;
+        _pendingWalkSpeed = packet.walkSpeed;
+        _hasPendingCapabilities = true;
+
+        ApplyPendingCapabilities();
+    }
+
+    private void ApplyPendingCapabilities()
+    {
+        if (!_hasPendingCapabilities || _game.player == null)
+        {
+            return;
+        }
+
+        bool enteringSpectator = !_game.player.capabilities.IsSpectatorMode && GameMode.IsSpectator(_pendingGameMode);
+
+        if (_game.playerController is PlayerControllerMP playerControllerMp)
+        {
+            playerControllerMp.SetGameMode(_pendingGameMode);
+        }
+
+        _game.player.capabilities.disableDamage = _pendingDisableDamage;
+        _game.player.capabilities.isFlying = _pendingIsFlying;
+        _game.player.capabilities.allowFlying = _pendingAllowFlying;
+        _game.player.capabilities.isCreativeMode = _pendingIsCreativeMode;
+        _game.player.capabilities.gameMode = _pendingGameMode;
+        _game.player.capabilities.allowEdit = !GameMode.IsAdventure(_game.player.capabilities.gameMode);
+        _game.player.capabilities.SetFlySpeed(_pendingFlySpeed);
+        _game.player.capabilities.SetWalkSpeed(_pendingWalkSpeed);
+        _game.player.noClip = _game.player.capabilities.IsSpectatorMode;
+        if (_game.player.capabilities.IsSpectatorMode)
+        {
+            if (enteringSpectator)
+            {
+                _game.player.ResetMotionForSpectatorTransition();
+            }
+
+            _game.player.capabilities.isFlying = true;
+        }
+        if (!_game.player.capabilities.IsSpectatorMode)
+        {
+            _game.ResetCameraEntity();
         }
     }
 
@@ -614,6 +678,11 @@ public class ClientNetworkHandler : NetHandler
 
     public override void onPlayerRespawn(PlayerRespawnPacket packet)
     {
+        if (_game.playerController is PlayerControllerMP playerControllerMp)
+        {
+            playerControllerMp.SetGameMode(packet.gameMode);
+        }
+
         if (packet.dimensionId != _game.player.dimensionId)
         {
             terrainLoaded = false;

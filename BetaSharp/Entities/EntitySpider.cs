@@ -42,7 +42,7 @@ public class EntitySpider : EntityMonster
         if (brightness < 0.5F)
         {
             double distance = 16.0D;
-            return world.Entities.GetClosestPlayer(this.x, this.y, this.z, distance);
+            return world.Entities.GetClosestAttackablePlayer(this.x, this.y, this.z, distance);
         }
         else
         {

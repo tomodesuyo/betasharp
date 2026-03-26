@@ -14,18 +14,23 @@ public class GuiCreateWorld : GuiScreen
     private const int ButtonMoreOptions = 2;
     private const int ButtonWorldType = 3;
     private const int ButtonCustomizeFlat = 4;
+    private const int ButtonGameMode = 5;
 
     private readonly GuiScreen _parentScreen;
     private GuiTextField _textboxWorldName;
     private GuiTextField _textboxSeed;
     private string _folderName;
+    private String _GameMode = "survival";
     private bool _createClicked;
 
     private bool _moreOptions = false;
     private WorldType _selectedWorldType = WorldType.Default;
     public string GeneratorOptions { get; set; } = "";
+    private GuiButton? _btnGameMode;
     private GuiButton? _btnWorldType;
     private GuiButton? _btnCustomize;
+    private String field_35370_u;
+    private String field_35369_v;
 
     public GuiCreateWorld(GuiScreen parentScreen)
     {
@@ -47,9 +52,11 @@ public class GuiCreateWorld : GuiScreen
         GuiButton btnCreate, btnCancel;
         _controlList.Add(btnCreate = new GuiButton(ButtonCreate, Width / 2 - 155, Height - 28, 150, 20, translations.TranslateKey("selectWorld.create")));
         _controlList.Add(btnCancel = new GuiButton(ButtonCancel, Width / 2 + 5, Height - 28, 150, 20, translations.TranslateKey("gui.cancel")));
+        _controlList.Add(_btnGameMode = new GuiButton(ButtonGameMode, Width / 2 - 75, 100, 150, 20, translations.TranslateKey("selectWorld.gameMode")));
 
         btnCreate.Visible = !_moreOptions;
         btnCancel.Visible = !_moreOptions;
+        _btnGameMode.Visible = !_moreOptions;
 
         const int moreOptionsY = 150;
         const int worldTypeY = 110;
@@ -80,10 +87,25 @@ public class GuiCreateWorld : GuiScreen
 
     private void UpdateButtonText()
     {
+        TranslationStorage var1 = TranslationStorage.Instance;
+        if (_btnGameMode != null)
+        {
+            _btnGameMode.DisplayString = var1.TranslateKey("selectWorld.gameMode") + " " + var1.TranslateKey("selectWorld.gameMode." + _GameMode);
+        }
+        field_35370_u = var1.TranslateKey("selectWorld.gameMode." + _GameMode + ".line1");
+        field_35369_v = var1.TranslateKey("selectWorld.gameMode." + _GameMode + ".line2");
+
         if (_btnWorldType != null)
         {
-            _btnWorldType.DisplayString = "World Type: " + _selectedWorldType.DisplayName;
+            string translatedWorldType = var1.TranslateKey(_selectedWorldType.GetTranslateName());
+            if (translatedWorldType == _selectedWorldType.GetTranslateName())
+            {
+                translatedWorldType = _selectedWorldType.DisplayName;
+            }
+
+            _btnWorldType.DisplayString = var1.TranslateKey("selectWorld.mapType") + " " + translatedWorldType;
         }
+
     }
 
     public void SetWorldType(WorldType type)
@@ -91,6 +113,7 @@ public class GuiCreateWorld : GuiScreen
         _selectedWorldType = type;
         UpdateButtonText();
     }
+
 
     private void UpdateFolderName()
     {
@@ -168,14 +191,25 @@ public class GuiCreateWorld : GuiScreen
                             }
                         }
 
-                        Game.statFileWriter.ReadStat(Stats.Stats.CreateWorldStat, 1);
-                        Game.playerController = new PlayerControllerSP(Game);
 
-                        WorldSettings settings = new(worldSeed, _selectedWorldType, GeneratorOptions);
+                        Game.statFileWriter.ReadStat(Stats.Stats.CreateWorldStat, 1);
+                        Game.playerController = _GameMode == "creative"
+                            ? new PlayerControllerCreative(Game)
+                            : new PlayerControllerSP(Game);
+
+                        WorldSettings settings = new(worldSeed, _selectedWorldType, GeneratorOptions, _GameMode == "creative");
 
                         Game.startWorld(_folderName, _textboxWorldName.GetText(), settings);
                         break;
                     }
+                case ButtonGameMode:
+				if(_GameMode == "survival") {
+					_GameMode = "creative";
+				} else {
+					_GameMode = "survival";
+				}
+                UpdateButtonText();
+                    break;
                 case ButtonMoreOptions:
                     _moreOptions = !_moreOptions;
                     InitGui();
@@ -249,6 +283,8 @@ public class GuiCreateWorld : GuiScreen
             DrawString(FontRenderer, translations.TranslateKey("selectWorld.enterName"), Width / 2 - 100, 47, Color.GrayA0);
             DrawString(FontRenderer, translations.TranslateKey("selectWorld.resultFolder") + " " + _folderName, Width / 2 - 100, 85, Color.GrayA0);
             _textboxWorldName.DrawTextBox();
+            DrawString(FontRenderer, field_35370_u, Width / 2 - 100, 122, Color.GrayA0);
+            DrawString(FontRenderer, field_35369_v, Width / 2 - 100, 134, Color.GrayA0);
         }
         else
         {

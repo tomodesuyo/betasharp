@@ -221,6 +221,11 @@ public abstract class NetHandler
         handle(var1);
     }
 
+    public virtual void onCreativeInventoryAction(CreativeInventoryActionC2SPacket var1)
+    {
+        handle(var1);
+    }
+
     public virtual void onPaintingEntitySpawn(PaintingEntitySpawnS2CPacket var1)
     {
         handle(var1);
@@ -252,6 +257,16 @@ public abstract class NetHandler
     }
 
     public virtual void onGameStateChange(GameStateChangeS2CPacket var1)
+    {
+        handle(var1);
+    }
+
+    public virtual void onPlayerCapabilities(PlayerCapabilitiesS2CPacket var1)
+    {
+        handle(var1);
+    }
+
+    public virtual void onPlayerCapabilities(PlayerCapabilitiesC2SPacket var1)
     {
         handle(var1);
     }

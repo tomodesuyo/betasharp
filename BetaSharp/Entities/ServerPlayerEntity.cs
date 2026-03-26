@@ -197,7 +197,7 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
                 }
                 else
                 {
-                    changeDimensionCooldown += 0.0125F;
+                    changeDimensionCooldown += capabilities.IsCreativeMode ? 1.0F : 0.0125F;
                     if (changeDimensionCooldown >= 1.0F)
                     {
                         changeDimensionCooldown = 1.0F;

@@ -170,6 +170,7 @@ public class PlayerManager
             networkHandler = player.networkHandler
         };
         ServerWorld var5 = _server.getWorld(player.dimensionId);
+        serverPlayer.capabilities.SetGameMode(player.capabilities.gameMode);
         if (var3 is (int x, int y, int z))
         {
             Vec3i? var6 = EntityPlayer.findRespawnPosition(_server.getWorld(player.dimensionId), var3);
@@ -192,7 +193,8 @@ public class PlayerManager
             serverPlayer.setPosition(serverPlayer.x, serverPlayer.y + 1.0, serverPlayer.z);
         }
 
-        serverPlayer.networkHandler.sendPacket(PlayerRespawnPacket.Get((sbyte)serverPlayer.dimensionId));
+        serverPlayer.networkHandler.sendPacket(PlayerRespawnPacket.Get((sbyte)serverPlayer.dimensionId, (sbyte)serverPlayer.capabilities.gameMode));
+        serverPlayer.networkHandler.sendPacket(PlayerCapabilitiesS2CPacket.Get(serverPlayer.capabilities));
         serverPlayer.networkHandler.teleport(serverPlayer.x, serverPlayer.y, serverPlayer.z, serverPlayer.yaw, serverPlayer.pitch);
         sendWorldInfo(serverPlayer, var5);
         GetChunkMap(serverPlayer.dimensionId).addPlayer(serverPlayer);
@@ -233,7 +235,7 @@ public class PlayerManager
         GetChunkMap(sourceDim).removePlayer(player);
 
         player.dimensionId = targetDim;
-        player.networkHandler.sendPacket(PlayerRespawnPacket.Get((sbyte)player.dimensionId));
+        player.networkHandler.sendPacket(PlayerRespawnPacket.Get((sbyte)player.dimensionId, (sbyte)player.capabilities.gameMode));
         currentWorld.Entities.ServerRemove(player);
         player.dead = false;
         double x = player.x;

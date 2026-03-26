@@ -19,6 +19,8 @@ public class GuiTextField : Gui
     private int _selectionEnd = -1;
     public bool IsFocused = false;
     public bool IsEnabled = true;
+    public bool IsVisible = true;
+    public bool EnableBackgroundDrawing = true;
     private readonly GuiScreen _parentGuiScreen;
 
     public GuiTextField(GuiScreen parentGuiScreen, TextRenderer fontRenderer, int xPos, int yPos, int width, int height, string text)
@@ -182,6 +184,12 @@ public class GuiTextField : Gui
 
     public void MouseClicked(int x, int y, int button)
     {
+        if (!IsVisible)
+        {
+            SetFocused(false);
+            return;
+        }
+
         bool isFocused = IsEnabled && x >= _xPos && x < _xPos + _width && y >= _yPos && y < _yPos + _height;
         SetFocused(isFocused);
     }
@@ -198,8 +206,16 @@ public class GuiTextField : Gui
 
     public void DrawTextBox()
     {
-        DrawRect(_xPos - 1, _yPos - 1, _xPos + _width + 1, _yPos + _height + 1, Color.GrayA0);
-        DrawRect(_xPos, _yPos, _xPos + _width, _yPos + _height, Color.Black);
+        if (!IsVisible)
+        {
+            return;
+        }
+
+        if (EnableBackgroundDrawing)
+        {
+            DrawRect(_xPos - 1, _yPos - 1, _xPos + _width + 1, _yPos + _height + 1, Color.GrayA0);
+            DrawRect(_xPos, _yPos, _xPos + _width, _yPos + _height, Color.Black);
+        }
 
         if (IsEnabled)
         {
@@ -208,11 +224,11 @@ public class GuiTextField : Gui
 
             string renderText = _text.Insert(safePos, cursor);
 
-            DrawString(_fontRenderer, renderText, _xPos + 4, _yPos + (_height - 8) / 2, Color.Gray80);
+            DrawString(_fontRenderer, renderText, _xPos + (EnableBackgroundDrawing ? 4 : 0), _yPos + (_height - 8) / 2, Color.Gray80);
         }
         else
         {
-            DrawString(_fontRenderer, _text, _xPos + 4, _yPos + (_height - 8) / 2, Color.Gray70);
+            DrawString(_fontRenderer, _text, _xPos + (EnableBackgroundDrawing ? 4 : 0), _yPos + (_height - 8) / 2, Color.Gray70);
         }
     }
 

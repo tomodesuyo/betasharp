@@ -104,9 +104,15 @@ public abstract class BetaSharpServer : ICommandOutput
         string typeString = config.GetLevelType("DEFAULT");
         WorldType worldType = WorldType.ParseWorldType(typeString) ?? WorldType.Default;
         string optionsString = config.GetLevelOptions("");
+        string gameModeString = config.GetProperty("gamemode", "survival");
+        int gameMode = gameModeString.Equals("spectator", StringComparison.OrdinalIgnoreCase)
+            ? global::BetaSharp.Worlds.Core.Systems.GameMode.Spectator
+            : gameModeString.Equals("creative", StringComparison.OrdinalIgnoreCase)
+                ? global::BetaSharp.Worlds.Core.Systems.GameMode.Creative
+                : config.GetProperty("gamemode", 0);
 
         _logger.LogInformation("Preparing level \"{WorldName}\"", worldName);
-        loadWorld(worldName, new WorldSettings(seed, worldType, optionsString));
+        loadWorld(worldName, new WorldSettings(seed, worldType, optionsString, gameMode));
 
         if (logHelp)
         {

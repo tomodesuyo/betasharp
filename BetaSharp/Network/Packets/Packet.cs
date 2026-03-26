@@ -210,10 +210,13 @@ public abstract class Packet
             New(PacketId.InventoryS2C, true, false, false, () => new InventoryS2CPacket()),
             New(PacketId.ScreenHandlerPropertyUpdateS2C, true, false, false, () => new ScreenHandlerPropertyUpdateS2CPacket()),
             New(PacketId.ScreenHandlerAcknowledgement, true, true, false, () => new ScreenHandlerAcknowledgementPacket()),
+            New(PacketId.CreativeInventoryActionC2S, false, true, false, () => new CreativeInventoryActionC2SPacket()),
             New(PacketId.UpdateSign, true, true, true, () => new UpdateSignPacket()),
             New(PacketId.MapUpdateS2C, true, false, true, () => new MapUpdateS2CPacket()),
             New(PacketId.PlayerConnectionUpdateS2C, true, false, false, () => new PlayerConnectionUpdateS2CPacket()),
+            New(PacketId.PlayerCapabilitiesS2C, true, false, false, () => new PlayerCapabilitiesS2CPacket()),
             New(PacketId.IncreaseStatS2C, true, false, false, () => new IncreaseStatS2CPacket()),
+            New(PacketId.PlayerCapabilitiesC2S, false, true, false, () => new PlayerCapabilitiesC2SPacket()),
             New(PacketId.Disconnect, true, true, false, () => new DisconnectPacket())
         ]);
     }

@@ -556,7 +556,8 @@ public abstract class EntityLiving : Entity
     public virtual void travel(float strafe, float forward)
     {
         double previousY;
-        if (isInWater())
+        bool ignoreFluidSlowdown = ignoresFluidMovementSlowdown();
+        if (!ignoreFluidSlowdown && isInWater())
         {
             previousY = y;
             moveNonSolid(strafe, forward, 0.02F);
@@ -570,7 +571,7 @@ public abstract class EntityLiving : Entity
                 velocityY = (double)0.3F;
             }
         }
-        else if (isTouchingLava())
+        else if (!ignoreFluidSlowdown && isTouchingLava())
         {
             previousY = y;
             moveNonSolid(strafe, forward, 0.02F);
@@ -598,7 +599,7 @@ public abstract class EntityLiving : Entity
             }
 
             float movementFactor = 0.16277136F / (friction * friction * friction);
-            moveNonSolid(strafe, forward, onGround ? 0.1F * movementFactor : 0.02F);
+            moveNonSolid(strafe, forward, onGround ? getGroundMovementSpeed() * movementFactor : getAirMovementSpeed());
             friction = 0.91F;
             if (onGround)
             {
@@ -668,6 +669,21 @@ public abstract class EntityLiving : Entity
 
         walkAnimationSpeed += (distanceMoved - walkAnimationSpeed) * 0.4F;
         animationPhase += walkAnimationSpeed;
+    }
+
+    protected virtual float getAirMovementSpeed()
+    {
+        return 0.02F;
+    }
+
+    protected virtual float getGroundMovementSpeed()
+    {
+        return 0.1F;
+    }
+
+    protected virtual bool ignoresFluidMovementSlowdown()
+    {
+        return false;
     }
 
     public virtual bool isOnLadder()
@@ -838,6 +854,12 @@ public abstract class EntityLiving : Entity
     protected virtual void jump()
     {
         velocityY = (double)0.42F;
+        if (isSprinting())
+        {
+            float yawRadians = yaw * 0.017453292F;
+            velocityX -= (double)(MathHelper.Sin(yawRadians) * 0.2F);
+            velocityZ += (double)(MathHelper.Cos(yawRadians) * 0.2F);
+        }
     }
 
     protected virtual bool canDespawn()

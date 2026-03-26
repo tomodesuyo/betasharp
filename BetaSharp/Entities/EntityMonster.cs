@@ -36,7 +36,7 @@ public abstract class EntityMonster : EntityCreature, Monster
 
     protected override Entity findPlayerToAttack()
     {
-        EntityPlayer player = world.Entities.GetClosestPlayer(this.x, this.y, this.z, 16.0D);
+        EntityPlayer player = world.Entities.GetClosestAttackablePlayer(this.x, this.y, this.z, 16.0D);
         return player != null && canSee(player) ? player : null;
     }
 
@@ -48,7 +48,10 @@ public abstract class EntityMonster : EntityCreature, Monster
             {
                 if (entity != this)
                 {
-                    playerToAttack = entity;
+                    if (entity is not EntityPlayer player || !player.IsIgnoredByMonsters)
+                    {
+                        playerToAttack = entity;
+                    }
                 }
 
                 return true;

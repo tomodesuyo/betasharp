@@ -1,0 +1,309 @@
+using BetaSharp.Blocks;
+using BetaSharp.Creative;
+using BetaSharp.Entities;
+using BetaSharp.Inventorys;
+using BetaSharp.Items;
+using BetaSharp.Screens.Slots;
+
+namespace BetaSharp.Screens;
+
+public class CreativeScreenHandler : ScreenHandler
+{
+    private const int Columns = 9;
+    private const int VisibleRows = 5;
+    private const int SelectionSlotCount = Columns * VisibleRows;
+    private const int TrashSlotId = 45;
+
+    private readonly InventoryBasic _selectionInventory = new("creative", SelectionSlotCount);
+    private readonly InventoryBasic _trashInventory = new("creativeTrash", 1);
+    private readonly List<ItemStack> _allStacks = [];
+    private readonly List<ItemStack> _visibleStacks = [];
+    private readonly InventoryPlayer _playerInventory;
+
+    private string _searchQuery = string.Empty;
+
+    public CreativeScreenHandler(InventoryPlayer inventoryPlayer)
+    {
+        _playerInventory = inventoryPlayer;
+        PopulateAllStacks();
+
+        SetTab(CreativeInventoryTab.All);
+    }
+
+    public CreativeInventoryTab CurrentTab { get; private set; } = CreativeInventoryTab.All;
+
+    public override bool canUse(EntityPlayer player)
+    {
+        return true;
+    }
+
+    public override ItemStack? quickMove(int index)
+    {
+        if (CurrentTab == CreativeInventoryTab.Inventory)
+        {
+            if (index == TrashSlotId)
+            {
+                return null;
+            }
+
+            if (_playerInventory.player.playerScreenHandler != null && index >= 0 && index < TrashSlotId)
+            {
+                return _playerInventory.player.playerScreenHandler.quickMove(index);
+            }
+        }
+
+        return null;
+    }
+
+    public void SetTab(CreativeInventoryTab tab)
+    {
+        CurrentTab = tab;
+        if (tab != CreativeInventoryTab.Search)
+        {
+            _searchQuery = string.Empty;
+        }
+
+        RebuildSlots();
+        RebuildVisibleStacks();
+    }
+
+    public void SetSearchQuery(string query)
+    {
+        _searchQuery = query.Trim();
+        RebuildVisibleStacks();
+    }
+
+    public void ScrollTo(float position)
+    {
+        int rowCount = GetScrollableRowCount();
+        int startRow = (int)(position * rowCount + 0.5D);
+        if (startRow < 0)
+        {
+            startRow = 0;
+        }
+
+        for (int row = 0; row < VisibleRows; ++row)
+        {
+            for (int column = 0; column < Columns; ++column)
+            {
+                int itemIndex = column + (row + startRow) * Columns;
+                _selectionInventory.setStack(column + row * Columns, itemIndex >= 0 && itemIndex < _visibleStacks.Count ? _visibleStacks[itemIndex].copy() : null);
+            }
+        }
+    }
+
+    public int GetScrollableRowCount()
+    {
+        return Math.Max(0, (_visibleStacks.Count + Columns - 1) / Columns - VisibleRows);
+    }
+
+    public bool NeedsScrollBar()
+    {
+        return CurrentTab != CreativeInventoryTab.Inventory && GetScrollableRowCount() > 0;
+    }
+
+    private void RebuildVisibleStacks()
+    {
+        if (CurrentTab == CreativeInventoryTab.Inventory)
+        {
+            return;
+        }
+
+        _visibleStacks.Clear();
+        foreach (ItemStack stack in _allStacks)
+        {
+            if (!MatchesCurrentTab(stack))
+            {
+                continue;
+            }
+
+            if (CurrentTab == CreativeInventoryTab.Search && !MatchesSearch(stack))
+            {
+                continue;
+            }
+
+            _visibleStacks.Add(stack);
+        }
+
+        ScrollTo(0.0F);
+    }
+
+    private void RebuildSlots()
+    {
+        Slots.Clear();
+        TrackedStacks.Clear();
+
+        if (CurrentTab == CreativeInventoryTab.Inventory)
+        {
+            AddInventorySlots();
+            return;
+        }
+
+        for (int row = 0; row < VisibleRows; ++row)
+        {
+            for (int column = 0; column < Columns; ++column)
+            {
+                AddSlot(new Slot(_selectionInventory, column + row * Columns, 9 + column * 18, 18 + row * 18));
+            }
+        }
+
+        for (int hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot)
+        {
+            AddSlot(new Slot(_playerInventory, hotbarSlot, 9 + hotbarSlot * 18, 112));
+        }
+    }
+
+    private void AddInventorySlots()
+    {
+        PlayerScreenHandler playerScreenHandler = (PlayerScreenHandler)_playerInventory.player.playerScreenHandler;
+
+        AddSlot(new CraftingResultSlot(_playerInventory.player, playerScreenHandler.craftingInput, playerScreenHandler.craftingResult, 0, 144, 36));
+
+        for (int row = 0; row < 2; ++row)
+        {
+            for (int column = 0; column < 2; ++column)
+            {
+                AddSlot(new Slot(playerScreenHandler.craftingInput, column + row * 2, 88 + column * 18, 26 + row * 18));
+            }
+        }
+
+        for (int armorSlot = 0; armorSlot < 4; ++armorSlot)
+        {
+            AddSlot(new SlotArmor(playerScreenHandler, _playerInventory, _playerInventory.size() - 1 - armorSlot, 8, 6 + armorSlot * 27, armorSlot));
+        }
+
+        for (int slotIndex = 9; slotIndex < 36; ++slotIndex)
+        {
+            int slot = slotIndex - 9;
+            int column = slot % 9;
+            int row = slot / 9;
+            AddSlot(new Slot(_playerInventory, slotIndex, 9 + column * 18, 54 + row * 18));
+        }
+
+        for (int hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot)
+        {
+            AddSlot(new Slot(_playerInventory, hotbarSlot, 9 + hotbarSlot * 18, 112));
+        }
+
+        AddSlot(new Slot(_trashInventory, 0, 173, 112));
+    }
+
+    private bool MatchesCurrentTab(ItemStack stack)
+    {
+        if (CurrentTab == CreativeInventoryTab.All || CurrentTab == CreativeInventoryTab.Search)
+        {
+            return true;
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Blocks)
+        {
+            return stack.itemId < 256;
+        }
+
+        if (stack.itemId < 256)
+        {
+            return false;
+        }
+
+        Item item = stack.getItem();
+        if (CurrentTab == CreativeInventoryTab.Tools)
+        {
+            return item is ItemTool
+                   || item is ItemHoe
+                   || item is ItemBucket
+                   || item is ItemFishingRod
+                   || item is ItemShears
+                   || item == Item.FlintAndSteel
+                   || item == Item.Compass
+                   || item == Item.Clock
+                   || item == Item.Map;
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Combat)
+        {
+            return item is ItemSword
+                   || item is ItemArmor
+                   || item is ItemBow
+                   || item == Item.ARROW
+                   || item == Item.Snowball
+                   || item == Item.Egg;
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Food)
+        {
+            return item is ItemFood
+                   || item == Item.Seeds
+                   || item == Item.Wheat
+                   || item == Item.Sugar
+                   || item == Item.Bowl
+                   || item == Item.MilkBucket
+                   || item == Item.Cake;
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Materials)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool MatchesSearch(ItemStack stack)
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            return true;
+        }
+
+        string itemName = stack.getItemName() ?? string.Empty;
+        string translatedName = TranslationStorage.Instance.TranslateNamedKey(itemName) ?? string.Empty;
+        string fallbackName = itemName;
+        return translatedName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)
+               || fallbackName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void PopulateAllStacks()
+    {
+        for (int blockId = 1; blockId < Block.Blocks.Length; ++blockId)
+        {
+            Block? block = Block.Blocks[blockId];
+            if (block != null)
+            {
+                _allStacks.Add(new ItemStack(block));
+            }
+        }
+
+        for (int itemId = 256; itemId < Item.ITEMS.Length; ++itemId)
+        {
+            Item? item = Item.ITEMS[itemId];
+            if (item != null)
+            {
+                _allStacks.Add(new ItemStack(item));
+            }
+        }
+
+        AddMetadataVariants(Block.Wool, 16);
+        AddMetadataVariants(Block.Slab, 6);
+        AddMetadataVariants(Block.Planks, 3);
+        AddMetadataVariants(Block.Log, 3);
+        AddMetadataVariants(Block.Sapling, 3);
+        AddMetadataVariants(Block.Leaves, 3);
+        AddMetadataVariants(Item.Dye, 16, 1);
+    }
+
+    private void AddMetadataVariants(Block block, int count, int start = 1)
+    {
+        for (int meta = start; meta < count; ++meta)
+        {
+            _allStacks.Add(new ItemStack(block, 1, meta));
+        }
+    }
+
+    private void AddMetadataVariants(Item item, int count, int start = 1)
+    {
+        for (int meta = start; meta < count; ++meta)
+        {
+            _allStacks.Add(new ItemStack(item.id, 1, meta));
+        }
+    }
+}

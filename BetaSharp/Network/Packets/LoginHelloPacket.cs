@@ -10,13 +10,15 @@ public class LoginHelloPacket() : Packet(PacketId.LoginHello)
     public string username;
     public long worldSeed;
     public sbyte dimensionId;
+    public sbyte gameMode;
 
-    public LoginHelloPacket(string username, int protocolVersion, long worldSeed, sbyte dimensionId) : this()
+    public LoginHelloPacket(string username, int protocolVersion, long worldSeed, sbyte dimensionId, sbyte gameMode = 0) : this()
     {
         this.username = username;
         this.protocolVersion = protocolVersion;
         this.worldSeed = worldSeed;
         this.dimensionId = dimensionId;
+        this.gameMode = gameMode;
     }
 
     public LoginHelloPacket(string username, int protocolVersion) : this()
@@ -31,6 +33,10 @@ public class LoginHelloPacket() : Packet(PacketId.LoginHello)
         username = stream.ReadLongString(16);
         worldSeed = stream.ReadLong();
         dimensionId = (sbyte)stream.ReadByte();
+        if (stream.DataAvailable)
+        {
+            gameMode = (sbyte)stream.ReadByte();
+        }
     }
 
     public override void Write(NetworkStream stream)
@@ -39,6 +45,7 @@ public class LoginHelloPacket() : Packet(PacketId.LoginHello)
         stream.WriteLongString(username);
         stream.WriteLong(worldSeed);
         stream.WriteByte((byte)dimensionId);
+        stream.WriteByte((byte)gameMode);
     }
 
     public override void Apply(NetHandler handler)
@@ -48,6 +55,6 @@ public class LoginHelloPacket() : Packet(PacketId.LoginHello)
 
     public override int Size()
     {
-        return 4 + username.Length + 4 + 5;
+        return 4 + username.Length + 4 + 6;
     }
 }

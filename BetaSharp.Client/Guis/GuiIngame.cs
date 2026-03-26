@@ -7,6 +7,7 @@ using BetaSharp.Client.Rendering;
 using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Client.Rendering.Core.OpenGL;
 using BetaSharp.Client.Rendering.Items;
+using BetaSharp.Entities;
 using BetaSharp.Inventorys;
 using BetaSharp.Items;
 using BetaSharp.Util.Hit;
@@ -120,8 +121,12 @@ public class GuiIngame : Gui
         InventoryPlayer inventory = _game.player.inventory;
         _zLevel = -90.0F;
         int yOffset = _game.isControllerMode ? -40 : 0;
-        DrawTexturedModalRect(scaledWidth / 2 - 91, scaledHeight - 22 + yOffset, 0, 0, 182, 22);
-        DrawTexturedModalRect(scaledWidth / 2 - 91 - 1 + inventory.selectedSlot * 20, scaledHeight - 22 - 1 + yOffset, 0, 22, 24, 22);
+        bool showHotbar = !_game.player.capabilities.IsSpectatorMode;
+        if (showHotbar)
+        {
+            DrawTexturedModalRect(scaledWidth / 2 - 91, scaledHeight - 22 + yOffset, 0, 0, 182, 22);
+            DrawTexturedModalRect(scaledWidth / 2 - 91 - 1 + inventory.selectedSlot * 20, scaledHeight - 22 - 1 + yOffset, 0, 22, 24, 22);
+        }
         _game.textureManager.BindTexture(_game.textureManager.GetTextureId("/gui/icons.png"));
         if (_game.options.CameraMode == EnumCameraMode.FirstPerson)
         {
@@ -232,7 +237,7 @@ public class GuiIngame : Gui
         Lighting.turnOn();
         GLManager.GL.PopMatrix();
 
-        for (armorValue = 0; armorValue < 9; ++armorValue)
+        for (armorValue = 0; showHotbar && armorValue < 9; ++armorValue)
         {
             i = scaledWidth / 2 - 90 + armorValue * 20 + 2;
             j = scaledHeight - 16 - 3 + yOffset;

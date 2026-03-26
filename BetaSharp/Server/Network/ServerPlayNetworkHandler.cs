@@ -195,6 +195,7 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             double var15 = var7 - player.y;
             double var17 = var9 - player.z;
             double var19 = var32 * var32 + var15 * var15 + var17 * var17;
+            bool noClipMovement = player.noClip || player.capabilities.IsSpectatorMode;
             if (var19 > 100.0)
             {
                 _logger.LogWarning($"{player.name} moved too quickly!");
@@ -203,7 +204,8 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             }
 
             float var21 = (1 / 16f);
-            bool var22 = sWorld.Entities.GetEntityCollisionsScratch(player, player.boundingBox.Contract(var21, var21, var21)).Count == 0;
+            bool var22 = noClipMovement || sWorld.Entities.GetEntityCollisionsScratch(player, player.boundingBox.Contract(var21, var21, var21)).Count == 0;
+
             player.move(var32, var15, var17);
             var32 = var5 - player.x;
             var15 = var7 - player.y;
@@ -224,15 +226,15 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             }
 
             player.setPositionAndAngles(var5, var7, var9, var11, var12);
-            bool var24 = sWorld.Entities.GetEntityCollisionsScratch(player, player.boundingBox.Contract(var21, var21, var21)).Count == 0;
-            if (var22 && (var23 || !var24) && !player.isSleeping())
+            bool var24 = noClipMovement || sWorld.Entities.GetEntityCollisionsScratch(player, player.boundingBox.Contract(var21, var21, var21)).Count == 0;
+            if (!noClipMovement && var22 && (var23 || !var24) && !player.isSleeping())
             {
                 teleport(teleportTargetX, teleportTargetY, teleportTargetZ, var11, var12);
                 return;
             }
 
             Box var25 = player.boundingBox.Expand(var21, var21, var21).Stretch(0.0, -0.55, 0.0);
-            if (server.flightEnabled || sWorld.Reader.IsMaterialInBox(var25, m => m != Material.Air))
+            if (noClipMovement || server.flightEnabled || player.capabilities.allowFlying || sWorld.Reader.IsMaterialInBox(var25, m => m != Material.Air))
             {
                 floatingTime = 0;
             }
@@ -432,6 +434,33 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
         }
     }
 
+    public override void onCreativeInventoryAction(CreativeInventoryActionC2SPacket packet)
+    {
+        if (!player.capabilities.isCreativeMode)
+        {
+            return;
+        }
+
+        if (packet.slot == -1)
+        {
+            if (packet.stack != null)
+            {
+                player.dropItem(packet.stack, false);
+            }
+
+            return;
+        }
+
+        if (packet.slot is < 36 or >= 45)
+        {
+            return;
+        }
+
+        int inventorySlot = packet.slot - 36;
+        player.inventory.setStack(inventorySlot, packet.stack?.copy());
+        player.currentScreenHandler.SendContentUpdates();
+    }
+
     public override void onChatMessage(ChatMessagePacket packet)
     {
         string var2 = packet.chatMessage;
@@ -516,6 +545,14 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             player.wakeUp(false, true, true);
             teleported = false;
         }
+        else if (packet.mode == 4)
+        {
+            player.setSprinting(true);
+        }
+        else if (packet.mode == 5)
+        {
+            player.setSprinting(false);
+        }
     }
 
     public override void onDisconnect(DisconnectPacket packet)
@@ -543,6 +580,11 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
 
     public override void handleInteractEntity(PlayerInteractEntityC2SPacket packet)
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
         ServerWorld var2 = server.getWorld(player.dimensionId);
         Entity var3 = var2.getEntity(packet.entityId);
         if (var3 != null && player.canSee(var3) && player.getSquaredDistance(var3) < 36.0)
@@ -569,6 +611,13 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
     public override void onCloseScreen(CloseScreenS2CPacket packet)
     {
         player.onHandledScreenClosed();
+    }
+
+    public override void onPlayerCapabilities(PlayerCapabilitiesC2SPacket packet)
+    {
+        player.capabilities.isFlying = player.capabilities.IsSpectatorMode || (packet.isFlying && player.capabilities.allowFlying);
+        player.capabilities.SetFlySpeed(packet.flySpeed);
+        player.capabilities.SetWalkSpeed(packet.walkSpeed);
     }
 
     public override void onClickSlot(ClickSlotC2SPacket packet)

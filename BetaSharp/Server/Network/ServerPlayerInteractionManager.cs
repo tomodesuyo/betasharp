@@ -66,9 +66,28 @@ public class ServerPlayerInteractionManager
 
     public void onBlockBreakingAction(int x, int y, int z, int direction)
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            miningProgress = -1;
+            mining = false;
+            return;
+        }
+
         world.ExtinguishFire(null, x, y, z, direction);
         failedMiningStartTime = tickCounter;
         int blockId = world.Reader.GetBlockId(x, y, z);
+        if (player.capabilities.isCreativeMode)
+        {
+            if (blockId > 0 && player.getHand()?.getItem() is not ItemSword)
+            {
+                tryBreakBlock(x, y, z);
+            }
+
+            miningProgress = -1;
+            mining = false;
+            return;
+        }
+
         if (blockId > 0)
         {
             Block.Blocks[blockId].onBlockBreakStart(new OnBlockBreakStartEvent(world, player, x, y, z));
@@ -148,10 +167,19 @@ public class ServerPlayerInteractionManager
 
     public bool tryBreakBlock(int x, int y, int z)
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         int blockId = world.Reader.GetBlockId(x, y, z);
         int blockMeta = world.Reader.GetBlockMeta(x, y, z);
         world.Broadcaster.WorldEvent(player, 2001, x, y, z, blockId + world.Reader.GetBlockMeta(x, y, z) * 256);
         bool success = finishMining(x, y, z);
+        if (player.capabilities.isCreativeMode)
+        {
+            return success;
+        }
 
         if (success && player.canHarvest(Block.Blocks[blockId]))
         {
@@ -175,6 +203,24 @@ public class ServerPlayerInteractionManager
 
     public bool interactItem(EntityPlayer player, IWorldContext world, ItemStack stack)
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
+        if (player.capabilities.isCreativeMode)
+        {
+            int creativeCount = stack.count;
+            int creativeDamage = stack.getDamage();
+            ItemStack creativeResult = stack.use(world, player);
+            ItemStack resultStack = creativeResult ?? stack;
+            resultStack.count = creativeCount;
+            resultStack.setDamage(creativeDamage);
+            player.inventory.main[player.inventory.selectedSlot] = resultStack;
+            miningProgress = -1;
+            return true;
+        }
+
         int count = stack.count;
         ItemStack itemStack = stack.use(world, player);
         if (itemStack != stack || itemStack != null && itemStack.count != count)
@@ -197,6 +243,11 @@ public class ServerPlayerInteractionManager
 
     public bool interactBlock(EntityPlayer player, World world, ItemStack? stack, int x, int y, int z, int side)
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         if (!player.isSneaking()) {
             int blockId = world.Reader.GetBlockId(x, y, z);
             if (blockId > 0 && Block.Blocks[blockId].onUse(new OnUseEvent(world, player, x, y, z)))
@@ -207,6 +258,21 @@ public class ServerPlayerInteractionManager
         }
 
         if (stack == null) return false;
+        if (player.capabilities.isCreativeMode)
+        {
+            int count = stack.count;
+            int damage = stack.getDamage();
+            bool used = stack.useOnBlock(player, world, x, y, z, side);
+            stack.count = count;
+            stack.setDamage(damage);
+            if (used)
+            {
+                miningProgress = -1;
+            }
+
+            return used;
+        }
+
         if (stack.useOnBlock(player, world, x, y, z, side))
         {
             miningProgress = -1;

@@ -6,20 +6,27 @@ internal class InternalServerConfiguration : IServerConfiguration
     private string levelType;
     private string seed;
     private string levelOptions;
+    private int gameMode;
     private int viewDistance;
 
-    public InternalServerConfiguration(string levelName, string levelType, string seed, string levelOptions, int viewDistance)
+    public InternalServerConfiguration(string levelName, string levelType, string seed, string levelOptions, int gameMode, int viewDistance)
     {
         this.levelName = levelName;
         this.levelType = levelType;
         this.seed = seed;
         this.levelOptions = levelOptions;
+        this.gameMode = gameMode;
         this.viewDistance = viewDistance;
     }
 
     public void SetViewDistance(int distance)
     {
         viewDistance = distance;
+    }
+
+    public void SetGameMode(int gameMode)
+    {
+        this.gameMode = gameMode;
     }
 
     public bool GetAllowFlight(bool fallback)
@@ -69,11 +76,21 @@ internal class InternalServerConfiguration : IServerConfiguration
 
     public int GetProperty(string property, int fallback)
     {
+        if (property == "gamemode")
+        {
+            return gameMode;
+        }
+
         return -1;
     }
 
     public string GetProperty(string property, string fallback)
     {
+        if (property == "gamemode")
+        {
+            return global::BetaSharp.Worlds.Core.Systems.GameMode.GetName(gameMode);
+        }
+
         return string.Empty;
     }
 

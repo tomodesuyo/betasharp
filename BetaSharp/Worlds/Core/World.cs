@@ -271,6 +271,9 @@ public abstract class World : IWorldContext
 
     public void SaveWorldData()
     {
+        Properties.RulesTag = new NBTTagCompound();
+        Rules.WriteToNBT(Properties.RulesTag);
+        Storage.Save(Properties);
     }
 
     public int GetSpawnBlockId(int x, int z)
@@ -332,7 +335,6 @@ public abstract class World : IWorldContext
 
         Properties.RulesTag = new NBTTagCompound();
         Rules.WriteToNBT(Properties.RulesTag);
-
         Storage.Save(Properties, Entities.Players.ToList());
         Profiler.Stop("saveWorldInfoAndPlayer");
 

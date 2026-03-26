@@ -24,8 +24,24 @@ public class PlayerEntityRenderer : LivingEntityRenderer
         modelBipedMain = (ModelBiped)mainModel;
     }
 
+    private static void SetModelVisibility(ModelBiped model, bool spectator)
+    {
+        model.bipedHead.visible = true;
+        model.bipedHeadwear.visible = true;
+        model.bipedBody.visible = !spectator;
+        model.bipedRightArm.visible = !spectator;
+        model.bipedLeftArm.visible = !spectator;
+        model.bipedRightLeg.visible = !spectator;
+        model.bipedLeftLeg.visible = !spectator;
+    }
+
     protected bool setArmorModel(EntityPlayer var1, int var2, float var3)
     {
+        if (var1.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         ItemStack var4 = var1.inventory.armorItemInSlot(3 - var2);
         if (var4 != null)
         {
@@ -53,15 +69,35 @@ public class PlayerEntityRenderer : LivingEntityRenderer
     public void renderPlayer(EntityPlayer var1, double var2, double var4, double var6, float var8, float var9)
     {
         ItemStack var10 = var1.inventory.getSelectedItem();
-        modelArmorChestplate.field_1278_i = modelArmor.field_1278_i = modelBipedMain.field_1278_i = var10 != null;
+        bool spectator = var1.capabilities.IsSpectatorMode;
+        modelArmorChestplate.field_1278_i = modelArmor.field_1278_i = modelBipedMain.field_1278_i = !spectator && var10 != null;
         modelArmorChestplate.isSneak = modelArmor.isSneak = modelBipedMain.isSneak = var1.isSneaking();
+        SetModelVisibility(modelBipedMain, spectator);
+        SetModelVisibility(modelArmorChestplate, spectator);
+        SetModelVisibility(modelArmor, spectator);
         double var11 = var4 - var1.standingEyeHeight;
         if (var1.isSneaking() && var1 is not ClientPlayerEntity)
         {
             var11 -= 0.125D;
         }
 
+        if (spectator)
+        {
+            GLManager.GL.Enable(GLEnum.Blend);
+            GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 0.5F);
+        }
+
         base.doRenderLiving(var1, var2, var11, var6, var8, var9);
+        if (spectator)
+        {
+            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+            GLManager.GL.Disable(GLEnum.Blend);
+        }
+
+        SetModelVisibility(modelBipedMain, false);
+        SetModelVisibility(modelArmorChestplate, false);
+        SetModelVisibility(modelArmor, false);
         modelArmorChestplate.isSneak = modelArmor.isSneak = modelBipedMain.isSneak = false;
         modelArmorChestplate.field_1278_i = modelArmor.field_1278_i = modelBipedMain.field_1278_i = false;
     }
@@ -127,6 +163,11 @@ public class PlayerEntityRenderer : LivingEntityRenderer
 
     protected void renderSpecials(EntityPlayer var1, float var2)
     {
+        if (var1.capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
         ItemStack var3 = var1.inventory.armorItemInSlot(3);
         if (var3 != null && var3.getItem().id < 256)
         {

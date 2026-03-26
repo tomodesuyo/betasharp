@@ -78,6 +78,7 @@ internal class ServerCommandHandler
         Register(new SummonCommand());
         Register(new KillAllCommand());
         Register(new GameRuleCommand());
+        Register(new GameModeCommand());
         Register(new SeedCommand());
 
         // Chat commands

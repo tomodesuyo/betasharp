@@ -161,6 +161,10 @@ public class AssetManager
         defineAsset("gui/trap.png", AssetType.Binary);
         defineAsset("gui/unknown_pack.png", AssetType.Binary);
         defineAsset("gui/Pointer.png", AssetType.Binary);
+        defineAsset("gui/allitems.png", AssetType.Binary);
+        defineAsset("gui/creative_inv/list_items.png", AssetType.Binary);
+        defineAsset("gui/creative_inv/search.png", AssetType.Binary);
+        defineAsset("gui/creative_inv/survival_inv.png", AssetType.Binary);
 
         string[] controllerIcons = [
             "back_button", "back_button_pressed", "down_button", "down_button_pressed",

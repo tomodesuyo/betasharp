@@ -26,6 +26,8 @@ public class CameraController
     private float _prevCameraRoll;
     private readonly float _cameraRollAmount = 0.0F;
     private float _prevCameraRollAmount;
+    private float _prevFovModifier = 1.0F;
+    private float _fovModifier = 1.0F;
     private bool _isZoomHeld;
     private float _zoomScale = 2.0F;
     public double CameraZoom { get; private set; } = 1.0D;
@@ -47,6 +49,7 @@ public class CameraController
         _prevThirdPersonPitch = _thirdPersonPitch;
         _prevCameraRoll = _cameraRoll;
         _prevCameraRollAmount = _cameraRollAmount;
+        _prevFovModifier = _fovModifier;
 
         _game.camera ??= _game.player;
 
@@ -54,6 +57,24 @@ public class CameraController
         float renderDistFactor = System.Math.Clamp((_game.options.renderDistance - 4.0F) / 28.0F, 0.0F, 1.0F);
         float targetBob = luminance * (1.0F - renderDistFactor) + renderDistFactor;
         ViewBob += (targetBob - ViewBob) * 0.1F;
+
+        EntityPlayer? player = _game.player;
+        float targetFovModifier = 1.0F;
+        if (player != null)
+        {
+            if (player.capabilities.isFlying)
+            {
+                targetFovModifier *= 1.1F;
+            }
+
+            if (player.isSprinting())
+            {
+                targetFovModifier *= 1.1F;
+            }
+        }
+
+        targetFovModifier = System.Math.Clamp(targetFovModifier, 0.1F, 1.5F);
+        _fovModifier += (targetFovModifier - _fovModifier) * 0.5F;
     }
 
     public void SetZoomState(bool isHeld, float zoomScale)
@@ -67,6 +88,12 @@ public class CameraController
     {
         EntityLiving cameraEntity = _game.camera;
         float fov = isHand ? 70.0F : (30.0F + _game.options.Fov * 90.0F);
+        float fovModifier = _prevFovModifier + (_fovModifier - _prevFovModifier) * tickDelta;
+
+        if (!isHand)
+        {
+            fov *= fovModifier;
+        }
 
         if (cameraEntity.isInFluid(Material.Water))
         {

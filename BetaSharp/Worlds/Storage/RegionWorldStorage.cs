@@ -163,6 +163,7 @@ internal class RegionWorldStorage : IWorldStorage, IPlayerStorage
 
     public void Save(WorldProperties properties)
     {
+        properties.SaveVersion = 19132;
         NBTTagCompound dataTag = properties.getNBTTagCompound();
         NBTTagCompound rootTag = new();
         rootTag.SetTag("Data", dataTag);

@@ -14,6 +14,7 @@ namespace BetaSharp.Entities;
 
 public abstract class EntityPlayer : EntityLiving
 {
+    public PlayerCapabilities capabilities = new PlayerCapabilities();
     public InventoryPlayer inventory;
     public ScreenHandler playerScreenHandler;
     public ScreenHandler currentScreenHandler;
@@ -44,6 +45,7 @@ public abstract class EntityPlayer : EntityLiving
     protected bool inTeleportationState;
     public float changeDimensionCooldown;
     public float lastScreenDistortion;
+    protected int flyToggleTimer;
     private int damageSpill;
     public EntityFish fishHook = null;
 
@@ -120,7 +122,12 @@ public abstract class EntityPlayer : EntityLiving
     /// </remarks>
     protected void GenericTick()
     {
+        noClip = capabilities.IsSpectatorMode;
         base.tick();
+        if (capabilities.IsCreativeMode && fireTicks != 0)
+        {
+            fireTicks = 0;
+        }
 
         prevCapeX = capeX;
         prevCapeY = capeY;
@@ -172,6 +179,16 @@ public abstract class EntityPlayer : EntityLiving
     protected override bool isMovementBlocked()
     {
         return health <= 0 || isSleeping();
+    }
+
+    public override bool isCollidable()
+    {
+        return !capabilities.IsSpectatorMode && base.isCollidable();
+    }
+
+    public override bool isPushable()
+    {
+        return !capabilities.IsSpectatorMode && base.isPushable();
     }
 
     public virtual void closeHandledScreen()
@@ -234,6 +251,11 @@ public abstract class EntityPlayer : EntityLiving
         if (world.Difficulty == 0 && health < 20 && age % 20 * 12 == 0)
         {
             heal(1);
+        }
+
+        if (flyToggleTimer > 0)
+        {
+            --flyToggleTimer;
         }
 
         inventory.inventoryTick();
@@ -413,6 +435,12 @@ public abstract class EntityPlayer : EntityLiving
         {
             playerSpawnCoordinate = new Vec3i(nbt.GetInteger("SpawnX"), nbt.GetInteger("SpawnY"), nbt.GetInteger("SpawnZ"));
         }
+
+        capabilities.readCapabilitiesFromNBT(nbt);
+        if (nbt.HasKey("playerGameType"))
+        {
+            capabilities.SetGameMode(nbt.GetInteger("playerGameType"));
+        }
     }
 
     public override void writeNbt(NBTTagCompound nbt)
@@ -428,6 +456,9 @@ public abstract class EntityPlayer : EntityLiving
             nbt.SetInteger("SpawnY", y);
             nbt.SetInteger("SpawnZ", z);
         }
+
+        capabilities.writeCapabilitiesToNBT(nbt);
+        nbt.SetInteger("playerGameType", capabilities.gameMode);
     }
 
     public virtual void openChestScreen(IInventory inventory)
@@ -454,6 +485,11 @@ public abstract class EntityPlayer : EntityLiving
 
     public override bool damage(Entity damageSource, int amount)
     {
+        if (capabilities.disableDamage || capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         entityAge = 0;
         if (health <= 0)
         {
@@ -875,6 +911,19 @@ public abstract class EntityPlayer : EntityLiving
     {
     }
 
+    public bool IsIgnoredByMonsters => capabilities.IsSpectatorMode || capabilities.IsCreativeMode;
+
+    public void ResetMotionForSpectatorTransition()
+    {
+        velocityX = 0.0D;
+        velocityY = 0.0D;
+        velocityZ = 0.0D;
+        fallDistance = 0.0F;
+        cameraOffset = 0.0F;
+        setSprinting(false);
+        noClip = true;
+    }
+
     protected override void jump()
     {
         base.jump();
@@ -886,8 +935,43 @@ public abstract class EntityPlayer : EntityLiving
         double var3 = base.x;
         double var5 = y;
         double var7 = base.z;
-        base.travel(x, z);
+        if (capabilities.isFlying && vehicle == null)
+        {
+            double verticalVelocity = velocityY;
+            base.travel(x, z);
+            velocityY = verticalVelocity * 0.6D;
+        }
+        else
+        {
+            base.travel(x, z);
+        }
+
         updateMovementStat(base.x - var3, y - var5, base.z - var7);
+    }
+
+    protected override float getAirMovementSpeed()
+    {
+        if (capabilities.isFlying && vehicle == null)
+        {
+            return capabilities.GetFlySpeed() * (isSprinting() ? 2.0F : 1.0F);
+        }
+
+        return base.getAirMovementSpeed();
+    }
+
+    protected override float getGroundMovementSpeed()
+    {
+        if (capabilities.isFlying && vehicle == null)
+        {
+            return getAirMovementSpeed();
+        }
+
+        return isSprinting() ? 0.13F : base.getGroundMovementSpeed();
+    }
+
+    protected override bool ignoresFluidMovementSlowdown()
+    {
+        return capabilities.allowFlying && capabilities.isFlying && vehicle == null;
     }
 
     private void updateMovementStat(double x, double y, double z)
@@ -976,6 +1060,11 @@ public abstract class EntityPlayer : EntityLiving
 
     protected override void onLanding(float fallDistance)
     {
+        if (capabilities.allowFlying)
+        {
+            return;
+        }
+
         if (fallDistance >= 2.0F)
         {
             increaseStat(Stats.Stats.DistanceFallenStat, (int)MathHelper.Round((double)fallDistance * 100.0D));
@@ -1005,6 +1094,12 @@ public abstract class EntityPlayer : EntityLiving
 
     public override void tickPortalCooldown()
     {
+        if (portalCooldown > 0)
+        {
+            portalCooldown = 10;
+            return;
+        }
+
         if (portalCooldown <= 0)
         {
             inTeleportationState = true;

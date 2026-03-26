@@ -147,7 +147,7 @@ public abstract class GuiContainer : GuiScreen
         s_itemRenderer.renderItemOverlayIntoGUI(FontRenderer, Game.textureManager, item, x, y);
     }
 
-    private Slot? GetSlotAtPosition(int mouseX, int mouseY)
+    protected Slot? GetSlotAtPosition(int mouseX, int mouseY)
     {
         for (int i = 0; i < InventorySlots.Slots.Count; ++i)
         {
@@ -161,7 +161,7 @@ public abstract class GuiContainer : GuiScreen
         return null;
     }
 
-    private bool GetIsMouseOverSlot(Slot slot, int mouseX, int mouseY)
+    protected bool GetIsMouseOverSlot(Slot slot, int mouseX, int mouseY)
     {
         int guiLeft = (Width - _xSize) / 2;
         int guiTop = (Height - _ySize) / 2;

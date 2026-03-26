@@ -50,6 +50,34 @@ public class WorldProperties
         {
             GeneratorOptions = nbt.GetString("generatorOptions");
         }
+
+        if (nbt.HasKey("GameType"))
+        {
+            GameType = nbt.GetInteger("GameType");
+        }
+        else if (PlayerTag != null)
+        {
+            if (PlayerTag.HasKey("playerGameType"))
+            {
+                GameType = PlayerTag.GetInteger("playerGameType");
+            }
+            else
+            {
+                NBTTagCompound abilitiesTag = PlayerTag.GetCompoundTag("abilities");
+                if (abilitiesTag != null && abilitiesTag.GetBoolean("instabuild"))
+                {
+                    GameType = GameMode.Creative;
+                }
+                else if (abilitiesTag != null && abilitiesTag.GetBoolean("invulnerable") && abilitiesTag.GetBoolean("mayfly"))
+                {
+                    GameType = GameMode.Spectator;
+                }
+                else
+                {
+                    GameType = GameMode.Survival;
+                }
+            }
+        }
     }
 
     public WorldProperties(long randomSeed, string levelName)
@@ -65,6 +93,7 @@ public class WorldProperties
         LevelName = levelName;
         TerrainType = settings.TerrainType;
         GeneratorOptions = settings.GeneratorOptions;
+        GameType = settings.GameType;
     }
 
     public WorldProperties(WorldProperties WorldProp)
@@ -87,6 +116,7 @@ public class WorldProperties
         ThunderTime = WorldProp.ThunderTime;
         IsThundering = WorldProp.IsThundering;
         GeneratorOptions = WorldProp.GeneratorOptions;
+        GameType = WorldProp.GameType;
     }
 
     public virtual long RandomSeed { get; }
@@ -107,6 +137,9 @@ public class WorldProperties
     public virtual bool IsThundering { get; set; }
     public virtual int ThunderTime { get; set; }
     public virtual string GeneratorOptions { get; set; } = "";
+    public virtual int GameType { get; set; }
+    public bool IsCreativeMode => GameMode.IsCreative(GameType);
+    public bool IsSpectatorMode => GameMode.IsSpectator(GameType);
 
     public NBTTagCompound getNBTTagCompound()
     {
@@ -159,6 +192,8 @@ public class WorldProperties
             worldNbt.SetString("generatorName", TerrainType.Name);
             worldNbt.SetString("generatorOptions", GeneratorOptions);
         }
+
+        worldNbt.SetInteger("GameType", GameType);
 
         if (playerNbt != null)
         {

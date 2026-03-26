@@ -55,9 +55,12 @@ public enum PacketId : byte
     InventoryS2C = 104,
     ScreenHandlerPropertyUpdateS2C = 105,
     ScreenHandlerAcknowledgement = 106,
+    CreativeInventoryActionC2S = 107,
     UpdateSign = 130,
     MapUpdateS2C = 131,
     PlayerConnectionUpdateS2C = 132,
+    PlayerCapabilitiesS2C = 133,
     IncreaseStatS2C = 200,
+    PlayerCapabilitiesC2S = 202,
     Disconnect = 255,
 }

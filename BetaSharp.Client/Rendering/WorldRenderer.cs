@@ -243,6 +243,11 @@ public class WorldRenderer : IWorldEventListener
                         continue;
                     }
                 }
+                if (_game.IsSpectatingEntity() && ReferenceEquals(var7, _game.player))
+                {
+                    continue;
+                }
+
                 if (var7.shouldRender(var1) && (var7.ignoreFrustumCheck || culler.isBoundingBoxInFrustum(var7.boundingBox)) && (var7 != _game.camera || _game.options.CameraMode != EnumCameraMode.FirstPerson || _game.camera.isSleeping()))
                 {
                     int var8 = MathHelper.Floor(var7.y);

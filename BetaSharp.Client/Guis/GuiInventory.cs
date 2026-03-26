@@ -20,12 +20,27 @@ public class GuiInventory : GuiContainer
 
     public override void InitGui()
     {
+        if (Game.playerController.isInCreativeMode())
+        {
+            Game.displayGuiScreen(new GuiContainerCreative(Game.player));
+            return;
+        }
+
         _controlList.Clear();
+    }
+
+    public override void UpdateScreen()
+    {
+        base.UpdateScreen();
+        if (Game.playerController.isInCreativeMode())
+        {
+            Game.displayGuiScreen(new GuiContainerCreative(Game.player));
+        }
     }
 
     protected override void DrawGuiContainerForegroundLayer()
     {
-        FontRenderer.DrawString("Crafting", 86, 16, Color.Gray40);
+        FontRenderer.DrawString(TranslationStorage.Instance.TranslateKey("container.crafting"), 86, 16, Color.Gray40);
     }
 
     public override void Render(int mouseX, int mouseY, float partialTicks)
@@ -45,39 +60,40 @@ public class GuiInventory : GuiContainer
         int guiTop = (Height - _ySize) / 2;
 
         DrawTexturedModalRect(guiLeft, guiTop, 0, 0, _xSize, _ySize);
+        DrawPlayerOnGui(Game, guiLeft + 51, guiTop + 75, 30, guiLeft + 51 - _mouseX, guiTop + 25 - _mouseY);
+    }
+
+    public static void DrawPlayerOnGui(BetaSharp game, int x, int y, int scale, float lookX, float lookY)
+    {
         GLManager.GL.Enable(GLEnum.RescaleNormal);
         GLManager.GL.Enable(GLEnum.ColorMaterial);
         GLManager.GL.PushMatrix();
-        GLManager.GL.Translate(guiLeft + 51, guiTop + 75, 50.0F);
-
-        float scale = 30.0F;
+        GLManager.GL.Translate(x, y, 50.0F);
         GLManager.GL.Scale(-scale, scale, scale);
         GLManager.GL.Rotate(180.0F, 0.0F, 0.0F, 1.0F);
 
-        float bodyYaw = Game.player.bodyYaw;
-        float headYaw = Game.player.yaw;
-        float headPitch = Game.player.pitch;
-        float lookX = guiLeft + 51 - _mouseX;
-        float lookY = guiTop + 75 - 50 - _mouseY;
+        float bodyYaw = game.player.bodyYaw;
+        float headYaw = game.player.yaw;
+        float headPitch = game.player.pitch;
 
         GLManager.GL.Rotate(135.0F, 0.0F, 1.0F, 0.0F);
         Lighting.turnOn();
         GLManager.GL.Rotate(-135.0F, 0.0F, 1.0F, 0.0F);
         GLManager.GL.Rotate(-(float)Math.Atan(lookY / 40.0F) * 20.0F, 1.0F, 0.0F, 0.0F);
 
-        Game.player.bodyYaw = (float)Math.Atan(lookX / 40.0F) * 20.0F;
-        Game.player.yaw = (float)Math.Atan(lookX / 40.0F) * 40.0F;
-        Game.player.pitch = -(float)Math.Atan(lookY / 40.0F) * 20.0F;
-        Game.player.minBrightness = 1.0F;
+        game.player.bodyYaw = (float)Math.Atan(lookX / 40.0F) * 20.0F;
+        game.player.yaw = (float)Math.Atan(lookX / 40.0F) * 40.0F;
+        game.player.pitch = -(float)Math.Atan(lookY / 40.0F) * 20.0F;
+        game.player.minBrightness = 1.0F;
 
-        GLManager.GL.Translate(0.0F, Game.player.standingEyeHeight, 0.0F);
+        GLManager.GL.Translate(0.0F, game.player.standingEyeHeight, 0.0F);
         EntityRenderDispatcher.instance.playerViewY = 180.0F;
-        EntityRenderDispatcher.instance.renderEntityWithPosYaw(Game.player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+        EntityRenderDispatcher.instance.renderEntityWithPosYaw(game.player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
 
-        Game.player.minBrightness = 0.0F;
-        Game.player.bodyYaw = bodyYaw;
-        Game.player.yaw = headYaw;
-        Game.player.pitch = headPitch;
+        game.player.minBrightness = 0.0F;
+        game.player.bodyYaw = bodyYaw;
+        game.player.yaw = headYaw;
+        game.player.pitch = headPitch;
 
         GLManager.GL.PopMatrix();
         Lighting.turnOff();

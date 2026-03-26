@@ -32,6 +32,11 @@ public abstract class EntityCreature : EntityLiving
                 pathToEntity = world.Pathing.findPath(this, playerToAttack, range);
             }
         }
+        else if (playerToAttack is EntityPlayer player && player.IsIgnoredByMonsters)
+        {
+            playerToAttack = null;
+            pathToEntity = null;
+        }
         else if (!playerToAttack.isAlive())
         {
             playerToAttack = null;

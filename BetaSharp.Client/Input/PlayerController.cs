@@ -61,6 +61,11 @@ public class PlayerController
 
     public virtual bool sendUseItem(EntityPlayer var1, World var2, ItemStack var3)
     {
+        if (var1.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         int var4 = var3.count;
         ItemStack var5 = var3.use(var2, var1);
         if (var5 != var3 || var5 != null && var5.count != var4)
@@ -92,6 +97,26 @@ public class PlayerController
         return true;
     }
 
+    public virtual bool isInCreativeMode()
+    {
+        return false;
+    }
+
+    public virtual int getGameMode()
+    {
+        return GameMode.Survival;
+    }
+
+    public virtual bool isSpectatorMode()
+    {
+        return getGameMode() == GameMode.Spectator;
+    }
+
+    public virtual bool extendedReach()
+    {
+        return false;
+    }
+
     public virtual void fillHotbar(EntityPlayer var1)
     {
     }
@@ -106,6 +131,11 @@ public class PlayerController
         int blockSide
     )
     {
+        if (player.capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
         int targetId = world.Reader.GetBlockId(blockX, blockY, blockZ);
 
         if (targetId > 0 && !player.isSneaking())
@@ -126,11 +156,21 @@ public class PlayerController
 
     public virtual void interactWithEntity(EntityPlayer var1, Entity var2)
     {
+        if (var1.capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
         var1.interact(var2);
     }
 
     public virtual void attackEntity(EntityPlayer var1, Entity var2)
     {
+        if (var1.capabilities.IsSpectatorMode)
+        {
+            return;
+        }
+
         var1.attack(var2);
     }
 

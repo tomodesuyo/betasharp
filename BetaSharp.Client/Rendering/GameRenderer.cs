@@ -195,13 +195,18 @@ public class GameRenderer
             cameraController.ApplyViewBobbing(tickDelta);
         }
 
-        if (_client.options.CameraMode == EnumCameraMode.FirstPerson && !_client.camera.isSleeping() && !_client.options.HideGUI)
+        if (_client.options.CameraMode == EnumCameraMode.FirstPerson
+            && !_client.camera.isSleeping()
+            && !_client.options.HideGUI
+            && !_client.player.capabilities.IsSpectatorMode)
         {
             itemRenderer.renderItemInFirstPerson(tickDelta);
         }
 
         GLManager.GL.PopMatrix();
-        if (_client.options.CameraMode == EnumCameraMode.FirstPerson && !_client.camera.isSleeping())
+        if (_client.options.CameraMode == EnumCameraMode.FirstPerson
+            && !_client.camera.isSleeping()
+            && !_client.player.capabilities.IsSpectatorMode)
         {
             itemRenderer.renderOverlays(tickDelta);
             cameraController.ApplyDamageTiltEffect(tickDelta);

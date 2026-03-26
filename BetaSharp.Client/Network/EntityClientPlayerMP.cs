@@ -23,6 +23,7 @@ public class EntityClientPlayerMP : ClientPlayerEntity
     private float oldRotationPitch;
     private bool lastOnGround;
     private bool wasSneaking;
+    private bool wasSprinting;
 
     public EntityClientPlayerMP(BetaSharp game, World world, Session session, ClientNetworkHandler clientNetworkHandler) : base(game, world, session, 0)
     {
@@ -68,6 +69,13 @@ public class EntityClientPlayerMP : ClientPlayerEntity
             }
 
             wasSneaking = isSneaking;
+        }
+
+        bool isSprinting = base.isSprinting();
+        if (isSprinting != wasSprinting)
+        {
+            sendQueue.addToSendQueue(ClientCommandC2SPacket.Get(this, isSprinting ? 4 : 5));
+            wasSprinting = isSprinting;
         }
 
         double dx = x - oldPosX;
@@ -158,6 +166,25 @@ public class EntityClientPlayerMP : ClientPlayerEntity
     {
         sendInventoryChanged();
         sendQueue.addToSendQueue(PlayerRespawnPacket.Get((sbyte)dimensionId));
+    }
+
+    public override void sendPlayerAbilities()
+    {
+        sendQueue.addToSendQueue(PlayerCapabilitiesC2SPacket.Get(capabilities));
+    }
+
+    public override void EnterSpectatorModeClient()
+    {
+        base.EnterSpectatorModeClient();
+        oldPosX = x;
+        lastSentMinY = boundingBox.MinY;
+        oldPosY = y;
+        oldPosZ = z;
+        oldRotationYaw = yaw;
+        oldRotationPitch = pitch;
+        lastOnGround = onGround;
+        wasSneaking = false;
+        wasSprinting = false;
     }
 
     protected override void applyDamage(int amount)

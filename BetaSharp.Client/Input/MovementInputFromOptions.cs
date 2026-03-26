@@ -47,6 +47,11 @@ public class MovementInputFromOptions : MovementInput
             var3 = 5;
         }
 
+        if (var1 == Keyboard.KEY_LCONTROL)
+        {
+            var3 = 6;
+        }
+
         if (var3 >= 0)
         {
             _movementKeyStates[var3] = var2;
@@ -91,6 +96,7 @@ public class MovementInputFromOptions : MovementInput
 
         jump = _movementKeyStates[4];
         sneak = _movementKeyStates[5] || ControllerManager.SneakToggle;
+        sprint = _movementKeyStates[6] || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
         if (sneak)
         {
             moveStrafe = (float)((double)moveStrafe * 0.3D);

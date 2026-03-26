@@ -130,6 +130,11 @@ public class EntityItem : Entity
     {
         if (!world.IsRemote)
         {
+            if (player.capabilities.IsSpectatorMode)
+            {
+                return;
+            }
+
             int pickedUpCount = stack.count;
             if (delayBeforeCanPickup == 0 && player.inventory.addItemStackToInventory(stack))
             {

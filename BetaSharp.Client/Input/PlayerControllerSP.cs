@@ -1,4 +1,5 @@
 using BetaSharp.Blocks;
+using BetaSharp.Client.Entities;
 using BetaSharp.Client.Sound;
 using BetaSharp.Entities;
 using BetaSharp.Items;
@@ -16,6 +17,7 @@ public class PlayerControllerSP : PlayerController
     private float prevBlockDamage;
     private float field_1069_h;
     private int blockHitWait;
+    private int currentGameMode = GameMode.Survival;
 
     public PlayerControllerSP(BetaSharp var1) : base(var1)
     {
@@ -29,6 +31,11 @@ public class PlayerControllerSP : PlayerController
 
     public override bool sendBlockRemoved(int x, int y, int z, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return false;
+        }
+
         int blockId = Game.world.Reader.GetBlockId(x, y, z);
         int var6 = Game.world.Reader.GetBlockMeta(x, y, z);
         bool var7 = base.sendBlockRemoved(x, y, z, var4);
@@ -54,6 +61,11 @@ public class PlayerControllerSP : PlayerController
 
     public override void clickBlock(int var1, int var2, int var3, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return;
+        }
+
         Game.world.ExtinguishFire(Game.player, var1, var2, var3, var4);
         int var5 = Game.world.Reader.GetBlockId(var1, var2, var3);
         if (var5 > 0 && curBlockDamage == 0.0F)
@@ -76,6 +88,11 @@ public class PlayerControllerSP : PlayerController
 
     public override void sendBlockRemoving(int var1, int var2, int var3, int var4)
     {
+        if (GameMode.IsSpectator(currentGameMode))
+        {
+            return;
+        }
+
         if (blockHitWait > 0)
         {
             --blockHitWait;
@@ -150,5 +167,34 @@ public class PlayerControllerSP : PlayerController
     {
         prevBlockDamage = curBlockDamage;
         Game.sndManager.PlayRandomMusicIfReady(DefaultMusicCategories.Game);
+    }
+
+    public override bool isInCreativeMode()
+    {
+        return GameMode.IsCreative(currentGameMode);
+    }
+
+    public override int getGameMode()
+    {
+        return currentGameMode;
+    }
+
+    public override bool shouldDrawHUD()
+    {
+        return !GameMode.IsSpectator(currentGameMode);
+    }
+
+    public void SetGameMode(int gameMode)
+    {
+        bool enteringSpectator = !GameMode.IsSpectator(currentGameMode) && GameMode.IsSpectator(gameMode);
+        currentGameMode = gameMode;
+        if (Game.player != null)
+        {
+            Game.player.capabilities.SetGameMode(gameMode);
+            if (enteringSpectator && Game.player is ClientPlayerEntity clientPlayer)
+            {
+                clientPlayer.EnterSpectatorModeClient();
+            }
+        }
     }
 }

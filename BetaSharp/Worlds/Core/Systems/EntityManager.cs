@@ -719,6 +719,33 @@ public class EntityManager
         return closestPlayer;
     }
 
+    public EntityPlayer? GetClosestAttackablePlayer(double x, double y, double z, double range)
+    {
+        double minDistanceSquared = -1.0D;
+        EntityPlayer? closestPlayer = null;
+
+        for (int i = 0; i < Players.Count; ++i)
+        {
+            EntityPlayer player = Players[i];
+            if (player.IsIgnoredByMonsters)
+            {
+                continue;
+            }
+
+            double distanceSquared = player.getSquaredDistance(x, y, z);
+            bool withinRange = range < 0.0D || distanceSquared < range * range;
+            bool isClosestSoFar = minDistanceSquared == -1.0D || distanceSquared < minDistanceSquared;
+
+            if (withinRange && isClosestSoFar)
+            {
+                minDistanceSquared = distanceSquared;
+                closestPlayer = player;
+            }
+        }
+
+        return closestPlayer;
+    }
+
     public EntityPlayer? GetPlayer(string name) => Players.FirstOrDefault(p => p.name == name);
 
     public Entity? GetEntityByID(int id) => _entitiesById.TryGetValue(id, out Entity? entity) ? entity : null;

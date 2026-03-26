@@ -832,6 +832,11 @@ public abstract class Entity
 
     public virtual void onCollision(Entity entity)
     {
+        if (noClip || entity.noClip)
+        {
+            return;
+        }
+
         if (entity.passenger != this && entity.vehicle != this)
         {
             double var2 = entity.x - x;
@@ -1306,9 +1311,19 @@ public abstract class Entity
         return GetFlag(1);
     }
 
+    public virtual bool isSprinting()
+    {
+        return GetFlag(3);
+    }
+
     public void setSneaking(bool sneaking)
     {
         SetFlag(1, sneaking);
+    }
+
+    public void setSprinting(bool sprinting)
+    {
+        SetFlag(3, sprinting);
     }
 
     protected bool GetFlag(int index)
