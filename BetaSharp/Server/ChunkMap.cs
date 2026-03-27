@@ -362,7 +362,7 @@ internal class ChunkMap
 
             foreach (var player in _players)
             {
-                player.PendingChunkUpdates.Enqueue(_chunkPos);
+                player.ScheduleChunkSend(_chunkPos);
             }
         }
 
@@ -389,6 +389,7 @@ internal class ChunkMap
                     player.networkHandler.sendPacket(ChunkStatusUpdateS2CPacket.Get(_chunkPos.X, _chunkPos.Z, false));
                 }
 
+                player.ChunksTerrainSentToClient.Remove(_chunkPos);
                 player.CancelChunkSend(_chunkPos);
             }
         }

@@ -451,12 +451,17 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             return;
         }
 
-        if (packet.slot is < 36 or >= 45)
+        if (packet.slot is < 5 or >= 45)
         {
             return;
         }
 
-        int inventorySlot = packet.slot - 36;
+        int inventorySlot = packet.slot switch
+        {
+            >= 36 and < 45 => packet.slot - 36,
+            >= 9 and < 36 => packet.slot,
+            _ => 44 - packet.slot
+        };
         player.inventory.setStack(inventorySlot, packet.stack?.copy());
         player.currentScreenHandler.SendContentUpdates();
     }

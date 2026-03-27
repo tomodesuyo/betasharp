@@ -27,10 +27,10 @@ public class CreativeScreenHandler : ScreenHandler
         _playerInventory = inventoryPlayer;
         PopulateAllStacks();
 
-        SetTab(CreativeInventoryTab.All);
+        SetTab(CreativeInventoryTab.BuildingBlocks);
     }
 
-    public CreativeInventoryTab CurrentTab { get; private set; } = CreativeInventoryTab.All;
+    public CreativeInventoryTab CurrentTab { get; private set; } = CreativeInventoryTab.BuildingBlocks;
 
     public override bool canUse(EntityPlayer player)
     {
@@ -99,7 +99,7 @@ public class CreativeScreenHandler : ScreenHandler
 
     public bool NeedsScrollBar()
     {
-        return CurrentTab != CreativeInventoryTab.Inventory && GetScrollableRowCount() > 0;
+        return CurrentTab.HasScrollbar && GetScrollableRowCount() > 0;
     }
 
     private void RebuildVisibleStacks()
@@ -157,19 +157,21 @@ public class CreativeScreenHandler : ScreenHandler
     {
         PlayerScreenHandler playerScreenHandler = (PlayerScreenHandler)_playerInventory.player.playerScreenHandler;
 
-        AddSlot(new CraftingResultSlot(_playerInventory.player, playerScreenHandler.craftingInput, playerScreenHandler.craftingResult, 0, 144, 36));
+        AddSlot(new CraftingResultSlot(_playerInventory.player, playerScreenHandler.craftingInput, playerScreenHandler.craftingResult, 0, -2000, -2000));
 
         for (int row = 0; row < 2; ++row)
         {
             for (int column = 0; column < 2; ++column)
             {
-                AddSlot(new Slot(playerScreenHandler.craftingInput, column + row * 2, 88 + column * 18, 26 + row * 18));
+                AddSlot(new Slot(playerScreenHandler.craftingInput, column + row * 2, -2000, -2000));
             }
         }
 
         for (int armorSlot = 0; armorSlot < 4; ++armorSlot)
         {
-            AddSlot(new SlotArmor(playerScreenHandler, _playerInventory, _playerInventory.size() - 1 - armorSlot, 8, 6 + armorSlot * 27, armorSlot));
+            int column = armorSlot / 2;
+            int row = armorSlot % 2;
+            AddSlot(new SlotArmor(playerScreenHandler, _playerInventory, _playerInventory.size() - 1 - armorSlot, 9 + column * 54, 6 + row * 27, armorSlot));
         }
 
         for (int slotIndex = 9; slotIndex < 36; ++slotIndex)
@@ -190,19 +192,34 @@ public class CreativeScreenHandler : ScreenHandler
 
     private bool MatchesCurrentTab(ItemStack stack)
     {
-        if (CurrentTab == CreativeInventoryTab.All || CurrentTab == CreativeInventoryTab.Search)
+        if (CurrentTab == CreativeInventoryTab.Search)
         {
             return true;
         }
 
-        if (CurrentTab == CreativeInventoryTab.Blocks)
+        if (CurrentTab == CreativeInventoryTab.BuildingBlocks)
         {
-            return stack.itemId < 256;
+            return IsBuildingBlock(stack);
         }
 
-        if (stack.itemId < 256)
+        if (CurrentTab == CreativeInventoryTab.Decorations)
         {
-            return false;
+            return IsDecoration(stack);
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Redstone)
+        {
+            return IsRedstone(stack);
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Transportation)
+        {
+            return IsTransportation(stack);
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Misc)
+        {
+            return IsMisc(stack);
         }
 
         Item item = stack.getItem();
@@ -210,13 +227,9 @@ public class CreativeScreenHandler : ScreenHandler
         {
             return item is ItemTool
                    || item is ItemHoe
-                   || item is ItemBucket
                    || item is ItemFishingRod
                    || item is ItemShears
-                   || item == Item.FlintAndSteel
-                   || item == Item.Compass
-                   || item == Item.Clock
-                   || item == Item.Map;
+                   || item == Item.FlintAndSteel;
         }
 
         if (CurrentTab == CreativeInventoryTab.Combat)
@@ -224,28 +237,144 @@ public class CreativeScreenHandler : ScreenHandler
             return item is ItemSword
                    || item is ItemArmor
                    || item is ItemBow
-                   || item == Item.ARROW
-                   || item == Item.Snowball
-                   || item == Item.Egg;
+                   || item == Item.ARROW;
         }
 
         if (CurrentTab == CreativeInventoryTab.Food)
         {
-            return item is ItemFood
-                   || item == Item.Seeds
-                   || item == Item.Wheat
-                   || item == Item.Sugar
-                   || item == Item.Bowl
-                   || item == Item.MilkBucket
-                   || item == Item.Cake;
+            return item is ItemFood;
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Brewing)
+        {
+            return item == Item.GlowstoneDust;
         }
 
         if (CurrentTab == CreativeInventoryTab.Materials)
         {
-            return true;
+            return IsMaterial(stack);
         }
 
         return false;
+    }
+
+    private static bool IsBuildingBlock(ItemStack stack)
+    {
+        if (stack.itemId >= 256)
+        {
+            return false;
+        }
+
+        return !IsDecoration(stack) && !IsRedstone(stack) && !IsTransportation(stack);
+    }
+
+    private static bool IsDecoration(ItemStack stack)
+    {
+        return stack.itemId switch
+        {
+            var id when id == Block.Rose.id => true,
+            var id when id == Block.Dandelion.id => true,
+            var id when id == Block.Sapling.id => true,
+            var id when id == Block.Leaves.id => true,
+            var id when id == Block.Glass.id => true,
+            var id when id == Block.Torch.id => true,
+            var id when id == Block.Ladder.id => true,
+            var id when id == Block.CraftingTable.id => true,
+            var id when id == Block.Furnace.id => true,
+            var id when id == Block.Chest.id => true,
+            var id when id == Block.Jukebox.id => true,
+            var id when id == Block.Snow.id => true,
+            var id when id == Block.Cactus.id => true,
+            var id when id == Block.Pumpkin.id => true,
+            var id when id == Block.JackLantern.id => true,
+            _ => stack.itemId == Item.Sign.id
+                 || stack.itemId == Item.Painting.id
+                 || stack.itemId == Item.Bed.id
+        };
+    }
+
+    private static bool IsRedstone(ItemStack stack)
+    {
+        return stack.itemId switch
+        {
+            var id when id == Block.Dispenser.id => true,
+            var id when id == Block.Noteblock.id => true,
+            var id when id == Block.PoweredRail.id => true,
+            var id when id == Block.DetectorRail.id => true,
+            var id when id == Block.StickyPiston.id => true,
+            var id when id == Block.Piston.id => true,
+            var id when id == Block.TNT.id => true,
+            var id when id == Block.Lever.id => true,
+            var id when id == Block.StonePressurePlate.id => true,
+            var id when id == Block.WoodenPressurePlate.id => true,
+            var id when id == Block.RedstoneOre.id => true,
+            var id when id == Block.RedstoneTorch.id => true,
+            var id when id == Block.Button.id => true,
+            var id when id == Block.Repeater.id => true,
+            var id when id == Block.Trapdoor.id => true,
+            _ => stack.itemId == Item.Redstone.id
+                 || stack.itemId == Item.Repeater.id
+                 || stack.itemId == Item.WoodenDoor.id
+                 || stack.itemId == Item.IronDoor.id
+        };
+    }
+
+    private static bool IsTransportation(ItemStack stack)
+    {
+        return stack.itemId switch
+        {
+            var id when id == Block.Rail.id => true,
+            var id when id == Block.PoweredRail.id => true,
+            var id when id == Block.DetectorRail.id => true,
+            _ => stack.itemId == Item.Minecart.id
+                 || stack.itemId == Item.ChestMinecart.id
+                 || stack.itemId == Item.FurnaceMinecart.id
+                 || stack.itemId == Item.Boat.id
+                 || stack.itemId == Item.Saddle.id
+        };
+    }
+
+    private static bool IsMisc(ItemStack stack)
+    {
+        if (stack.itemId < 256)
+        {
+            return false;
+        }
+
+        return stack.itemId == Item.Bucket.id
+               || stack.itemId == Item.WaterBucket.id
+               || stack.itemId == Item.LavaBucket.id
+               || stack.itemId == Item.MilkBucket.id
+               || stack.itemId == Item.Compass.id
+               || stack.itemId == Item.Clock.id
+               || stack.itemId == Item.Map.id
+               || stack.itemId == Item.RecordThirteen.id
+               || stack.itemId == Item.RecordCat.id
+               || stack.itemId == Item.Snowball.id;
+    }
+
+    private static bool IsMaterial(ItemStack stack)
+    {
+        if (stack.itemId < 256)
+        {
+            return false;
+        }
+
+        Item item = stack.getItem();
+        return item is not ItemFood
+               && item is not ItemTool
+               && item is not ItemHoe
+               && item is not ItemSword
+               && item is not ItemArmor
+               && item is not ItemBow
+               && item is not ItemFishingRod
+               && item is not ItemShears
+               && item != Item.FlintAndSteel
+               && item != Item.GlowstoneDust
+               && !IsTransportation(stack)
+               && !IsRedstone(stack)
+               && !IsDecoration(stack)
+               && !IsMisc(stack);
     }
 
     private bool MatchesSearch(ItemStack stack)

@@ -121,8 +121,7 @@ public class GuiContainerCreative : GuiContainer
 
     protected override void DrawGuiContainerForegroundLayer()
     {
-        if (_creativeScreenHandler.CurrentTab != CreativeInventoryTab.Search
-            && _creativeScreenHandler.CurrentTab != CreativeInventoryTab.Inventory)
+        if (_creativeScreenHandler.CurrentTab.DrawTitle)
         {
             FontRenderer.DrawString(_creativeScreenHandler.CurrentTab.Label, 8, 6, Color.Gray40);
         }
@@ -277,7 +276,7 @@ public class GuiContainerCreative : GuiContainer
         bool selected = tab == _creativeScreenHandler.CurrentTab;
         int textureU = tab.Column * 28;
         int textureV = selected ? 32 : 0;
-        int x = GetTabLeft(tab);
+        int x = GetTabRenderLeft(tab);
         int y = GetTabTop(tab);
 
         if (!tab.IsTopRow)
@@ -315,6 +314,22 @@ public class GuiContainerCreative : GuiContainer
     }
 
     private int GetTabLeft(CreativeInventoryTab tab)
+    {
+        int guiLeft = (Width - _xSize) / 2;
+        int x = guiLeft + 28 * tab.Column;
+        if (tab.Column == 5)
+        {
+            x = guiLeft + _xSize - 28 + 2;
+        }
+        else if (tab.Column > 0)
+        {
+            x += tab.Column;
+        }
+
+        return x;
+    }
+
+    private int GetTabRenderLeft(CreativeInventoryTab tab)
     {
         int guiLeft = (Width - _xSize) / 2;
         int x = guiLeft + 28 * tab.Column;
@@ -395,14 +410,19 @@ public class GuiContainerCreative : GuiContainer
     }
     private void HandleInventoryTabClick(Slot slot, int button, InventoryPlayer playerInventory)
     {
+        bool isShiftDown = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+
         if (slot.id == 45)
         {
-            if (button == 1)
+            if (isShiftDown)
             {
-                for (int slotIndex = 0; slotIndex < 36; ++slotIndex)
+                for (int slotIndex = 0; slotIndex < playerInventory.size(); ++slotIndex)
                 {
                     playerInventory.setStack(slotIndex, null);
                 }
+
+                playerInventory.setItemStack(null);
+                SyncCreativeInventoryToServer(null, playerInventory);
             }
             else
             {
@@ -412,6 +432,46 @@ public class GuiContainerCreative : GuiContainer
             return;
         }
 
-        InventorySlots.onSlotClick(slot.id, button, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT), Game.player);
+        ItemStack?[] before = CaptureInventorySnapshot(playerInventory);
+        InventorySlots.onSlotClick(slot.id, button, isShiftDown, Game.player);
+        SyncCreativeInventoryToServer(before, playerInventory);
+    }
+
+    private static ItemStack?[] CaptureInventorySnapshot(InventoryPlayer playerInventory)
+    {
+        ItemStack?[] snapshot = new ItemStack?[playerInventory.size()];
+        for (int slotIndex = 0; slotIndex < snapshot.Length; ++slotIndex)
+        {
+            snapshot[slotIndex] = playerInventory.getStack(slotIndex)?.copy();
+        }
+
+        return snapshot;
+    }
+
+    private void SyncCreativeInventoryToServer(ItemStack?[]? before, InventoryPlayer playerInventory)
+    {
+        if (Game.playerController is not PlayerControllerMP playerControllerMp)
+        {
+            return;
+        }
+
+        for (int inventorySlot = 0; inventorySlot < playerInventory.size(); ++inventorySlot)
+        {
+            ItemStack? afterStack = playerInventory.getStack(inventorySlot);
+            ItemStack? beforeStack = before != null ? before[inventorySlot] : null;
+            if (before != null && ItemStack.areEqual(beforeStack, afterStack))
+            {
+                continue;
+            }
+
+            int creativeSlot = inventorySlot switch
+            {
+                >= 0 and < 9 => inventorySlot + 36,
+                >= 9 and < 36 => inventorySlot,
+                _ => 44 - inventorySlot
+            };
+
+            playerControllerMp.SendCreativeSlotAction(afterStack, creativeSlot);
+        }
     }
 }

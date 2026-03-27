@@ -303,6 +303,7 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
         int worldX = chunkPos.X * 16;
         int worldZ = chunkPos.Z * 16;
         networkHandler.sendPacket(ChunkDataS2CPacket.Get(worldX, 0, worldZ, 16, 128, 16, world));
+        ChunksTerrainSentToClient[chunkPos] = world.GetTime();
     }
 
     private void SendBlockEntityUpdates(IWorldContext world, ChunkPos chunkPos)
