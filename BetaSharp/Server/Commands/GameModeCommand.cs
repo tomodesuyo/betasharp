@@ -3,83 +3,93 @@ using BetaSharp.Network.Packets.S2CPlay;
 using BetaSharp.Server.Command;
 using BetaSharp.Server.Internal;
 using BetaSharp.Worlds.Core.Systems;
+using Microsoft.Extensions.Logging;
 
 namespace BetaSharp.Server.Commands;
 
 public class GameModeCommand : ICommand
 {
-    public string Usage => "gamemode <survival|creative|spectator|0|1|3> [player]";
-    public string Description => "Change a player's game mode";
+    private static readonly ILogger s_logger = Log.Instance.For(nameof(GameModeCommand));
+
+    // ReSharper disable once StringLiteralTypo
+    public string Usage => "gamemode <player> <mode>";
+    public string Description => "Broadcasts a message";
+
+    // ReSharper disable once StringLiteralTypo
     public string[] Names => ["gamemode", "gm"];
 
     public void Execute(ICommand.CommandContext c)
     {
-        if (c.Args.Length is < 1 or > 2)
+        if (c.Args.Length == 0)
         {
-            c.Output.SendMessage("Usage: gamemode <survival|creative|spectator|0|1|3> [player]");
+            var p = c.Server.playerManager.getPlayer(c.SenderName)!;
+            c.Output.SendMessage(p.GameMode.Name);
             return;
         }
 
-        int gameMode = c.Args[0].ToLowerInvariant() switch
+        if (c.Args.Length == 1)
         {
-            "0" or "s" or "survival" => GameMode.Survival,
-            "1" or "c" or "creative" => GameMode.Creative,
-            "3" or "sp" or "spectator" => GameMode.Spectator,
-            _ => -1
-        };
-        if (gameMode < 0)
-        {
-            c.Output.SendMessage("Unknown game mode. Use survival, creative, spectator, 0, 1, or 3.");
-            return;
-        }
-
-        string modeName = GameMode.GetName(gameMode);
-
-        ServerPlayerEntity? target = c.Args.Length == 2
-            ? c.Server.playerManager.getPlayer(c.Args[1])
-            : c.Server.playerManager.getPlayer(c.SenderName);
-
-        if (target == null)
-        {
-            c.Output.SendMessage(c.Args.Length == 2
-                ? "Can't find user " + c.Args[1] + "."
-                : "Could not find your player.");
-            return;
-        }
-
-        target.capabilities.SetGameMode(gameMode);
-        if (GameMode.IsSpectator(gameMode))
-        {
-            target.ResetMotionForSpectatorTransition();
-        }
-
-        target.networkHandler.sendPacket(PlayerCapabilitiesS2CPacket.Get(target.capabilities));
-
-        if (c.Server is InternalServer internalServer)
-        {
-            for (int i = 0; i < c.Server.worlds.Length; ++i)
-            {
-                if (c.Server.worlds[i] != null)
-                {
-                    c.Server.worlds[i].Properties.GameType = gameMode;
-                }
-            }
-
-            if (internalServer.config is InternalServerConfiguration configuration)
-            {
-                configuration.SetGameMode(gameMode);
-            }
-        }
-
-        if (!target.name.Equals(c.SenderName, StringComparison.OrdinalIgnoreCase))
-        {
-            c.LogOp("Set " + target.name + "'s game mode to " + modeName + ".");
-            c.Output.SendMessage("Set " + target.name + "'s game mode to " + modeName + ".");
+            var p = c.Server.playerManager.getPlayer(c.SenderName)!;
+            SetGameMode(p, c.Args[0], c);
         }
         else
         {
-            c.LogOp("Set own game mode to " + modeName + ".");
-            c.Output.SendMessage("Your game mode has been updated to " + modeName + ".");
+            var p = c.Server.playerManager.getPlayer(c.Args[1]);
+            if (p == null)
+            {
+                c.Output.SendMessage("Player not found.");
+                return;
+            }
+
+            SetGameMode(p, c.Args[1], c);
         }
+    }
+
+    private void SetGameMode(EntityPlayer p, string arg, ICommand.CommandContext c)
+    {
+        // mode by id
+        if (int.TryParse(arg, out int mode))
+        {
+            if (GameModes.TryGet(mode, out var gameMode))
+            {
+                SetGameMode(p, gameMode, c);
+            }
+            else
+            {
+                c.Output.SendMessage("Mode not found.");
+            }
+        }
+        // mode by letter
+        else if (arg.Length == 1)
+        {
+            if (GameModes.TryGet(arg[0], out var gameMode))
+            {
+                SetGameMode(p, gameMode, c);
+            }
+            else
+            {
+                c.Output.SendMessage("Mode not found.");
+            }
+        }
+        // mode by name
+        else
+        {
+            if (GameModes.TryGet(arg, out var gameMode))
+            {
+                SetGameMode(p, gameMode, c);
+            }
+            else
+            {
+                c.Output.SendMessage("Mode not found.");
+            }
+        }
+    }
+
+    private void SetGameMode(EntityPlayer p, GameMode gameMode, ICommand.CommandContext c)
+    {
+        p.GameMode = gameMode;
+        string s = $"{p.name} game mode set to {gameMode.Name}.";
+        s_logger.LogInformation(s);
+        c.Output.SendMessage(s);
     }
 }

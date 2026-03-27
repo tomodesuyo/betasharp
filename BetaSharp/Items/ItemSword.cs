@@ -32,9 +32,9 @@ internal class ItemSword : Item
             : 1.5F;
     }
 
-    public override bool postHit(ItemStack itemStack, EntityLiving a, EntityLiving b)
+    public override bool postHit(ItemStack itemStack, EntityLiving a, EntityPlayer entityPlayer)
     {
-        itemStack.damageItem(1, b);
+        itemStack.damageItem(1, entityPlayer);
         return true;
     }
 

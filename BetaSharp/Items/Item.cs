@@ -227,7 +227,7 @@ public class Item
         return maxDamage > 0 && !hasSubtypes;
     }
 
-    public virtual bool postHit(ItemStack itemStack, EntityLiving a, EntityLiving b)
+    public virtual bool postHit(ItemStack itemStack, EntityLiving entityLiving, EntityPlayer entityPlayer)
     {
         return false;
     }
@@ -247,7 +247,7 @@ public class Item
         return false;
     }
 
-    public virtual void useOnEntity(ItemStack itemStack, EntityLiving entityLiving)
+    public virtual void useOnEntity(ItemStack itemStack, EntityLiving entityLiving, EntityPlayer entityPlayer)
     {
     }
 

@@ -362,6 +362,7 @@ public class ClientPlayerEntity : EntityPlayer
         }
         else
         {
+            if (!GameMode.CanReceiveDamage) return;
             damageForDisplay = damageAmount;
             lastHealth = health;
             hearts = maxHealth;

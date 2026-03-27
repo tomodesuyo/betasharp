@@ -128,7 +128,7 @@ public class EntityItem : Entity
 
     public override void onPlayerInteraction(EntityPlayer player)
     {
-        if (!world.IsRemote)
+        if (!world.IsRemote && player.GameMode.CanPickup)
         {
             if (player.capabilities.IsSpectatorMode)
             {
