@@ -341,7 +341,8 @@ public class CreativeScreenHandler : ScreenHandler
             return false;
         }
 
-        return stack.itemId == Item.Bucket.id
+        return stack.itemId == Item.MonsterPlacer.id
+               || stack.itemId == Item.Bucket.id
                || stack.itemId == Item.WaterBucket.id
                || stack.itemId == Item.LavaBucket.id
                || stack.itemId == Item.MilkBucket.id
@@ -407,7 +408,17 @@ public class CreativeScreenHandler : ScreenHandler
             Item? item = Item.ITEMS[itemId];
             if (item != null)
             {
-                _allStacks.Add(new ItemStack(item));
+                if (item is ItemMonsterPlacer monsterPlacer)
+                {
+                    foreach (int entityId in monsterPlacer.GetSupportedEntityIds())
+                    {
+                        _allStacks.Add(new ItemStack(item.id, 1, entityId));
+                    }
+                }
+                else
+                {
+                    _allStacks.Add(new ItemStack(item));
+                }
             }
         }
 

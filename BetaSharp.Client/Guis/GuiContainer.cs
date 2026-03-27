@@ -81,7 +81,8 @@ public abstract class GuiContainer : GuiScreen
 
         if (playerInv.getCursorStack() == null && _hoveredSlot != null && _hoveredSlot.hasStack())
         {
-            string itemName = ("" + TranslationStorage.Instance.TranslateNamedKey(_hoveredSlot.getStack().getItemName())).Trim();
+            ItemStack? hoveredStack = _hoveredSlot.getStack();
+            string itemName = hoveredStack != null ? GetTooltipText(hoveredStack) : string.Empty;
             if (itemName.Length > 0)
             {
                 int tipX = mouseX - guiLeft + 12;
@@ -119,6 +120,29 @@ public abstract class GuiContainer : GuiScreen
 
         GLManager.GL.Enable(GLEnum.Lighting);
         GLManager.GL.Enable(GLEnum.DepthTest);
+    }
+
+    private static string GetTooltipText(ItemStack stack)
+    {
+        string? translationKey = stack.getItemName();
+        if (string.IsNullOrWhiteSpace(translationKey))
+        {
+            return string.Empty;
+        }
+
+        string translated = TranslationStorage.Instance.TranslateNamedKey(translationKey);
+        if (!string.IsNullOrWhiteSpace(translated) && translated != translationKey)
+        {
+            return translated.Trim();
+        }
+
+        string translatedName = TranslationStorage.Instance.TranslateNamedKey(translationKey + ".name");
+        if (!string.IsNullOrWhiteSpace(translatedName) && translatedName != translationKey + ".name")
+        {
+            return translatedName.Trim();
+        }
+
+        return translationKey;
     }
 
     protected virtual void DrawGuiContainerForegroundLayer() { }

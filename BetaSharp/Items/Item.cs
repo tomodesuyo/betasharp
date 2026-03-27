@@ -124,6 +124,7 @@ public class Item
     public static Item Cookie = (new ItemCookie(101, 1, false, 8)).setTexturePosition(12, 5).setItemName("cookie");
     public static ItemMap Map = (ItemMap)(new ItemMap(102)).setTexturePosition(12, 3).setItemName("map");
     public static ItemShears Shears = (ItemShears)(new ItemShears(103)).setTexturePosition(13, 5).setItemName("shears");
+    public static Item MonsterPlacer = new ItemMonsterPlacer(104);
     public static Item RecordThirteen = (new ItemRecord(2000, "13")).setTexturePosition(0, 15).setItemName("record");
     public static Item RecordCat = (new ItemRecord(2001, "cat")).setTexturePosition(1, 15).setItemName("record");
     public readonly int id;

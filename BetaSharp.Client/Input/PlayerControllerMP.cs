@@ -249,6 +249,11 @@ public class PlayerControllerMP : PlayerController
     {
         syncCurrentPlayItem();
         netClientHandler.addToSendQueue(PlayerInteractBlockC2SPacket.Get(blockX, blockY, blockZ, blockSide, player.inventory.getSelectedItem()));
+        if (selectedItem?.getItem() == Item.MonsterPlacer)
+        {
+            return true;
+        }
+
         bool placed;
         if (GameMode.IsSpectator(currentGameMode))
         {
@@ -280,6 +285,11 @@ public class PlayerControllerMP : PlayerController
 
         syncCurrentPlayItem();
         netClientHandler.addToSendQueue(PlayerInteractBlockC2SPacket.Get(-1, -1, -1, 255, var1.inventory.getSelectedItem()));
+        if (var3.getItem() == Item.MonsterPlacer)
+        {
+            return true;
+        }
+
         bool var4 = base.sendUseItem(var1, var2, var3);
         return var4;
     }
