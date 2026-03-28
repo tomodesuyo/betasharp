@@ -1,3 +1,4 @@
+using BetaSharp.Entities;
 using BetaSharp.Inventorys;
 using BetaSharp.Items;
 
@@ -25,6 +26,11 @@ public class Slot
     }
 
     public virtual bool canInsert(ItemStack stack)
+    {
+        return true;
+    }
+
+    public virtual bool canTake(EntityPlayer player)
     {
         return true;
     }

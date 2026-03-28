@@ -2,6 +2,7 @@ using BetaSharp.Blocks;
 using BetaSharp.Client.Entities;
 using BetaSharp.Entities;
 using BetaSharp.Items;
+using BetaSharp.Screens;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
 using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
@@ -178,7 +179,12 @@ public class PlayerController
 
     public virtual ItemStack func_27174_a(int var1, int var2, int var3, bool var4, EntityPlayer var5)
     {
-        return var5.currentScreenHandler.onSlotClick(var2, var3, var4, var5);
+        return func_27174_a(var1, var2, var3, var4 ? ScreenHandlerClickMode.QuickMove : ScreenHandlerClickMode.Pickup, var5);
+    }
+
+    public virtual ItemStack func_27174_a(int syncId, int slot, int button, int mode, EntityPlayer player)
+    {
+        return player.currentScreenHandler.onSlotClick(slot, button, mode, player);
     }
 
     public virtual void func_20086_a(int var1, EntityPlayer var2)

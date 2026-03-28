@@ -197,7 +197,7 @@ public abstract class GuiContainer : GuiScreen
     protected override void MouseClicked(int x, int y, int button)
     {
         base.MouseClicked(x, y, button);
-        if (button == 0 || button == 1)
+        if (button == 0 || button == 1 || button == 2)
         {
             Slot? slot = GetSlotAtPosition(x, y);
             int guiLeft = (Width - _xSize) / 2;
@@ -210,8 +210,12 @@ public abstract class GuiContainer : GuiScreen
             if (isOutside) slotId = -999;
             if (slotId != -1)
             {
-                bool isShiftClick = slotId != -999 && (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
-                Game.playerController.func_27174_a(InventorySlots.SyncId, slotId, button, isShiftClick, Game.player);
+                int clickMode = button == 2
+                    ? ScreenHandlerClickMode.Clone
+                    : slotId != -999 && (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+                        ? ScreenHandlerClickMode.QuickMove
+                        : ScreenHandlerClickMode.Pickup;
+                Game.playerController.func_27174_a(InventorySlots.SyncId, slotId, button, clickMode, Game.player);
             }
         }
     }
@@ -234,6 +238,30 @@ public abstract class GuiContainer : GuiScreen
         if (eventKey == Keyboard.KEY_ESCAPE || eventKey == Game.options.KeyBindInventory.keyCode)
         {
             Game.player.closeHandledScreen();
+            return;
+        }
+
+        if (_hoveredSlot == null)
+        {
+            return;
+        }
+
+        if (Game.player.inventory.getCursorStack() == null)
+        {
+            for (int hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot)
+            {
+                if (eventKey == Keyboard.KEY_1 + hotbarSlot)
+                {
+                    Game.playerController.func_27174_a(InventorySlots.SyncId, _hoveredSlot.id, hotbarSlot, ScreenHandlerClickMode.Swap, Game.player);
+                    return;
+                }
+            }
+        }
+
+        if (_hoveredSlot.hasStack() && eventKey == Game.options.KeyBindDrop.keyCode)
+        {
+            int button = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) ? 1 : 0;
+            Game.playerController.func_27174_a(InventorySlots.SyncId, _hoveredSlot.id, button, ScreenHandlerClickMode.Throw, Game.player);
         }
     }
 

@@ -5,6 +5,7 @@ using BetaSharp.Client.Sound;
 using BetaSharp.Entities;
 using BetaSharp.Items;
 using BetaSharp.Network.Packets.C2SPlay;
+using BetaSharp.Screens;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
 using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
@@ -318,10 +319,15 @@ public class PlayerControllerMP : PlayerController
 
     public override ItemStack func_27174_a(int var1, int var2, int var3, bool var4, EntityPlayer var5)
     {
-        short var6 = var5.currentScreenHandler.nextRevision(var5.inventory);
-        ItemStack var7 = base.func_27174_a(var1, var2, var3, var4, var5);
-        netClientHandler.addToSendQueue(ClickSlotC2SPacket.Get(var1, var2, var3, var4, var7, var6));
-        return var7;
+        return func_27174_a(var1, var2, var3, var4 ? ScreenHandlerClickMode.QuickMove : ScreenHandlerClickMode.Pickup, var5);
+    }
+
+    public override ItemStack func_27174_a(int syncId, int slot, int button, int mode, EntityPlayer player)
+    {
+        short revision = player.currentScreenHandler.nextRevision(player.inventory);
+        ItemStack clickedStack = base.func_27174_a(syncId, slot, button, mode, player);
+        netClientHandler.addToSendQueue(ClickSlotC2SPacket.Get(syncId, slot, button, mode, clickedStack, revision));
+        return clickedStack;
     }
 
     public override void func_20086_a(int var1, EntityPlayer var2)

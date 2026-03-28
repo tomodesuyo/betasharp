@@ -8,19 +8,19 @@ public class ClickSlotC2SPacket() : Packet(PacketId.ClickSlotC2S)
     public int syncId;
     public int slot;
     public int button;
+    public int mode;
     public short actionType;
     public ItemStack stack;
-    public bool holdingShift;
 
-    public static ClickSlotC2SPacket Get(int syncId, int slot, int button, bool holdingShift, ItemStack stack, short actionType)
+    public static ClickSlotC2SPacket Get(int syncId, int slot, int button, int mode, ItemStack stack, short actionType)
     {
         var p = Get<ClickSlotC2SPacket>(PacketId.ClickSlotC2S);
         p.syncId = syncId;
         p.slot = slot;
         p.button = button;
+        p.mode = mode;
         p.stack = stack;
         p.actionType = actionType;
-        p.holdingShift = holdingShift;
         return p;
     }
 
@@ -34,8 +34,8 @@ public class ClickSlotC2SPacket() : Packet(PacketId.ClickSlotC2S)
         syncId = (sbyte)stream.ReadByte();
         slot = stream.ReadShort();
         button = (sbyte)stream.ReadByte();
+        mode = (sbyte)stream.ReadByte();
         actionType = stream.ReadShort();
-        holdingShift = stream.ReadBoolean();
         short itemId = stream.ReadShort();
         if (itemId >= 0)
         {
@@ -55,8 +55,8 @@ public class ClickSlotC2SPacket() : Packet(PacketId.ClickSlotC2S)
         stream.WriteByte((byte)syncId);
         stream.WriteShort((short)slot);
         stream.WriteByte((byte)button);
+        stream.WriteByte((byte)mode);
         stream.WriteShort((short)actionType);
-        stream.WriteBoolean(holdingShift);
         if (stack == null)
         {
             stream.WriteShort((short)-1);
@@ -72,6 +72,6 @@ public class ClickSlotC2SPacket() : Packet(PacketId.ClickSlotC2S)
 
     public override int Size()
     {
-        return 11;
+        return 12;
     }
 }

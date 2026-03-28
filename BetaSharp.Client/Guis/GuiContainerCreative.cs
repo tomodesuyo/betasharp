@@ -161,6 +161,38 @@ public class GuiContainerCreative : GuiContainer
 
     protected override void KeyTyped(char eventChar, int eventKey)
     {
+        if (_creativeScreenHandler.CurrentTab != CreativeInventoryTab.Inventory && _hoveredSlot != null && _hoveredSlot.id < 45 && _hoveredSlot.hasStack())
+        {
+            ItemStack hoveredStack = _hoveredSlot.getStack();
+            for (int hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot)
+            {
+                if (eventKey == Keyboard.KEY_1 + hotbarSlot)
+                {
+                    ItemStack?[] before = CaptureInventorySnapshot(Game.player.inventory);
+                    ItemStack copiedStack = hoveredStack.copy();
+                    copiedStack.count = copiedStack.getMaxCount();
+                    Game.player.inventory.setStack(hotbarSlot, copiedStack);
+                    SyncCreativeInventoryToServer(before, Game.player.inventory);
+                    return;
+                }
+            }
+
+            if (eventKey == Game.options.KeyBindDrop.keyCode)
+            {
+                ItemStack droppedStack = hoveredStack.copy();
+                droppedStack.count = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)
+                    ? droppedStack.getMaxCount()
+                    : 1;
+                Game.player.dropItem(droppedStack);
+                if (Game.playerController is PlayerControllerMP playerControllerMp)
+                {
+                    playerControllerMp.SendCreativeDropAction(droppedStack.copy());
+                }
+
+                return;
+            }
+        }
+
         if (_creativeScreenHandler.CurrentTab == CreativeInventoryTab.Search
             && eventKey != Keyboard.KEY_ESCAPE
             && eventKey != Game.options.KeyBindInventory.keyCode)
@@ -433,7 +465,12 @@ public class GuiContainerCreative : GuiContainer
         }
 
         ItemStack?[] before = CaptureInventorySnapshot(playerInventory);
-        InventorySlots.onSlotClick(slot.id, button, isShiftDown, Game.player);
+        int clickMode = button == 2
+            ? ScreenHandlerClickMode.Clone
+            : isShiftDown
+                ? ScreenHandlerClickMode.QuickMove
+                : ScreenHandlerClickMode.Pickup;
+        InventorySlots.onSlotClick(slot.id, button, clickMode, Game.player);
         SyncCreativeInventoryToServer(before, playerInventory);
     }
 

@@ -143,7 +143,7 @@ public class CreativeScreenHandler : ScreenHandler
         {
             for (int column = 0; column < Columns; ++column)
             {
-                AddSlot(new Slot(_selectionInventory, column + row * Columns, 9 + column * 18, 18 + row * 18));
+                AddSlot(new CreativeSelectionSlot(_selectionInventory, column + row * Columns, 9 + column * 18, 18 + row * 18));
             }
         }
 

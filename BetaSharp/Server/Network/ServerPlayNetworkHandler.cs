@@ -628,7 +628,7 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
     {
         if (player.currentScreenHandler.SyncId == packet.syncId && player.currentScreenHandler.canOpen(player))
         {
-            ItemStack var2 = player.currentScreenHandler.onSlotClick(packet.slot, packet.button, packet.holdingShift, player);
+            ItemStack var2 = player.currentScreenHandler.onSlotClick(packet.slot, packet.button, packet.mode, player);
             if (ItemStack.areEqual(packet.stack, var2))
             {
                 player.networkHandler.sendPacket(ScreenHandlerAcknowledgementPacket.Get(packet.syncId, packet.actionType, true));

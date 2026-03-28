@@ -97,21 +97,52 @@ public abstract class ScreenHandler
 
     public ItemStack? onSlotClick(int index, int button, bool shift, EntityPlayer player)
     {
+        return onSlotClick(index, button, shift ? ScreenHandlerClickMode.QuickMove : ScreenHandlerClickMode.Pickup, player);
+    }
+
+    public virtual ItemStack? onSlotClick(int index, int button, int mode, EntityPlayer player)
+    {
         ItemStack? returnStack = null;
-        if (button == 0 || button == 1)
+
+        if (mode == ScreenHandlerClickMode.QuickMove)
         {
-            InventoryPlayer playerInventory = player.inventory;
+            if (index < 0 || index >= Slots.Count)
+            {
+                return null;
+            }
+
+            ItemStack? itemStack = quickMove(index);
+            if (itemStack is not null)
+            {
+                int itemStackSize = itemStack.count;
+                returnStack = itemStack.copy();
+                Slot slot = Slots[index];
+                if (slot.getStack() is not null)
+                {
+                    int slotItemStackSize = slot.getStack().count;
+                    if (slotItemStackSize < itemStackSize)
+                    {
+                        onSlotClick(index, button, ScreenHandlerClickMode.QuickMove, player);
+                    }
+                }
+            }
+
+            return returnStack;
+        }
+
+        InventoryPlayer playerInventory = player.inventory;
+        if (mode == ScreenHandlerClickMode.Pickup && (button == 0 || button == 1))
+        {
             if (index == -999)
             {
-                if (playerInventory.getCursorStack() is not null && index == -999)
+                if (playerInventory.getCursorStack() is not null)
                 {
                     if (button == 0)
                     {
                         player.dropItem(playerInventory.getCursorStack());
                         playerInventory.setItemStack(null);
                     }
-
-                    if (button == 1)
+                    else if (button == 1)
                     {
                         player.dropItem(playerInventory.getCursorStack().split(1));
                         if (playerInventory.getCursorStack().count == 0)
@@ -120,121 +151,171 @@ public abstract class ScreenHandler
                         }
                     }
                 }
+
+                return null;
             }
-            else
+
+            if (index < 0 || index >= Slots.Count)
             {
-                int slotItemStackSize;
-                if (shift)
+                return null;
+            }
+
+            Slot slot = Slots[index];
+            slot.markDirty();
+            ItemStack? slotStack = slot.getStack();
+            ItemStack? cursorStack = playerInventory.getCursorStack();
+            if (slotStack is not null)
+            {
+                returnStack = slotStack.copy();
+            }
+
+            if (slotStack is null)
+            {
+                if (cursorStack is not null && slot.canInsert(cursorStack))
                 {
-                    ItemStack? itemStack = quickMove(index);
-                    if (itemStack is not null)
+                    int slotItemStackSize = button == 0 ? cursorStack.count : 1;
+                    if (slotItemStackSize > slot.getMaxItemCount())
                     {
-                        int itemStackSize = itemStack.count;
-                        returnStack = itemStack.copy();
-                        Slot slot = Slots[index];
-                        if (slot is not null && slot.getStack() is not null)
-                        {
-                            slotItemStackSize = slot.getStack().count;
-                            if (slotItemStackSize < itemStackSize)
-                            {
-                                onSlotClick(index, button, shift, player);
-                            }
-                        }
+                        slotItemStackSize = slot.getMaxItemCount();
+                    }
+
+                    slot.setStack(cursorStack.split(slotItemStackSize));
+                    if (cursorStack.count == 0)
+                    {
+                        playerInventory.setItemStack(null);
+                    }
+                }
+            }
+            else if (cursorStack is null)
+            {
+                if (!slot.canTake(player))
+                {
+                    return returnStack;
+                }
+
+                int slotItemStackSize = button == 0 ? slotStack.count : (slotStack.count + 1) / 2;
+                ItemStack takenStack = slot.takeStack(slotItemStackSize);
+                playerInventory.setItemStack(takenStack);
+                if (slotStack.count == 0)
+                {
+                    slot.setStack(null);
+                }
+
+                slot.onTakeItem(playerInventory.getCursorStack());
+            }
+            else if (slot.canInsert(cursorStack))
+            {
+                if (slotStack.itemId != cursorStack.itemId || slotStack.getHasSubtypes() && slotStack.getDamage() != cursorStack.getDamage())
+                {
+                    if (cursorStack.count <= slot.getMaxItemCount())
+                    {
+                        slot.setStack(cursorStack);
+                        playerInventory.setItemStack(slotStack);
                     }
                 }
                 else
                 {
-                    Slot slot = Slots[index];
-                    if (slot is not null)
+                    int slotItemStackSize = button == 0 ? cursorStack.count : 1;
+                    if (slotItemStackSize > slot.getMaxItemCount() - slotStack.count)
                     {
-                        slot.markDirty();
-                        ItemStack slotStack = slot.getStack();
-                        ItemStack cursorStack = playerInventory.getCursorStack();
-                        if (slotStack is not null)
-                        {
-                            returnStack = slotStack.copy();
-                        }
+                        slotItemStackSize = slot.getMaxItemCount() - slotStack.count;
+                    }
 
-                        if (slotStack is null)
-                        {
-                            if (cursorStack is not null && slot.canInsert(cursorStack))
-                            {
-                                slotItemStackSize = button == 0 ? cursorStack.count : 1;
-                                if (slotItemStackSize > slot.getMaxItemCount())
-                                {
-                                    slotItemStackSize = slot.getMaxItemCount();
-                                }
+                    if (slotItemStackSize > cursorStack.getMaxCount() - slotStack.count)
+                    {
+                        slotItemStackSize = cursorStack.getMaxCount() - slotStack.count;
+                    }
 
-                                slot.setStack(cursorStack.split(slotItemStackSize));
-                                if (cursorStack.count == 0)
-                                {
-                                    playerInventory.setItemStack(null);
-                                }
-                            }
-                        }
-                        else if (cursorStack is null)
-                        {
-                            slotItemStackSize = button == 0 ? slotStack.count : (slotStack.count + 1) / 2;
-                            ItemStack takenStack = slot.takeStack(slotItemStackSize);
-                            playerInventory.setItemStack(takenStack);
-                            if (slotStack.count == 0)
-                            {
-                                slot.setStack(null);
-                            }
+                    cursorStack.split(slotItemStackSize);
+                    if (cursorStack.count == 0)
+                    {
+                        playerInventory.setItemStack(null);
+                    }
 
-                            slot.onTakeItem(playerInventory.getCursorStack());
-                        }
-                        else if (slot.canInsert(cursorStack))
-                        {
-                            if (slotStack.itemId != cursorStack.itemId || slotStack.getHasSubtypes() && slotStack.getDamage() != cursorStack.getDamage())
-                            {
-                                if (cursorStack.count <= slot.getMaxItemCount())
-                                {
-                                    slot.setStack(cursorStack);
-                                    playerInventory.setItemStack(slotStack);
-                                }
-                            }
-                            else
-                            {
-                                slotItemStackSize = button == 0 ? cursorStack.count : 1;
-                                if (slotItemStackSize > slot.getMaxItemCount() - slotStack.count)
-                                {
-                                    slotItemStackSize = slot.getMaxItemCount() - slotStack.count;
-                                }
+                    slotStack.count += slotItemStackSize;
+                }
+            }
+            else if (slotStack.itemId == cursorStack.itemId && cursorStack.getMaxCount() > 1 && (!slotStack.getHasSubtypes() || slotStack.getDamage() == cursorStack.getDamage()))
+            {
+                int slotItemStackSize = slotStack.count;
+                if (slotItemStackSize > 0 && slotItemStackSize + cursorStack.count <= cursorStack.getMaxCount())
+                {
+                    cursorStack.count += slotItemStackSize;
+                    slotStack.split(slotItemStackSize);
+                    if (slotStack.count == 0)
+                    {
+                        slot.setStack(null);
+                    }
 
-                                if (slotItemStackSize > cursorStack.getMaxCount() - slotStack.count)
-                                {
-                                    slotItemStackSize = cursorStack.getMaxCount() - slotStack.count;
-                                }
+                    slot.onTakeItem(playerInventory.getCursorStack());
+                }
+            }
 
-                                cursorStack.split(slotItemStackSize);
-                                if (cursorStack.count == 0)
-                                {
-                                    playerInventory.setItemStack(null);
-                                }
+            return returnStack;
+        }
 
-                                slotStack.count += slotItemStackSize;
-                            }
-                        }
-                        else if (slotStack.itemId == cursorStack.itemId && cursorStack.getMaxCount() > 1 && (!slotStack.getHasSubtypes() || slotStack.getDamage() == cursorStack.getDamage()))
-                        {
-                            slotItemStackSize = slotStack.count;
-                            if (slotItemStackSize > 0 && slotItemStackSize + cursorStack.count <= cursorStack.getMaxCount())
-                            {
-                                cursorStack.count += slotItemStackSize;
-                                slotStack.split(slotItemStackSize);
-                                if (slotStack.count == 0)
-                                {
-                                    slot.setStack(null);
-                                }
+        if (mode == ScreenHandlerClickMode.Swap && button >= 0 && button < 9 && index >= 0 && index < Slots.Count)
+        {
+            Slot slot = Slots[index];
+            ItemStack? hotbarStack = playerInventory.getStack(button);
+            if (!slot.canTake(player))
+            {
+                return null;
+            }
 
-                                slot.onTakeItem(playerInventory.getCursorStack());
-                            }
-                        }
+            if (slot.hasStack())
+            {
+                ItemStack slotStack = slot.getStack();
+                returnStack = slotStack.copy();
+                if (hotbarStack == null || slot.canInsert(hotbarStack))
+                {
+                    playerInventory.setStack(button, slotStack);
+                    slot.setStack(hotbarStack);
+                    slot.onTakeItem(slotStack);
+                }
+            }
+            else if (hotbarStack != null && slot.canInsert(hotbarStack))
+            {
+                slot.setStack(hotbarStack);
+                playerInventory.setStack(button, null);
+            }
+
+            return returnStack;
+        }
+
+        if (mode == ScreenHandlerClickMode.Clone && player.capabilities.isCreativeMode && playerInventory.getCursorStack() == null && index >= 0 && index < Slots.Count)
+        {
+            Slot slot = Slots[index];
+            if (slot.hasStack())
+            {
+                ItemStack clonedStack = slot.getStack().copy();
+                clonedStack.count = clonedStack.getMaxCount();
+                playerInventory.setItemStack(clonedStack);
+                return slot.getStack().copy();
+            }
+
+            return null;
+        }
+
+        if (mode == ScreenHandlerClickMode.Throw && playerInventory.getCursorStack() == null && index >= 0 && index < Slots.Count)
+        {
+            Slot slot = Slots[index];
+            if (slot.hasStack() && slot.canTake(player))
+            {
+                ItemStack droppedStack = slot.takeStack(button == 0 ? 1 : slot.getStack().count);
+                if (droppedStack != null)
+                {
+                    returnStack = slot.getStack() != null ? slot.getStack().copy() : droppedStack.copy();
+                    slot.onTakeItem(droppedStack);
+                    player.dropItem(droppedStack, true);
+                    if (slot.getStack() != null && slot.getStack().count == 0)
+                    {
+                        slot.setStack(null);
                     }
                 }
             }
         }
+
         return returnStack;
     }
 
