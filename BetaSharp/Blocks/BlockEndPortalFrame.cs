@@ -47,4 +47,88 @@ internal class BlockEndPortalFrame : Block
     }
 
     public static bool HasEye(int meta) => (meta & 4) != 0;
+
+    public static bool TryActivatePortal(IWorldContext world, int x, int y, int z)
+    {
+        int meta = world.Reader.GetBlockMeta(x, y, z);
+        int facing = meta & 3;
+        int[] offsetX = [0, -1, 0, 1];
+        int[] offsetZ = [1, 0, -1, 0];
+        int[] enderEyeMetaToDirection = [1, 2, 3, 0];
+        int parallelDirection = enderEyeMetaToDirection[facing];
+        int start = 0;
+        int end = 0;
+        bool foundAny = false;
+        bool valid = true;
+
+        for (int i = -2; i <= 2; ++i)
+        {
+            int frameX = x + offsetX[parallelDirection] * i;
+            int frameZ = z + offsetZ[parallelDirection] * i;
+            if (world.Reader.GetBlockId(frameX, y, frameZ) == Block.EndPortalFrame.id)
+            {
+                int frameMeta = world.Reader.GetBlockMeta(frameX, y, frameZ);
+                if (!HasEye(frameMeta))
+                {
+                    valid = false;
+                    break;
+                }
+
+                if (!foundAny)
+                {
+                    start = i;
+                    end = i;
+                    foundAny = true;
+                }
+                else
+                {
+                    end = i;
+                }
+            }
+        }
+
+        if (!valid || !foundAny || end != start + 2)
+        {
+            return false;
+        }
+
+        for (int i = start; i <= end; ++i)
+        {
+            int frameX = x + offsetX[parallelDirection] * i + offsetX[facing] * 4;
+            int frameZ = z + offsetZ[parallelDirection] * i + offsetZ[facing] * 4;
+            int frameId = world.Reader.GetBlockId(frameX, y, frameZ);
+            int frameMeta = world.Reader.GetBlockMeta(frameX, y, frameZ);
+            if (frameId != Block.EndPortalFrame.id || !HasEye(frameMeta))
+            {
+                return false;
+            }
+        }
+
+        for (int i = start - 1; i <= end + 1; i += 4)
+        {
+            for (int step = 1; step <= 3; ++step)
+            {
+                int frameX = x + offsetX[parallelDirection] * i + offsetX[facing] * step;
+                int frameZ = z + offsetZ[parallelDirection] * i + offsetZ[facing] * step;
+                int frameId = world.Reader.GetBlockId(frameX, y, frameZ);
+                int frameMeta = world.Reader.GetBlockMeta(frameX, y, frameZ);
+                if (frameId != Block.EndPortalFrame.id || !HasEye(frameMeta))
+                {
+                    return false;
+                }
+            }
+        }
+
+        for (int i = start; i <= end; ++i)
+        {
+            for (int step = 1; step <= 3; ++step)
+            {
+                int portalX = x + offsetX[parallelDirection] * i + offsetX[facing] * step;
+                int portalZ = z + offsetZ[parallelDirection] * i + offsetZ[facing] * step;
+                world.Writer.SetBlock(portalX, y, portalZ, Block.EndPortal.id, 0, doUpdate: false);
+            }
+        }
+
+        return true;
+    }
 }

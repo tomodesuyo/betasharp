@@ -13,7 +13,19 @@ public abstract class MapGenStructure
     public void Generate(IChunkSource source, IWorldContext world, int chunkX, int chunkZ, byte[] blocks)
     {
         World = world;
-        RecursiveGenerate(world, chunkX, chunkZ);
+        Random.SetSeed(world.Seed);
+        long seedX = Random.NextLong();
+        long seedZ = Random.NextLong();
+
+        const int range = 8;
+        for (int scanX = chunkX - range; scanX <= chunkX + range; ++scanX)
+        {
+            for (int scanZ = chunkZ - range; scanZ <= chunkZ + range; ++scanZ)
+            {
+                Random.SetSeed((long)scanX * seedX ^ (long)scanZ * seedZ ^ world.Seed);
+                RecursiveGenerate(world, scanX, scanZ);
+            }
+        }
     }
 
     protected void RecursiveGenerate(IWorldContext world, int chunkX, int chunkZ)
@@ -82,6 +94,16 @@ public abstract class MapGenStructure
         Random.SetSeed(mixedX ^ mixedZ ^ world.Seed);
         RecursiveGenerate(world, x >> 4, z >> 4);
 
+        List<Vec3i>? coords = GetCoordList();
+        if (coords != null)
+        {
+            for (int i = 0; i < coords.Count; ++i)
+            {
+                Vec3i pos = coords[i];
+                RecursiveGenerate(world, pos.X >> 4, pos.Z >> 4);
+            }
+        }
+
         double bestDistance = double.MaxValue;
         Vec3i? bestPos = null;
 
@@ -116,7 +138,6 @@ public abstract class MapGenStructure
             return bestPos;
         }
 
-        List<Vec3i>? coords = GetCoordList();
         if (coords == null)
         {
             return null;

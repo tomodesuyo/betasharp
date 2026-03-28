@@ -586,7 +586,7 @@ public class Block
         Item.ITEMS[Leaves.id] = new ItemLeaves(Leaves.id - 256).setItemName("leaves");
         Item.ITEMS[Piston.id] = new ItemPiston(Piston.id - 256);
         Item.ITEMS[StickyPiston.id] = new ItemPiston(StickyPiston.id - 256);
-        Item.ITEMS[LilyPad.id] = new ItemReed(LilyPad.id - 256, LilyPad).setItemName("waterlily");
+        Item.ITEMS[LilyPad.id] = new ItemLilyPad(LilyPad.id - 256).setItemName("waterlily");
 
         for (int blockId = 0; blockId < 256; ++blockId)
         {

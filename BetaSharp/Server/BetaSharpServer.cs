@@ -31,7 +31,7 @@ public abstract class BetaSharpServer : ICommandOutput
     public int progress;
     private readonly Queue<PendingCommand> _pendingCommands = new();
     private readonly object _pendingCommandsLock = new();
-    public EntityTracker[] entityTrackers = new EntityTracker[2];
+    public EntityTracker[] entityTrackers = new EntityTracker[3];
     public bool onlineMode;
     public bool spawnAnimals;
     public bool pvpEnabled;
@@ -79,6 +79,7 @@ public abstract class BetaSharpServer : ICommandOutput
         playerManager = CreatePlayerManager();
         entityTrackers[0] = new EntityTracker(this, 0);
         entityTrackers[1] = new EntityTracker(this, -1);
+        entityTrackers[2] = new EntityTracker(this, 1);
 
         var startupSw = Stopwatch.StartNew();
 
@@ -126,7 +127,7 @@ public abstract class BetaSharpServer : ICommandOutput
 
     private void loadWorld(string worldDir, WorldSettings settings)
     {
-        worlds = new ServerWorld[2];
+        worlds = new ServerWorld[3];
         RegionWorldStorage worldStorage = new(GetFile(".").FullName, worldDir, true);
 
         for (int i = 0; i < worlds.Length; i++)
@@ -135,9 +136,13 @@ public abstract class BetaSharpServer : ICommandOutput
             {
                 worlds[i] = new ServerWorld(this, worldStorage, worldDir, 0, settings, null);
             }
-            else
+            else if (i == 1)
             {
                 worlds[i] = new ReadOnlyServerWorld(this, worldStorage, worldDir, -1, settings, worlds[0]);
+            }
+            else
+            {
+                worlds[i] = new ReadOnlyServerWorld(this, worldStorage, worldDir, 1, settings, worlds[0]);
             }
 
             worlds[i].EventListeners.Add(new ServerWorldEventListener(this, worlds[i]));
@@ -501,12 +506,22 @@ public abstract class BetaSharpServer : ICommandOutput
 
     public ServerWorld getWorld(int dimensionId)
     {
-        return dimensionId == -1 ? worlds[1] : worlds[0];
+        return dimensionId switch
+        {
+            -1 => worlds[1],
+            1 => worlds[2],
+            _ => worlds[0]
+        };
     }
 
     public EntityTracker getEntityTracker(int dimensionId)
     {
-        return dimensionId == -1 ? entityTrackers[1] : entityTrackers[0];
+        return dimensionId switch
+        {
+            -1 => entityTrackers[1],
+            1 => entityTrackers[2],
+            _ => entityTrackers[0]
+        };
     }
 
     protected virtual PlayerManager CreatePlayerManager()

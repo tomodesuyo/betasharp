@@ -24,6 +24,8 @@ public enum BlockRendererType: int
     Pane = 18,
     Vine = 20,
     FenceGate = 21,
+    LilyPad = 23,
+    Cauldron = 24,
     BrewingStand = 25,
     EndPortalFrame = 26,
 }

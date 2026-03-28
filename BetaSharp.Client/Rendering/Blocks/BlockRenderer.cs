@@ -30,6 +30,8 @@ public class BlockRenderer
     private static readonly PaneRenderer s_pane = new();
     private static readonly VineRenderer s_vine = new();
     private static readonly FenceGateRenderer s_fenceGate = new();
+    private static readonly LilyPadRenderer s_lilyPad = new();
+    private static readonly CauldronRenderer s_cauldron = new();
     private static readonly BrewingStandRenderer s_brewingStand = new();
     private static readonly EndPortalFrameRenderer s_endPortalFrame = new();
 
@@ -84,6 +86,8 @@ public class BlockRenderer
             BlockRendererType.Pane => s_pane.Draw(block, pos, ref ctx),
             BlockRendererType.Vine => s_vine.Draw(block, pos, ref ctx),
             BlockRendererType.FenceGate => s_fenceGate.Draw(block, pos, ref ctx),
+            BlockRendererType.LilyPad => s_lilyPad.Draw(block, pos, ref ctx),
+            BlockRendererType.Cauldron => s_cauldron.Draw(block, pos, ref ctx),
             BlockRendererType.BrewingStand => s_brewingStand.Draw(block, pos, ref ctx),
             BlockRendererType.EndPortalFrame => s_endPortalFrame.Draw(block, pos, ref ctx),
             _ => false
@@ -245,6 +249,8 @@ public class BlockRenderer
                renderType == BlockRendererType.Fence ||
                renderType == BlockRendererType.Pane ||
                renderType == BlockRendererType.FenceGate ||
+               renderType == BlockRendererType.LilyPad ||
+               renderType == BlockRendererType.Cauldron ||
                renderType == BlockRendererType.BrewingStand ||
                renderType == BlockRendererType.EndPortalFrame ||
                renderType == BlockRendererType.Cactus ||

@@ -14,7 +14,7 @@ internal class ItemLeaves : ItemBlock
 
     public override int getPlacementMetadata(int meta)
     {
-        return meta | 8;
+        return meta | 4;
     }
 
     public override int getTextureId(int meta)
@@ -29,6 +29,7 @@ internal class ItemLeaves : ItemBlock
 
     public override int getColorMultiplier(int leafType)
     {
-        return (leafType & 1) == 1 ? FoliageColors.getSpruceColor() : ((leafType & 2) == 2 ? FoliageColors.getBirchColor() : FoliageColors.getDefaultColor());
+        int variant = leafType & 3;
+        return variant == 1 ? FoliageColors.getSpruceColor() : variant == 2 ? FoliageColors.getBirchColor() : FoliageColors.getDefaultColor();
     }
 }

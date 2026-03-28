@@ -14,7 +14,7 @@ public sealed class CreativeInventoryTab
     public static readonly CreativeInventoryTab Food = new("Food", new ItemStack(Item.Apple), 0, false, "/gui/creative_inv/list_items.png");
     public static readonly CreativeInventoryTab Tools = new("Tools", new ItemStack(Item.IronAxe), 1, false, "/gui/creative_inv/list_items.png");
     public static readonly CreativeInventoryTab Combat = new("Combat", new ItemStack(Item.GoldenSword), 2, false, "/gui/creative_inv/list_items.png");
-    public static readonly CreativeInventoryTab Brewing = new("Brewing", new ItemStack(Item.GlowstoneDust), 3, false, "/gui/creative_inv/list_items.png");
+    public static readonly CreativeInventoryTab Brewing = new("Brewing", new ItemStack(Item.Potion), 3, false, "/gui/creative_inv/list_items.png");
     public static readonly CreativeInventoryTab Materials = new("Materials", new ItemStack(Item.Stick), 4, false, "/gui/creative_inv/list_items.png");
     public static readonly CreativeInventoryTab Inventory = new("Inventory", new ItemStack(Block.Chest), 5, false, "/gui/creative_inv/survival_inv.png", hasScrollbar: false, drawTitle: false);
 

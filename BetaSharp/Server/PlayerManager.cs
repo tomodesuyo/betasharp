@@ -1,4 +1,5 @@
 using BetaSharp.Blocks.Entities;
+using BetaSharp.Blocks;
 using BetaSharp.Entities;
 using BetaSharp.Network.Packets;
 using BetaSharp.Network.Packets.Play;
@@ -28,11 +29,12 @@ public class PlayerManager
 
     public PlayerManager(BetaSharpServer server)
     {
-        _chunkMaps = new ChunkMap[2];
+        _chunkMaps = new ChunkMap[3];
         _server = server;
         int var2 = server.config.GetViewDistance(10);
         _chunkMaps[0] = new ChunkMap(server, 0, var2);
         _chunkMaps[1] = new ChunkMap(server, -1, var2);
+        _chunkMaps[2] = new ChunkMap(server, 1, var2);
         _maxPlayerCount = server.config.GetMaxPlayers(20);
         _whitelistEnabled = server.config.GetWhiteList(false);
     }
@@ -47,6 +49,10 @@ public class PlayerManager
         if (world.Length > 1 && world[1] != null)
         {
             world[1].ChunkMap = _chunkMaps[1];
+        }
+        if (world.Length > 2 && world[2] != null)
+        {
+            world[2].ChunkMap = _chunkMaps[2];
         }
     }
 
@@ -72,7 +78,12 @@ public class PlayerManager
 
     private ChunkMap GetChunkMap(int dimensionId)
     {
-        return dimensionId == -1 ? _chunkMaps[1] : _chunkMaps[0];
+        return dimensionId switch
+        {
+            -1 => _chunkMaps[1],
+            1 => _chunkMaps[2],
+            _ => _chunkMaps[0]
+        };
     }
 
     public bool loadPlayerData(ServerPlayerEntity player)
@@ -211,6 +222,10 @@ public class PlayerManager
         {
             targetDim = 0;
         }
+        else if (player.dimensionId == 1)
+        {
+            targetDim = 0;
+        }
         else
         {
             targetDim = -1;
@@ -252,11 +267,32 @@ public class PlayerManager
                 currentWorld.Entities.UpdateEntity(player, false);
             }
         }
-        else
+        else if (player.dimensionId == 0 && sourceDim == -1)
         {
             x *= scale;
             z *= scale;
             player.setPositionAndAnglesKeepPrevAngles(x, player.y, z, player.yaw, player.pitch);
+            if (player.isAlive())
+            {
+                currentWorld.Entities.UpdateEntity(player, false);
+            }
+        }
+        else if (player.dimensionId == 1)
+        {
+            x = 100.5D;
+            z = 0.5D;
+            player.setPositionAndAnglesKeepPrevAngles(x, 50.0D, z, player.yaw, player.pitch);
+            if (player.isAlive())
+            {
+                currentWorld.Entities.UpdateEntity(player, false);
+            }
+        }
+        else if (sourceDim == 1)
+        {
+            Vec3i spawnPos = targetWorld.Properties.GetSpawnPos();
+            x = spawnPos.X + 0.5D;
+            z = spawnPos.Z + 0.5D;
+            player.setPositionAndAnglesKeepPrevAngles(x, spawnPos.Y + 1.0D, z, player.yaw, player.pitch);
             if (player.isAlive())
             {
                 currentWorld.Entities.UpdateEntity(player, false);
@@ -268,9 +304,16 @@ public class PlayerManager
             targetWorld.Entities.SpawnEntity(player);
             player.setPositionAndAnglesKeepPrevAngles(x, player.y, z, player.yaw, player.pitch);
             targetWorld.Entities.UpdateEntity(player, false);
-            targetWorld.ChunkCache.forceLoad = true;
-            new PortalForcer().MoveToPortal(targetWorld, player);
-            targetWorld.ChunkCache.forceLoad = false;
+            if (targetDim == 1)
+            {
+                PrepareEndSpawnPlatform(targetWorld, player);
+            }
+            else if (sourceDim != 1)
+            {
+                targetWorld.ChunkCache.forceLoad = true;
+                new PortalForcer().MoveToPortal(targetWorld, player);
+                targetWorld.ChunkCache.forceLoad = false;
+            }
 
             // Fully drain lighting updates generated during portal chunk
             // creation before the chunks are queued for the client.
@@ -282,6 +325,25 @@ public class PlayerManager
         player.setWorld(targetWorld);
         sendWorldInfo(player, targetWorld);
         sendPlayerStatus(player);
+    }
+
+    private static void PrepareEndSpawnPlatform(ServerWorld world, ServerPlayerEntity player)
+    {
+        int centerX = MathHelper.Floor(player.x);
+        int centerY = 49;
+        int centerZ = MathHelper.Floor(player.z);
+
+        for (int dx = -2; dx <= 2; ++dx)
+        {
+            for (int dz = -2; dz <= 2; ++dz)
+            {
+                world.Writer.SetBlock(centerX + dx, centerY, centerZ + dz, Block.Obsidian.id);
+                world.Writer.SetBlock(centerX + dx, centerY + 1, centerZ + dz, 0);
+                world.Writer.SetBlock(centerX + dx, centerY + 2, centerZ + dz, 0);
+            }
+        }
+
+        player.setPositionAndAnglesKeepPrevAngles(centerX + 0.5D, centerY + 1.0D, centerZ + 0.5D, player.yaw, player.pitch);
     }
 
     public void updateAllChunks()

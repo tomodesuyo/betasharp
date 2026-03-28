@@ -10,6 +10,8 @@ public class ModelPart
     private Quad[] faces;
     private readonly int textureOffsetX;
     private readonly int textureOffsetY;
+    private int textureWidth = 64;
+    private int textureHeight = 32;
     public float rotationPointX;
     public float rotationPointY;
     public float rotationPointZ;
@@ -67,12 +69,12 @@ public class ModelPart
         corners[5] = var16;
         corners[6] = var17;
         corners[7] = var18;
-        faces[0] = new Quad([var16, var12, var13, var17], textureOffsetX + var6 + var4, textureOffsetY + var6, textureOffsetX + var6 + var4 + var6, textureOffsetY + var6 + var5);
-        faces[1] = new Quad([var20, var15, var18, var14], textureOffsetX + 0, textureOffsetY + var6, textureOffsetX + var6, textureOffsetY + var6 + var5);
-        faces[2] = new Quad([var16, var15, var20, var12], textureOffsetX + var6, textureOffsetY + 0, textureOffsetX + var6 + var4, textureOffsetY + var6);
-        faces[3] = new Quad([var13, var14, var18, var17], textureOffsetX + var6 + var4, textureOffsetY + 0, textureOffsetX + var6 + var4 + var4, textureOffsetY + var6);
-        faces[4] = new Quad([var12, var20, var14, var13], textureOffsetX + var6, textureOffsetY + var6, textureOffsetX + var6 + var4, textureOffsetY + var6 + var5);
-        faces[5] = new Quad([var15, var16, var17, var18], textureOffsetX + var6 + var4 + var6, textureOffsetY + var6, textureOffsetX + var6 + var4 + var6 + var4, textureOffsetY + var6 + var5);
+        faces[0] = new Quad([var16, var12, var13, var17], textureOffsetX + var6 + var4, textureOffsetY + var6, textureOffsetX + var6 + var4 + var6, textureOffsetY + var6 + var5, textureWidth, textureHeight);
+        faces[1] = new Quad([var20, var15, var18, var14], textureOffsetX + 0, textureOffsetY + var6, textureOffsetX + var6, textureOffsetY + var6 + var5, textureWidth, textureHeight);
+        faces[2] = new Quad([var16, var15, var20, var12], textureOffsetX + var6, textureOffsetY + 0, textureOffsetX + var6 + var4, textureOffsetY + var6, textureWidth, textureHeight);
+        faces[3] = new Quad([var13, var14, var18, var17], textureOffsetX + var6 + var4, textureOffsetY + 0, textureOffsetX + var6 + var4 + var4, textureOffsetY + var6, textureWidth, textureHeight);
+        faces[4] = new Quad([var12, var20, var14, var13], textureOffsetX + var6, textureOffsetY + var6, textureOffsetX + var6 + var4, textureOffsetY + var6 + var5, textureWidth, textureHeight);
+        faces[5] = new Quad([var15, var16, var17, var18], textureOffsetX + var6 + var4 + var6, textureOffsetY + var6, textureOffsetX + var6 + var4 + var6 + var4, textureOffsetY + var6 + var5, textureWidth, textureHeight);
         if (mirror)
         {
             for (int var19 = 0; var19 < faces.Length; ++var19)
@@ -88,6 +90,13 @@ public class ModelPart
         rotationPointX = var1;
         rotationPointY = var2;
         rotationPointZ = var3;
+    }
+
+    public ModelPart setTextureSize(int width, int height)
+    {
+        textureWidth = width;
+        textureHeight = height;
+        return this;
     }
 
     public void render(float var1)

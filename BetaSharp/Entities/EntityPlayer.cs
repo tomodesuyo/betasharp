@@ -43,6 +43,7 @@ public abstract class EntityPlayer : EntityLiving
     private Vec3i? startMinecartRidingCoordinate;
     public int portalCooldown = 20;
     protected bool inTeleportationState;
+    public int queuedDimensionId = int.MinValue;
     public float changeDimensionCooldown;
     public float lastScreenDistortion;
     protected int flyToggleTimer;
@@ -1180,6 +1181,12 @@ public abstract class EntityPlayer : EntityLiving
         }
 
         return var2;
+    }
+
+    public void QueueDimensionChange(int dimensionId)
+    {
+        queuedDimensionId = dimensionId;
+        tickPortalCooldown();
     }
 
     public override void tickPortalCooldown()

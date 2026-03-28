@@ -184,7 +184,9 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
 
         if (inTeleportationState)
         {
-            if (server.config.GetAllowNether(true))
+            int targetDimension = queuedDimensionId != int.MinValue ? queuedDimensionId : (dimensionId == -1 ? 0 : -1);
+            bool canTeleport = targetDimension == 1 || dimensionId == 1 || server.config.GetAllowNether(true);
+            if (canTeleport)
             {
                 if (currentScreenHandler != playerScreenHandler)
                 {
@@ -202,7 +204,8 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
                     {
                         changeDimensionCooldown = 1.0F;
                         portalCooldown = 10;
-                        server.playerManager.changePlayerDimension(this);
+                        queuedDimensionId = int.MinValue;
+                        server.playerManager.sendPlayerToDimension(this, targetDimension);
                     }
                 }
 

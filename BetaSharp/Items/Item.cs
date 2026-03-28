@@ -132,7 +132,7 @@ public class Item
     public static Item RawChicken = (new ItemFood(109, 2, true)).setTexturePosition(9, 7).setItemName("chickenRaw");
     public static Item CookedChicken = (new ItemFood(110, 6, true)).setTexturePosition(10, 7).setItemName("chickenCooked");
     public static Item RottenFlesh = (new ItemFood(111, 4, true)).setTexturePosition(11, 5).setItemName("rottenFlesh");
-    public static Item EnderPearl = (new Item(112)).setTexturePosition(11, 6).setItemName("enderPearl");
+    public static Item EnderPearl = (new ItemEnderPearl(112)).setTexturePosition(11, 6).setItemName("enderPearl");
     public static Item BlazeRod = (new Item(113)).setTexturePosition(12, 6).setItemName("blazeRod");
     public static Item GhastTear = (new Item(114)).setTexturePosition(11, 7).setItemName("ghastTear");
     public static Item GoldNugget = (new Item(115)).setTexturePosition(12, 7).setItemName("goldNugget");
@@ -145,7 +145,7 @@ public class Item
     public static Item MagmaCream = (new Item(122)).setTexturePosition(13, 10).setItemName("magmaCream");
     public static Item BrewingStand = (new ItemReed(123, Block.BrewingStand)).setTexturePosition(12, 10).setItemName("brewingStand");
     public static Item Cauldron = (new ItemReed(124, Block.Cauldron)).setTexturePosition(12, 9).setItemName("cauldron");
-    public static Item EyeOfEnder = (new Item(125)).setTexturePosition(11, 9).setItemName("eyeOfEnder");
+    public static Item EyeOfEnder = (new ItemEnderEye(125)).setTexturePosition(11, 9).setItemName("eyeOfEnder");
     public static Item SpeckledMelon = (new Item(126)).setTexturePosition(9, 8).setItemName("speckledMelon");
     public static Item MonsterPlacer = (new ItemMonsterPlacer(127)).setTexturePosition(9, 9).setItemName("monsterPlacer");
     public static Item ExpBottle = (new ItemExpBottle(128)).setTexturePosition(11, 10).setItemName("expBottle");

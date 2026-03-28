@@ -50,8 +50,10 @@ internal class BlockSapling : BlockPlant
     public void generate(IWorldContext world, int x, int y, int z)
     {
         int saplingType = world.Reader.GetBlockMeta(x, y, z) & 3;
-        world.Writer.SetBlock(x, y, z, 0);
-        object treeFeature = null;
+        int offsetX = 0;
+        int offsetZ = 0;
+        bool isHugeTree = false;
+        Feature treeFeature;
         if (saplingType == 1)
         {
             treeFeature = new SpruceTreeFeature();
@@ -62,7 +64,26 @@ internal class BlockSapling : BlockPlant
         }
         else if (saplingType == 3)
         {
-            treeFeature = new LargeOakTreeFeature();
+            treeFeature = new JungleTreeFeature(4 + Random.Shared.Next(7), 3, 3, true);
+
+            for (offsetX = 0; offsetX >= -1; --offsetX)
+            {
+                for (offsetZ = 0; offsetZ >= -1; --offsetZ)
+                {
+                    if (IsSameSapling(world, x + offsetX, y, z + offsetZ, saplingType)
+                        && IsSameSapling(world, x + offsetX + 1, y, z + offsetZ, saplingType)
+                        && IsSameSapling(world, x + offsetX, y, z + offsetZ + 1, saplingType)
+                        && IsSameSapling(world, x + offsetX + 1, y, z + offsetZ + 1, saplingType))
+                    {
+                        treeFeature = new HugeJungleTreeFeature(10 + Random.Shared.Next(20), 3, 3);
+                        isHugeTree = true;
+                        goto clear_saplings;
+                    }
+                }
+            }
+
+            offsetX = 0;
+            offsetZ = 0;
         }
         else
         {
@@ -73,10 +94,39 @@ internal class BlockSapling : BlockPlant
             }
         }
 
-        if (!((Feature)treeFeature).Generate(world, _random, x, y, z))
+clear_saplings:
+        if (isHugeTree)
         {
-            world.Writer.SetBlock(x, y, z, id, saplingType);
+            world.Writer.SetBlock(x + offsetX, y, z + offsetZ, 0);
+            world.Writer.SetBlock(x + offsetX + 1, y, z + offsetZ, 0);
+            world.Writer.SetBlock(x + offsetX, y, z + offsetZ + 1, 0);
+            world.Writer.SetBlock(x + offsetX + 1, y, z + offsetZ + 1, 0);
         }
+        else
+        {
+            world.Writer.SetBlock(x, y, z, 0);
+        }
+
+        if (!treeFeature.Generate(world, _random, x + offsetX, y, z + offsetZ))
+        {
+            if (isHugeTree)
+            {
+                world.Writer.SetBlock(x + offsetX, y, z + offsetZ, id, saplingType);
+                world.Writer.SetBlock(x + offsetX + 1, y, z + offsetZ, id, saplingType);
+                world.Writer.SetBlock(x + offsetX, y, z + offsetZ + 1, id, saplingType);
+                world.Writer.SetBlock(x + offsetX + 1, y, z + offsetZ + 1, id, saplingType);
+            }
+            else
+            {
+                world.Writer.SetBlock(x, y, z, id, saplingType);
+            }
+        }
+    }
+
+    private bool IsSameSapling(IWorldContext world, int x, int y, int z, int saplingType)
+    {
+        return world.Reader.GetBlockId(x, y, z) == id
+               && (world.Reader.GetBlockMeta(x, y, z) & 3) == saplingType;
     }
 
     protected override int getDroppedItemMeta(int blockMeta) => blockMeta & 3;

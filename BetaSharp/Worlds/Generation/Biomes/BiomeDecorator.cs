@@ -24,8 +24,8 @@ internal class BiomeDecorator
     private readonly PlantPatchFeature _redMushroom = new(Block.RedMushroom.id);
     private readonly SugarCanePatchFeature _reeds = new();
     private readonly CactusPatchFeature _cactus = new();
+    private readonly WaterLilyFeature _waterLily = new();
     private readonly DungeonFeature _dungeon = new();
-    private readonly GrassPatchFeature _grass = new(Block.Grass.id, 1);
     private readonly DeadBushPatchFeature _deadBush = new(Block.DeadBush.id);
     private readonly PumpkinPatchFeature _pumpkin = new();
     private readonly SpringFeature _waterSpring = new(Block.FlowingWater.id);
@@ -38,6 +38,7 @@ internal class BiomeDecorator
     public int MushroomsPerChunk { get; set; }
     public int ReedsPerChunk { get; set; }
     public int CactiPerChunk { get; set; }
+    public int WaterLiliesPerChunk { get; set; }
     public int SandPerChunk { get; set; } = 3;
     public int GravelPerChunk { get; set; } = 1;
     public int ClayPerChunk { get; set; } = 1;
@@ -106,7 +107,7 @@ internal class BiomeDecorator
             featureX = blockX + random.NextInt(16) + 8;
             featureY = random.NextInt(128);
             featureZ = blockZ + random.NextInt(16) + 8;
-            _grass.Generate(world, random, featureX, featureY, featureZ);
+            biome.GetRandomWorldGenForGrass(random).Generate(world, random, featureX, featureY, featureZ);
         }
 
         for (int i = 0; i < DeadBushPerChunk; ++i)
@@ -115,6 +116,18 @@ internal class BiomeDecorator
             featureY = random.NextInt(128);
             featureZ = blockZ + random.NextInt(16) + 8;
             _deadBush.Generate(world, random, featureX, featureY, featureZ);
+        }
+
+        for (int i = 0; i < WaterLiliesPerChunk; ++i)
+        {
+            featureX = blockX + random.NextInt(16) + 8;
+            featureZ = blockZ + random.NextInt(16) + 8;
+
+            for (featureY = random.NextInt(128); featureY > 0 && world.Reader.GetBlockId(featureX, featureY - 1, featureZ) == 0; --featureY)
+            {
+            }
+
+            _waterLily.Generate(world, random, featureX, featureY, featureZ);
         }
 
         for (int i = 0; i < MushroomsPerChunk; ++i)

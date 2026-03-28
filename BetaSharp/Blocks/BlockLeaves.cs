@@ -17,17 +17,22 @@ public class BlockLeaves : BlockLeavesBase
         setTickRandomly(true);
     }
 
-    public override int getColor(int meta) => (meta & 1) == 1 ? FoliageColors.getSpruceColor() : (meta & 2) == 2 ? FoliageColors.getBirchColor() : FoliageColors.getDefaultColor();
+    public override int getColor(int meta)
+    {
+        int variant = meta & 3;
+        return variant == 1 ? FoliageColors.getSpruceColor() : variant == 2 ? FoliageColors.getBirchColor() : FoliageColors.getDefaultColor();
+    }
 
     public override int getColorMultiplier(IBlockReader reader, int x, int y, int z)
     {
         int meta = reader.GetBlockMeta(x, y, z);
-        if ((meta & 1) == 1)
+        int variant = meta & 3;
+        if (variant == 1)
         {
             return FoliageColors.getSpruceColor();
         }
 
-        if ((meta & 2) == 2)
+        if (variant == 2)
         {
             return FoliageColors.getBirchColor();
         }
@@ -79,7 +84,7 @@ public class BlockLeaves : BlockLeavesBase
         if (!@event.World.IsRemote)
         {
             int meta = @event.World.Reader.GetBlockMeta(@event.X, @event.Y, @event.Z);
-            if ((meta & 8) != 0)
+            if ((meta & 8) != 0 && (meta & 4) == 0)
             {
                 sbyte decayRadius = 4;
                 int loadCheckExtent = decayRadius + 1;

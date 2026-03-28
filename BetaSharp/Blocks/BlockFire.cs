@@ -12,6 +12,8 @@ internal class BlockFire : Block
 
     public BlockFire(int id, int textureId) : base(id, textureId, Material.Fire) => setTickRandomly(true);
 
+    public override void updateBoundingBox(IBlockReader blockReader, EntityManager? entities, int x, int y, int z) => setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F / 16.0F, 1.0F);
+
     protected override void init()
     {
         registerFlammableBlock(Block.Planks.id, 5, 20);

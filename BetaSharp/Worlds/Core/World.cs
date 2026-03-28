@@ -341,11 +341,12 @@ public abstract class World : IWorldContext
 
         int blockBelowId = Reader.GetBlockId(x, y - 1, z);
         int currentBlockId = Reader.GetBlockId(x, y, z);
+        bool validSupport = blockBelowId == Block.Leaves.id || Block.Blocks[blockBelowId].material.BlocksMovement;
         return currentBlockId == 0
             && Block.Snow.canPlaceAt(new CanPlaceAtContext(this, 1, x, y, z))
             && blockBelowId != 0
             && blockBelowId != Block.Ice.id
-            && Block.Blocks[blockBelowId].material.BlocksMovement;
+            && validSupport;
     }
 
     public void AddPlayer(EntityPlayer player)

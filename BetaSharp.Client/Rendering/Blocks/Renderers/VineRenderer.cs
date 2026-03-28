@@ -37,6 +37,10 @@ public sealed class VineRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 0.0D, pos.z + 1.0D, minU, maxV);
             ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 0.0D, pos.z + 0.0D, maxU, maxV);
             ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 1.0D, pos.z + 0.0D, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 1.0D, pos.z + 0.0D, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 0.0D, pos.z + 0.0D, maxU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 0.0D, pos.z + 1.0D, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + offset, pos.y + 1.0D, pos.z + 1.0D, minU, minV);
         }
 
         if ((metadata & 8) != 0)
@@ -45,6 +49,10 @@ public sealed class VineRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 1.0D, pos.z + 1.0D, maxU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 1.0D, pos.z + 0.0D, minU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 0.0D, pos.z + 0.0D, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 0.0D, pos.z + 0.0D, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 1.0D, pos.z + 0.0D, minU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 1.0D, pos.z + 1.0D, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D - offset, pos.y + 0.0D, pos.z + 1.0D, maxU, maxV);
         }
 
         if ((metadata & 4) != 0)
@@ -53,6 +61,10 @@ public sealed class VineRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D, pos.z + offset, maxU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D, pos.z + offset, minU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 0.0D, pos.z + offset, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 0.0D, pos.z + offset, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D, pos.z + offset, minU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D, pos.z + offset, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 0.0D, pos.z + offset, maxU, maxV);
         }
 
         if ((metadata & 1) != 0)
@@ -61,6 +73,10 @@ public sealed class VineRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 0.0D, pos.z + 1.0D - offset, minU, maxV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 0.0D, pos.z + 1.0D - offset, maxU, maxV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D, pos.z + 1.0D - offset, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D, pos.z + 1.0D - offset, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 0.0D, pos.z + 1.0D - offset, maxU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 0.0D, pos.z + 1.0D - offset, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D, pos.z + 1.0D - offset, minU, minV);
         }
 
         if (metadata == 0 && ctx.BlockReader.GetBlockId(pos.x, pos.y + 1, pos.z) == block.id)
@@ -69,6 +85,10 @@ public sealed class VineRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D - offset, pos.z + 0.0D, maxU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D - offset, pos.z + 0.0D, minU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D - offset, pos.z + 1.0D, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D - offset, pos.z + 1.0D, minU, maxV);
+            ctx.Tess.addVertexWithUV(pos.x + 0.0D, pos.y + 1.0D - offset, pos.z + 0.0D, minU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D - offset, pos.z + 0.0D, maxU, minV);
+            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + 1.0D - offset, pos.z + 1.0D, maxU, maxV);
         }
 
         return true;

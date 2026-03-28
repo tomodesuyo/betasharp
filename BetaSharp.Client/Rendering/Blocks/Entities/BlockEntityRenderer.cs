@@ -28,6 +28,7 @@ public class BlockEntityRenderer
         _specialRendererMap.Add(typeof(BlockEntitySign), new BlockEntitySignRenderer());
         _specialRendererMap.Add(typeof(BlockEntityMobSpawner), new BlockEntityMobSpawnerRenderer());
         _specialRendererMap.Add(typeof(BlockEntityPiston), new BlockEntityRendererPiston());
+        _specialRendererMap.Add(typeof(BlockEntityEndPortal), new BlockEntityEndPortalRenderer());
 
         foreach (BlockEntitySpecialRenderer? renderer in _specialRendererMap.Values)
         {

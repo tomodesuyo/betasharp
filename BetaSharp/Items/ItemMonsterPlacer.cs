@@ -16,12 +16,17 @@ internal sealed class ItemMonsterPlacer : Item
         [55] = new("Slime", 0x51A03E, 0x7EBF6E),
         [56] = new("Ghast", 0xF9F9F9, 0xBCBCBC),
         [57] = new("PigZombie", 0xEA9393, 0x4C7129),
+        [58] = new("Enderman", 0x161616, 0x000000),
+        [59] = new("CaveSpider", 0x0C424E, 0xA80E0E),
+        [60] = new("Silverfish", 0x6E6E6E, 0x303030),
         [90] = new("Pig", 0xF0A5A2, 0xDB635F),
         [91] = new("Sheep", 0xE7E7E7, 0xFFB5B5),
         [92] = new("Cow", 0x443626, 0xA1A1A1),
         [93] = new("Chicken", 0xA1A1A1, 0xFF0000),
         [94] = new("Squid", 0x223B4D, 0x708899),
-        [95] = new("Wolf", 0xD7D3D3, 0xCEAF96)
+        [95] = new("Wolf", 0xD7D3D3, 0xCEAF96),
+        [96] = new("MushroomCow", 0xA00F10, 0xB7B7B7),
+        [120] = new("Villager", 0x563C33, 0xBC9862)
     };
 
     public ItemMonsterPlacer(int id) : base(id)

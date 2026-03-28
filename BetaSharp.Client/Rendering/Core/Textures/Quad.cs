@@ -16,14 +16,18 @@ internal struct Quad
         NVertices = vertices.Length;
     }
 
-    public Quad(PositionTextureVertex[] vertices, int texMinU, int texMinV, int texMaxU, int texMaxV) : this(vertices)
+    public Quad(PositionTextureVertex[] vertices, int texMinU, int texMinV, int texMaxU, int texMaxV) : this(vertices, texMinU, texMinV, texMaxU, texMaxV, 64, 32)
     {
-        float uMargin = 0.0015625F;
-        float vMargin = 0.003125F;
-        vertices[0] = vertices[0].setTexturePosition(texMaxU / 64.0F - uMargin, texMinV / 32.0F + vMargin);
-        vertices[1] = vertices[1].setTexturePosition(texMinU / 64.0F + uMargin, texMinV / 32.0F + vMargin);
-        vertices[2] = vertices[2].setTexturePosition(texMinU / 64.0F + uMargin, texMaxV / 32.0F - vMargin);
-        vertices[3] = vertices[3].setTexturePosition(texMaxU / 64.0F - uMargin, texMaxV / 32.0F - vMargin);
+    }
+
+    public Quad(PositionTextureVertex[] vertices, int texMinU, int texMinV, int texMaxU, int texMaxV, int textureWidth, int textureHeight) : this(vertices)
+    {
+        float uMargin = 0.0F / textureWidth;
+        float vMargin = 0.0F / textureHeight;
+        vertices[0] = vertices[0].setTexturePosition(texMaxU / (float)textureWidth - uMargin, texMinV / (float)textureHeight + vMargin);
+        vertices[1] = vertices[1].setTexturePosition(texMinU / (float)textureWidth + uMargin, texMinV / (float)textureHeight + vMargin);
+        vertices[2] = vertices[2].setTexturePosition(texMinU / (float)textureWidth + uMargin, texMaxV / (float)textureHeight - vMargin);
+        vertices[3] = vertices[3].setTexturePosition(texMaxU / (float)textureWidth - uMargin, texMaxV / (float)textureHeight - vMargin);
     }
 
     public void flipFace()

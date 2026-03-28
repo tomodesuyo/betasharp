@@ -5,7 +5,7 @@ namespace BetaSharp.Worlds.Generation.Structures;
 
 public sealed class MapGenVillage(int size) : MapGenStructure
 {
-    private static readonly ICollection<Biome> s_villageSpawnBiomes =
+    public static readonly ICollection<Biome> VillageSpawnBiomes =
     [
         Biome.Plains,
         Biome.Desert,
@@ -40,11 +40,11 @@ public sealed class MapGenVillage(int size) : MapGenStructure
 
         return originalChunkX == regionX &&
                originalChunkZ == regionZ &&
-               World.Dimension.BiomeSource.AreBiomesViable(originalChunkX * 16 + 8, originalChunkZ * 16 + 8, 0, s_villageSpawnBiomes);
+               World.Dimension.BiomeSource.AreBiomesViable(originalChunkX * 16 + 8, originalChunkZ * 16 + 8, 0, VillageSpawnBiomes);
     }
 
     protected override StructureStart GetStructureStart(int chunkX, int chunkZ)
     {
-        return new EmptyStructureStart();
+        return new StructureVillageStart(World, Random, chunkX, chunkZ, _size);
     }
 }

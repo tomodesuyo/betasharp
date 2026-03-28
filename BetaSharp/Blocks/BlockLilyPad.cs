@@ -6,24 +6,46 @@ namespace BetaSharp.Blocks;
 
 internal class BlockLilyPad : Block
 {
+    private const int LilyPadColor = 2129968;
+
     public BlockLilyPad(int id, int textureId) : base(id, textureId, Material.Plant)
     {
-        float inset = 0.0625F;
-        setBoundingBox(inset, 0.0F, inset, 1.0F - inset, 0.015625F, 1.0F - inset);
+        float halfWidth = 0.5F;
+        float height = 0.015625F;
+        setBoundingBox(0.5F - halfWidth, 0.0F, 0.5F - halfWidth, 0.5F + halfWidth, height, 0.5F + halfWidth);
     }
 
     public override bool isOpaque() => false;
 
     public override bool isFullCube() => false;
 
-    public override Box? getCollisionShape(IBlockReader world, EntityManager entities, int x, int y, int z) => null;
+    public override BlockRendererType getRenderType() => BlockRendererType.LilyPad;
+
+    public override Box? getCollisionShape(IBlockReader world, EntityManager entities, int x, int y, int z)
+        => new(x + BoundingBox.MinX, y + BoundingBox.MinY, z + BoundingBox.MinZ, x + BoundingBox.MaxX, y + BoundingBox.MaxY, z + BoundingBox.MaxZ);
+
+    public override int getColor(int meta) => LilyPadColor;
+
+    public override int getColorMultiplier(IBlockReader reader, int x, int y, int z) => LilyPadColor;
 
     public override bool canPlaceAt(CanPlaceAtContext context)
     {
-        int belowId = context.World.Reader.GetBlockId(context.X, context.Y - 1, context.Z);
-        return context.Y > 0
-               && context.World.Reader.IsAir(context.X, context.Y, context.Z)
-               && (belowId == Block.Water.id || belowId == Block.FlowingWater.id)
-               && context.World.Reader.GetBlockMeta(context.X, context.Y - 1, context.Z) == 0;
+        return base.canPlaceAt(context) && CanStay(context.World, context.X, context.Y, context.Z);
+    }
+
+    public override void neighborUpdate(OnTickEvent @event)
+    {
+        if (!CanStay(@event.World, @event.X, @event.Y, @event.Z))
+        {
+            dropStacks(new OnDropEvent(@event.World, @event.X, @event.Y, @event.Z, @event.World.Reader.GetBlockMeta(@event.X, @event.Y, @event.Z)));
+            @event.World.Writer.SetBlock(@event.X, @event.Y, @event.Z, 0);
+        }
+    }
+
+    private static bool CanStay(IWorldContext world, int x, int y, int z)
+    {
+        return y >= 0 && y < 256 &&
+               world.Reader.GetMaterial(x, y - 1, z) == Material.Water &&
+               world.Reader.GetBlockMeta(x, y - 1, z) == 0;
     }
 }

@@ -34,7 +34,17 @@ internal class BlockSnow : Block
     public override bool canPlaceAt(CanPlaceAtContext evt)
     {
         int blockBelowId = evt.World.Reader.GetBlockId(evt.X, evt.Y - 1, evt.Z);
-        return blockBelowId != 0 && Blocks[blockBelowId].isOpaque() ? evt.World.Reader.GetMaterial(evt.X, evt.Y - 1, evt.Z).BlocksMovement : false;
+        if (blockBelowId == 0)
+        {
+            return false;
+        }
+
+        if (blockBelowId == Block.Leaves.id)
+        {
+            return true;
+        }
+
+        return Blocks[blockBelowId].isOpaque() && evt.World.Reader.GetMaterial(evt.X, evt.Y - 1, evt.Z).BlocksMovement;
     }
 
     public override void neighborUpdate(OnTickEvent @event) => breakIfCannotPlace(@event);

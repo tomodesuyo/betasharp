@@ -1,3 +1,5 @@
+using BetaSharp.Util.Maths;
+
 namespace BetaSharp.Worlds.Chunks;
 
 public interface IChunkSource
@@ -17,6 +19,8 @@ public interface IChunkSource
     bool CanSave();
 
     string GetDebugInfo();
+
+    Vec3i? FindNearestStructure(string structureId, int x, int y, int z) => null;
 
     IChunkSource CreateParallelInstance() => this;
 }

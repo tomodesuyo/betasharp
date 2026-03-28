@@ -1,4 +1,5 @@
 using BetaSharp.Blocks.Materials;
+using BetaSharp.Entities;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
 
@@ -166,7 +167,14 @@ public class BlockPortal : BlockBreakable
     {
         if (@event.Entity.vehicle == null && @event.Entity.passenger == null)
         {
-            @event.Entity.tickPortalCooldown();
+            if (@event.Entity is EntityPlayer player)
+            {
+                player.QueueDimensionChange(player.dimensionId == -1 ? 0 : -1);
+            }
+            else
+            {
+                @event.Entity.tickPortalCooldown();
+            }
         }
     }
 

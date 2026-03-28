@@ -21,6 +21,6 @@ internal class BlockWood : Block
 
     protected override int getDroppedItemMeta(int blockMeta)
     {
-        return blockMeta & 3;
+        return blockMeta;
     }
 }

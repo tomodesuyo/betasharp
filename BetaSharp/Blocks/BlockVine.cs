@@ -8,6 +8,10 @@ namespace BetaSharp.Blocks;
 
 internal class BlockVine : Block
 {
+    private static readonly int[] s_offsetX = [0, -1, 0, 1];
+    private static readonly int[] s_offsetZ = [1, 0, -1, 0];
+    private static readonly int[] s_vineGrowth = [-1, -1, 2, 0, 1, 3];
+
     public BlockVine(int id) : base(id, 143, Material.Plant)
     {
         setTickRandomly(true);
@@ -164,10 +168,124 @@ internal class BlockVine : Block
             return;
         }
 
-        int meta = @event.World.Reader.GetBlockMeta(@event.X, @event.Y, @event.Z);
-        if (@event.Y > 0 && @event.World.Reader.IsAir(@event.X, @event.Y - 1, @event.Z))
+        const int radius = 4;
+        int vineBudget = 5;
+        bool crowded = false;
+
+        for (int checkX = @event.X - radius; checkX <= @event.X + radius && !crowded; ++checkX)
         {
-            @event.World.Writer.SetBlockWithoutCallingOnPlaced(@event.X, @event.Y - 1, @event.Z, id, meta);
+            for (int checkZ = @event.Z - radius; checkZ <= @event.Z + radius && !crowded; ++checkZ)
+            {
+                for (int checkY = @event.Y - 1; checkY <= @event.Y + 1; ++checkY)
+                {
+                    if (@event.World.Reader.GetBlockId(checkX, checkY, checkZ) == id && --vineBudget <= 0)
+                    {
+                        crowded = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        int meta = @event.World.Reader.GetBlockMeta(@event.X, @event.Y, @event.Z);
+        int growthDirection = Random.Shared.Next(6);
+        int side = s_vineGrowth[growthDirection];
+
+        if (growthDirection == 1 && @event.Y < 255 && @event.World.Reader.IsAir(@event.X, @event.Y + 1, @event.Z))
+        {
+            if (crowded)
+            {
+                return;
+            }
+
+            int attachMeta = Random.Shared.Next(16) & meta;
+            if (attachMeta > 0)
+            {
+                for (int i = 0; i <= 3; ++i)
+                {
+                    if (!CanBePlacedOn(@event.World.Reader, @event.X + s_offsetX[i], @event.Y + 1, @event.Z + s_offsetZ[i]))
+                    {
+                        attachMeta &= ~(1 << i);
+                    }
+                }
+
+                if (attachMeta > 0)
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(@event.X, @event.Y + 1, @event.Z, id, attachMeta);
+                }
+            }
+
+            return;
+        }
+
+        if (growthDirection >= 2 && growthDirection <= 5 && (meta & 1 << side) == 0)
+        {
+            if (crowded)
+            {
+                return;
+            }
+
+            int sideX = @event.X + s_offsetX[side];
+            int sideZ = @event.Z + s_offsetZ[side];
+            int sideBlockId = @event.World.Reader.GetBlockId(sideX, @event.Y, sideZ);
+            if (sideBlockId != 0 && Block.Blocks[sideBlockId] != null)
+            {
+                if (Block.Blocks[sideBlockId].material.BlocksMovement && Block.Blocks[sideBlockId].isFullCube())
+                {
+                    @event.World.Writer.SetBlockMeta(@event.X, @event.Y, @event.Z, meta | 1 << side);
+                }
+            }
+            else
+            {
+                int clockwise = side + 1 & 3;
+                int counterClockwise = side + 3 & 3;
+
+                if ((meta & 1 << clockwise) != 0 && CanBePlacedOn(@event.World.Reader, sideX + s_offsetX[clockwise], @event.Y, sideZ + s_offsetZ[clockwise]))
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(sideX, @event.Y, sideZ, id, 1 << clockwise);
+                }
+                else if ((meta & 1 << counterClockwise) != 0 && CanBePlacedOn(@event.World.Reader, sideX + s_offsetX[counterClockwise], @event.Y, sideZ + s_offsetZ[counterClockwise]))
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(sideX, @event.Y, sideZ, id, 1 << counterClockwise);
+                }
+                else if ((meta & 1 << clockwise) != 0 &&
+                         @event.World.Reader.IsAir(sideX + s_offsetX[clockwise], @event.Y, sideZ + s_offsetZ[clockwise]) &&
+                         CanBePlacedOn(@event.World.Reader, @event.X + s_offsetX[clockwise], @event.Y, @event.Z + s_offsetZ[clockwise]))
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(sideX + s_offsetX[clockwise], @event.Y, sideZ + s_offsetZ[clockwise], id, 1 << (side + 2 & 3));
+                }
+                else if ((meta & 1 << counterClockwise) != 0 &&
+                         @event.World.Reader.IsAir(sideX + s_offsetX[counterClockwise], @event.Y, sideZ + s_offsetZ[counterClockwise]) &&
+                         CanBePlacedOn(@event.World.Reader, @event.X + s_offsetX[counterClockwise], @event.Y, @event.Z + s_offsetZ[counterClockwise]))
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(sideX + s_offsetX[counterClockwise], @event.Y, sideZ + s_offsetZ[counterClockwise], id, 1 << (side + 2 & 3));
+                }
+                else if (CanBePlacedOn(@event.World.Reader, sideX, @event.Y + 1, sideZ))
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(sideX, @event.Y, sideZ, id, 0);
+                }
+            }
+        }
+        else if (@event.Y > 1)
+        {
+            int belowBlockId = @event.World.Reader.GetBlockId(@event.X, @event.Y - 1, @event.Z);
+            if (belowBlockId == 0)
+            {
+                int belowMeta = Random.Shared.Next(16) & meta;
+                if (belowMeta > 0)
+                {
+                    @event.World.Writer.SetBlockWithoutCallingOnPlaced(@event.X, @event.Y - 1, @event.Z, id, belowMeta);
+                }
+            }
+            else if (belowBlockId == id)
+            {
+                int growMeta = Random.Shared.Next(16) & meta;
+                int belowMeta = @event.World.Reader.GetBlockMeta(@event.X, @event.Y - 1, @event.Z);
+                if (belowMeta != (belowMeta | growMeta))
+                {
+                    @event.World.Writer.SetBlockMeta(@event.X, @event.Y - 1, @event.Z, belowMeta | growMeta);
+                }
+            }
         }
     }
 

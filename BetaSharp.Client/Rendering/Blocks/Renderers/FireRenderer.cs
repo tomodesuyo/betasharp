@@ -8,7 +8,6 @@ public class FireRenderer : IBlockRenderer
     public bool Draw(Block block, in BlockPos pos, ref BlockRenderContext ctx)
     {
         int textureId = ctx.OverrideTexture >= 0 ? ctx.OverrideTexture : block.getTexture(0);
-
         float luminance = block.getLuminance(ctx.Lighting, pos.x, pos.y, pos.z);
         ctx.Tess.setColorOpaque_F(luminance, luminance, luminance);
 
@@ -155,7 +154,7 @@ public class FireRenderer : IBlockRenderer
             minU = texU / 256.0D;
             maxU = (texU + 15.99F) / 256.0D;
             minV = (texV + 16) / 256.0D;
-            maxV = (texV + 15.99F + 16.0F) / 256.0D;
+            maxV = (texV + 31.99F) / 256.0D;
 
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + flameHeight, z3, maxU, minV);
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y, z1, maxU, maxV);
@@ -166,33 +165,42 @@ public class FireRenderer : IBlockRenderer
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y, z0, minU, maxV);
             ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + flameHeight, z2, minU, minV);
 
+            double x4 = pos.x + 0.0D;
+            double x5 = pos.x + 1.0D;
+            double z4 = pos.z + 0.0D;
+            double z5 = pos.z + 1.0D;
+            double x6 = pos.x + 0.1D;
+            double x7 = pos.x + 0.9D;
+            double z6 = pos.z + 0.1D;
+            double z7 = pos.z + 0.9D;
+
             minU = texU / 256.0D;
             maxU = (texU + 15.99F) / 256.0D;
             minV = texV / 256.0D;
             maxV = (texV + 15.99F) / 256.0D;
 
-            ctx.Tess.addVertexWithUV(x1, pos.y + flameHeight, pos.z, minU, minV);
-            ctx.Tess.addVertexWithUV(x2, pos.y, pos.z, minU, maxV);
-            ctx.Tess.addVertexWithUV(x2, pos.y, pos.z + 1.0D, maxU, maxV);
-            ctx.Tess.addVertexWithUV(x1, pos.y + flameHeight, pos.z + 1.0D, maxU, minV);
-            ctx.Tess.addVertexWithUV(x0, pos.y + flameHeight, pos.z + 1.0D, minU, minV);
-            ctx.Tess.addVertexWithUV(x3, pos.y, pos.z + 1.0D, minU, maxV);
-            ctx.Tess.addVertexWithUV(x3, pos.y, pos.z, maxU, maxV);
-            ctx.Tess.addVertexWithUV(x0, pos.y + flameHeight, pos.z, maxU, minV);
+            ctx.Tess.addVertexWithUV(x6, pos.y + flameHeight, z4, minU, minV);
+            ctx.Tess.addVertexWithUV(x4, pos.y, z4, minU, maxV);
+            ctx.Tess.addVertexWithUV(x4, pos.y, z5, maxU, maxV);
+            ctx.Tess.addVertexWithUV(x6, pos.y + flameHeight, z5, maxU, minV);
+            ctx.Tess.addVertexWithUV(x7, pos.y + flameHeight, z5, minU, minV);
+            ctx.Tess.addVertexWithUV(x5, pos.y, z5, minU, maxV);
+            ctx.Tess.addVertexWithUV(x5, pos.y, z4, maxU, maxV);
+            ctx.Tess.addVertexWithUV(x7, pos.y + flameHeight, z4, maxU, minV);
 
             minU = texU / 256.0D;
             maxU = (texU + 15.99F) / 256.0D;
             minV = (texV + 16) / 256.0D;
-            maxV = (texV + 15.99F + 16.0F) / 256.0D;
+            maxV = (texV + 31.99F) / 256.0D;
 
-            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + flameHeight, z0, minU, minV);
-            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y, z3, minU, maxV);
-            ctx.Tess.addVertexWithUV(pos.x, pos.y, z3, maxU, maxV);
-            ctx.Tess.addVertexWithUV(pos.x, pos.y + flameHeight, z0, maxU, minV);
-            ctx.Tess.addVertexWithUV(pos.x, pos.y + flameHeight, z1, minU, minV);
-            ctx.Tess.addVertexWithUV(pos.x, pos.y, z2, minU, maxV);
-            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y, z2, maxU, maxV);
-            ctx.Tess.addVertexWithUV(pos.x + 1.0D, pos.y + flameHeight, z1, maxU, minV);
+            ctx.Tess.addVertexWithUV(x5, pos.y + flameHeight, z7, minU, minV);
+            ctx.Tess.addVertexWithUV(x5, pos.y, z1, minU, maxV);
+            ctx.Tess.addVertexWithUV(x4, pos.y, z1, maxU, maxV);
+            ctx.Tess.addVertexWithUV(x4, pos.y + flameHeight, z7, maxU, minV);
+            ctx.Tess.addVertexWithUV(x4, pos.y + flameHeight, z6, minU, minV);
+            ctx.Tess.addVertexWithUV(x4, pos.y, z0, minU, maxV);
+            ctx.Tess.addVertexWithUV(x5, pos.y, z0, maxU, maxV);
+            ctx.Tess.addVertexWithUV(x5, pos.y + flameHeight, z6, maxU, minV);
         }
 
         return true;

@@ -34,12 +34,14 @@ public class Biome
     public static readonly Biome ForestHills = Register(18, "forest_hills", new BiomeGenForest().SetColor(2250012).SetName("ForestHills").SetFoliageColor(5159473).SetClimate(0.7F, 0.8F).SetHeight(0.2F, 0.6F));
     public static readonly Biome TaigaHills = Register(19, "taiga_hills", new BiomeGenTaiga().SetColor(1456435).SetName("TaigaHills").SetFoliageColor(5159473).SetClimate(0.05F, 0.8F).SetHeight(0.2F, 0.7F));
     public static readonly Biome ExtremeHillsEdge = Register(20, "extreme_hills_edge", new Biome().SetColor(7501978).SetName("Extreme Hills Edge").SetHeight(0.2F, 0.8F).SetClimate(0.2F, 0.3F));
-    public static readonly Biome Rainforest = Register(21, "rainforest", new BiomeGenRainforest().SetColor(9419456).SetName("Rainforest").SetFoliageColor(2092120));
-    public static readonly Biome SeasonalForest = Register(22, "seasonal_forest", new Biome().SetColor(10215459).SetName("Seasonal Forest"));
-    public static readonly Biome Savanna = Register(23, "savanna", new BiomeGenDesert().SetColor(14278691).SetName("Savanna"));
-    public static readonly Biome Shrubland = Register(24, "shrubland", new Biome().SetColor(10595616).SetName("Shrubland"));
-    public static readonly Biome IceDesert = Register(25, "ice_desert", new BiomeGenDesert().SetColor(0xFFED93).SetName("Ice Desert").EnableSnow().DisableRain().SetFoliageColor(0xC4D339));
-    public static readonly Biome Tundra = Register(26, "tundra", new Biome().SetColor(0x57EBF9).SetName("Tundra").EnableSnow().SetFoliageColor(0xC4D339));
+    public static readonly Biome Jungle = Register(21, "jungle", new BiomeGenJungle().SetColor(5470985).SetName("Jungle").SetFoliageColor(5470985).SetClimate(1.2F, 0.9F).SetHeight(0.2F, 0.4F));
+    public static readonly Biome JungleHills = Register(22, "jungle_hills", new BiomeGenJungle().SetColor(2900485).SetName("JungleHills").SetFoliageColor(5470985).SetClimate(1.2F, 0.9F).SetHeight(1.8F, 0.2F));
+    public static readonly Biome Rainforest = Register(30, "rainforest", new BiomeGenRainforest().SetColor(9419456).SetName("Rainforest").SetFoliageColor(2092120));
+    public static readonly Biome SeasonalForest = Register(31, "seasonal_forest", new Biome().SetColor(10215459).SetName("Seasonal Forest"));
+    public static readonly Biome Savanna = Register(32, "savanna", new BiomeGenDesert().SetColor(14278691).SetName("Savanna"));
+    public static readonly Biome Shrubland = Register(33, "shrubland", new Biome().SetColor(10595616).SetName("Shrubland"));
+    public static readonly Biome IceDesert = Register(34, "ice_desert", new BiomeGenDesert().SetColor(0xFFED93).SetName("Ice Desert").EnableSnow().DisableRain().SetFoliageColor(0xC4D339));
+    public static readonly Biome Tundra = Register(35, "tundra", new Biome().SetColor(0x57EBF9).SetName("Tundra").EnableSnow().SetFoliageColor(0xC4D339));
 
     private static readonly Biome[] s_biomes = new Biome[4096];
 
@@ -61,6 +63,7 @@ public class Biome
     public int MushroomsPerChunk { get; private set; }
     public int ReedsPerChunk { get; private set; }
     public int CactiPerChunk { get; private set; }
+    public int WaterLiliesPerChunk { get; private set; }
     public int SandPerChunk { get; private set; } = 3;
     public int GravelPerChunk { get; private set; } = 1;
     public int ClayPerChunk { get; private set; } = 1;
@@ -79,6 +82,7 @@ public class Biome
         MonsterList.Add(new SpawnListEntry(w => new EntitySkeleton(w)), 10);
         MonsterList.Add(new SpawnListEntry(w => new EntityCreeper(w)), 10);
         MonsterList.Add(new SpawnListEntry(w => new EntitySlime(w)), 10);
+        MonsterList.Add(new SpawnListEntry(w => new EntityEnderman(w), 1, 4), 1);
 
         CreatureList.Add(new SpawnListEntry(w => new EntitySheep(w)), 12);
         CreatureList.Add(new SpawnListEntry(w => new EntityPig(w)), 10);
@@ -113,7 +117,7 @@ public class Biome
         return this;
     }
     protected Biome SetHeight(float rootHeight, float heightVariation) { RootHeight = rootHeight; HeightVariation = heightVariation; return this; }
-    protected Biome SetDecorator(int treesPerChunk = 0, int flowersPerChunk = 2, int grassPerChunk = 1, int deadBushPerChunk = 0, int mushroomsPerChunk = 0, int reedsPerChunk = 0, int cactiPerChunk = 0, int sandPerChunk = 3, int gravelPerChunk = 1, int clayPerChunk = 1)
+    protected Biome SetDecorator(int treesPerChunk = 0, int flowersPerChunk = 2, int grassPerChunk = 1, int deadBushPerChunk = 0, int mushroomsPerChunk = 0, int reedsPerChunk = 0, int cactiPerChunk = 0, int sandPerChunk = 3, int gravelPerChunk = 1, int clayPerChunk = 1, int waterLiliesPerChunk = 0)
     {
         TreesPerChunk = treesPerChunk;
         FlowersPerChunk = flowersPerChunk;
@@ -125,6 +129,7 @@ public class Biome
         SandPerChunk = sandPerChunk;
         GravelPerChunk = gravelPerChunk;
         ClayPerChunk = clayPerChunk;
+        WaterLiliesPerChunk = waterLiliesPerChunk;
         Decorator.TreesPerChunk = treesPerChunk;
         Decorator.FlowersPerChunk = flowersPerChunk;
         Decorator.GrassPerChunk = grassPerChunk;
@@ -135,10 +140,11 @@ public class Biome
         Decorator.SandPerChunk = sandPerChunk;
         Decorator.GravelPerChunk = gravelPerChunk;
         Decorator.ClayPerChunk = clayPerChunk;
+        Decorator.WaterLiliesPerChunk = waterLiliesPerChunk;
         return this;
     }
 
-    public void Decorate(IWorldContext world, JavaRandom rand, int blockX, int blockZ) => Decorator.Decorate(world, rand, this, blockX, blockZ);
+    public virtual void Decorate(IWorldContext world, JavaRandom rand, int blockX, int blockZ) => Decorator.Decorate(world, rand, this, blockX, blockZ);
 
     public static void Init()
     {
@@ -151,14 +157,28 @@ public class Biome
         }
 
         Desert.TopBlockId = Desert.SoilBlockId = (byte)Block.Sand.id;
+        DesertHills.TopBlockId = DesertHills.SoilBlockId = (byte)Block.Sand.id;
         IceDesert.TopBlockId = IceDesert.SoilBlockId = (byte)Block.Sand.id;
         Ocean.TopBlockId = Ocean.SoilBlockId = (byte)Block.Sand.id;
         River.TopBlockId = River.SoilBlockId = (byte)Block.Sand.id;
+        MushroomIsland.TopBlockId = (byte)Block.Mycelium.id;
+        MushroomIsland.SoilBlockId = (byte)Block.Dirt.id;
+        MushroomIslandShore.TopBlockId = (byte)Block.Mycelium.id;
+        MushroomIslandShore.SoilBlockId = (byte)Block.Dirt.id;
+        MushroomIsland.CreatureList.Clear();
+        MushroomIsland.CreatureList.Add(new SpawnListEntry(w => new EntityMooshroom(w), 4, 8), 8);
+        MushroomIslandShore.CreatureList.Clear();
+        MushroomIslandShore.CreatureList.Add(new SpawnListEntry(w => new EntityMooshroom(w), 4, 8), 8);
     }
 
     public virtual Feature GetRandomWorldGenForTrees(JavaRandom rand)
     {
         return rand.NextInt(10) == 0 ? new LargeOakTreeFeature() : new OakTreeFeature();
+    }
+
+    public virtual Feature GetRandomWorldGenForGrass(JavaRandom rand)
+    {
+        return new GrassPatchFeature(Block.Grass.id, 1);
     }
 
 

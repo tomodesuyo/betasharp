@@ -229,7 +229,9 @@ public class CreativeScreenHandler : ScreenHandler
                    || item is ItemHoe
                    || item is ItemFishingRod
                    || item is ItemShears
-                   || item == Item.FlintAndSteel;
+                   || item == Item.FlintAndSteel
+                   || item == Item.Compass
+                   || item == Item.Clock;
         }
 
         if (CurrentTab == CreativeInventoryTab.Combat)
@@ -242,12 +244,12 @@ public class CreativeScreenHandler : ScreenHandler
 
         if (CurrentTab == CreativeInventoryTab.Food)
         {
-            return item is ItemFood;
+            return IsFood(stack);
         }
 
         if (CurrentTab == CreativeInventoryTab.Brewing)
         {
-            return item == Item.GlowstoneDust;
+            return IsBrewing(stack);
         }
 
         if (CurrentTab == CreativeInventoryTab.Materials)
@@ -276,17 +278,23 @@ public class CreativeScreenHandler : ScreenHandler
             var id when id == Block.Dandelion.id => true,
             var id when id == Block.Sapling.id => true,
             var id when id == Block.Leaves.id => true,
-            var id when id == Block.Glass.id => true,
+            var id when id == Block.Vine.id => true,
+            var id when id == Block.Grass.id => true,
+            var id when id == Block.DeadBush.id => true,
+            var id when id == Block.Bookshelf.id => true,
+            var id when id == Block.GlassPane.id => true,
             var id when id == Block.Torch.id => true,
             var id when id == Block.Ladder.id => true,
+            var id when id == Block.Fence.id => true,
             var id when id == Block.CraftingTable.id => true,
             var id when id == Block.Furnace.id => true,
             var id when id == Block.Chest.id => true,
             var id when id == Block.Jukebox.id => true,
             var id when id == Block.Snow.id => true,
             var id when id == Block.Cactus.id => true,
-            var id when id == Block.Pumpkin.id => true,
-            var id when id == Block.JackLantern.id => true,
+            var id when id == Block.LilyPad.id => true,
+            var id when id == Block.EnchantmentTable.id => true,
+            var id when id == Block.EndPortalFrame.id => true,
             _ => stack.itemId == Item.Sign.id
                  || stack.itemId == Item.Painting.id
                  || stack.itemId == Item.Bed.id
@@ -312,6 +320,8 @@ public class CreativeScreenHandler : ScreenHandler
             var id when id == Block.Button.id => true,
             var id when id == Block.Repeater.id => true,
             var id when id == Block.Trapdoor.id => true,
+            var id when id == Block.FenceGate.id => true,
+            var id when id == Block.RedstoneLamp.id => true,
             _ => stack.itemId == Item.Redstone.id
                  || stack.itemId == Item.Repeater.id
                  || stack.itemId == Item.WoodenDoor.id
@@ -346,12 +356,50 @@ public class CreativeScreenHandler : ScreenHandler
                || stack.itemId == Item.WaterBucket.id
                || stack.itemId == Item.LavaBucket.id
                || stack.itemId == Item.MilkBucket.id
-               || stack.itemId == Item.Compass.id
-               || stack.itemId == Item.Clock.id
                || stack.itemId == Item.Map.id
+               || stack.itemId == Item.Book.id
+               || stack.itemId == Item.Paper.id
+               || stack.itemId == Item.Slimeball.id
+               || stack.itemId == Item.Bone.id
+               || stack.itemId == Item.EnderPearl.id
+               || stack.itemId == Item.EyeOfEnder.id
+               || stack.itemId == Item.FireCharge.id
+               || stack.itemId == Item.ExpBottle.id
                || stack.itemId == Item.RecordThirteen.id
                || stack.itemId == Item.RecordCat.id
+               || stack.itemId == Item.RecordBlocks.id
+               || stack.itemId == Item.RecordChirp.id
+               || stack.itemId == Item.RecordFar.id
+               || stack.itemId == Item.RecordMall.id
+               || stack.itemId == Item.RecordMellohi.id
+               || stack.itemId == Item.RecordStal.id
+               || stack.itemId == Item.RecordStrad.id
+               || stack.itemId == Item.RecordWard.id
+               || stack.itemId == Item.RecordEleven.id
                || stack.itemId == Item.Snowball.id;
+    }
+
+    private static bool IsFood(ItemStack stack)
+    {
+        return stack.itemId == Block.Cake.id || stack.getItem() is ItemFood;
+    }
+
+    private static bool IsBrewing(ItemStack stack)
+    {
+        return stack.itemId switch
+        {
+            var id when id == Block.BrewingStand.id => true,
+            var id when id == Block.Cauldron.id => true,
+            _ => stack.itemId == Item.Potion.id
+                 || stack.itemId == Item.GlassBottle.id
+                 || stack.itemId == Item.GhastTear.id
+                 || stack.itemId == Item.BlazePowder.id
+                 || stack.itemId == Item.MagmaCream.id
+                 || stack.itemId == Item.FermentedSpiderEye.id
+                 || stack.itemId == Item.SpeckledMelon.id
+                 || stack.itemId == Item.BrewingStand.id
+                 || stack.itemId == Item.Cauldron.id
+        };
     }
 
     private static bool IsMaterial(ItemStack stack)
@@ -362,6 +410,11 @@ public class CreativeScreenHandler : ScreenHandler
         }
 
         Item item = stack.getItem();
+        if (stack.itemId == Item.Compass.id || stack.itemId == Item.Clock.id)
+        {
+            return false;
+        }
+
         return item is not ItemFood
                && item is not ItemTool
                && item is not ItemHoe
@@ -371,7 +424,7 @@ public class CreativeScreenHandler : ScreenHandler
                && item is not ItemFishingRod
                && item is not ItemShears
                && item != Item.FlintAndSteel
-               && item != Item.GlowstoneDust
+               && !IsBrewing(stack)
                && !IsTransportation(stack)
                && !IsRedstone(stack)
                && !IsDecoration(stack)
@@ -424,10 +477,10 @@ public class CreativeScreenHandler : ScreenHandler
 
         AddMetadataVariants(Block.Wool, 16);
         AddMetadataVariants(Block.Slab, 6);
-        AddMetadataVariants(Block.Planks, 3);
-        AddMetadataVariants(Block.Log, 3);
-        AddMetadataVariants(Block.Sapling, 3);
-        AddMetadataVariants(Block.Leaves, 3);
+        AddMetadataVariants(Block.Planks, 4);
+        AddMetadataVariants(Block.Log, 4);
+        AddMetadataVariants(Block.Sapling, 4);
+        AddMetadataVariants(Block.Leaves, 4);
         AddMetadataVariants(Item.Dye, 16, 1);
     }
 

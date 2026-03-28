@@ -172,6 +172,16 @@ public class ClientNetworkHandler : NetHandler
             entity = new EntitySnowball(worldClient, x, y, z);
         }
 
+        if (packet.entityType == 65)
+        {
+            entity = new EntityEnderPearl(worldClient, x, y, z);
+        }
+
+        if (packet.entityType == 72)
+        {
+            entity = new EntityEnderEye(worldClient, x, y, z);
+        }
+
         if (packet.entityType == 63)
         {
             entity = new EntityFireball(worldClient, x, y, z, packet.velocityX / 8000.0D, packet.velocityY / 8000.0D, packet.velocityZ / 8000.0D);
@@ -234,6 +244,15 @@ public class ClientNetworkHandler : NetHandler
                     if (owner is EntityLiving)
                     {
                         ((EntityExpBottle)entity).Thrower = (EntityLiving)owner;
+                    }
+                }
+
+                if (packet.entityType == 65)
+                {
+                    Entity? owner = getEntityByID(packet.entityData);
+                    if (owner is EntityLiving)
+                    {
+                        ((EntityEnderPearl)entity).Thrower = (EntityLiving)owner;
                     }
                 }
 

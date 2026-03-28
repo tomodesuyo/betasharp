@@ -26,6 +26,8 @@ internal static class LegacyBiomeIds
     public const int ForestHills = 18;
     public const int TaigaHills = 19;
     public const int ExtremeHillsEdge = 20;
+    public const int Jungle = 21;
+    public const int JungleHills = 22;
 }
 
 internal static class LegacyIntCache
@@ -489,6 +491,7 @@ internal sealed class LegacyGenLayerVillageLandscape(long seed, LegacyGenLayer p
         LegacyBiomeIds.Swampland,
         LegacyBiomeIds.Plains,
         LegacyBiomeIds.Taiga,
+        LegacyBiomeIds.Jungle,
     ];
 
     public override int[] GetValues(int x, int z, int width, int depth)
@@ -594,6 +597,7 @@ internal sealed class LegacyGenLayerHills(long seed, LegacyGenLayer parent) : Le
                     LegacyBiomeIds.Taiga => LegacyBiomeIds.TaigaHills,
                     LegacyBiomeIds.Plains => LegacyBiomeIds.Forest,
                     LegacyBiomeIds.IcePlains => LegacyBiomeIds.IceMountains,
+                    LegacyBiomeIds.Jungle => LegacyBiomeIds.JungleHills,
                     _ => center,
                 };
 
@@ -676,7 +680,12 @@ internal sealed class LegacyGenLayerSwampRivers(long seed, LegacyGenLayer parent
             {
                 InitChunkSeed(dx + x, dz + z);
                 int center = parentValues[dx + 1 + (dz + 1) * (width + 2)];
-                values[dx + dz * width] = center == LegacyBiomeIds.Swampland && NextInt(6) == 0 ? LegacyBiomeIds.River : center;
+                values[dx + dz * width] =
+                    center == LegacyBiomeIds.Swampland && NextInt(6) == 0
+                        ? LegacyBiomeIds.River
+                        : (center == LegacyBiomeIds.Jungle || center == LegacyBiomeIds.JungleHills) && NextInt(8) == 0
+                            ? LegacyBiomeIds.River
+                            : center;
             }
         }
 
@@ -957,9 +966,9 @@ internal sealed class LegacyBiomeCache(BiomeSource biomeSource)
         return block;
     }
 
-    public Biome GetBiome(int x, int z) => GetBlock(x, z).Biomes[(z & 15) + ((x & 15) << 4)];
-    public double GetTemperature(int x, int z) => GetBlock(x, z).Temperature[(z & 15) + ((x & 15) << 4)];
-    public double GetDownfall(int x, int z) => GetBlock(x, z).Downfall[(z & 15) + ((x & 15) << 4)];
+    public Biome GetBiome(int x, int z) => GetBlock(x, z).Biomes[(x & 15) + ((z & 15) << 4)];
+    public double GetTemperature(int x, int z) => GetBlock(x, z).Temperature[(x & 15) + ((z & 15) << 4)];
+    public double GetDownfall(int x, int z) => GetBlock(x, z).Downfall[(x & 15) + ((z & 15) << 4)];
     public Biome[] GetBiomes(int x, int z) => GetBlock(x, z).Biomes;
 
     public void Cleanup()

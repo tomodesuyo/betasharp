@@ -226,6 +226,8 @@ public class BiomeSource
             LegacyBiomeIds.ForestHills => Biome.ForestHills,
             LegacyBiomeIds.TaigaHills => Biome.TaigaHills,
             LegacyBiomeIds.ExtremeHillsEdge => Biome.ExtremeHillsEdge,
+            LegacyBiomeIds.Jungle => Biome.Jungle,
+            LegacyBiomeIds.JungleHills => Biome.JungleHills,
             _ => Biome.Plains,
         };
     }

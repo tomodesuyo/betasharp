@@ -20,7 +20,7 @@ public abstract class Dimension
     public IWorldContext World { get; set; } = null!;
     public BiomeSource BiomeSource { get; set; } = null!;
 
-    public virtual float CloudHeight { get; } = 108.0F;
+    public virtual float CloudHeight { get; } = 128.0F;
     public virtual bool HasGround => true;
     public virtual bool HasWorldSpawn => true;
 
@@ -119,6 +119,7 @@ public abstract class Dimension
     {
         -1 => new NetherDimension(),
         0 => new OverworldDimension(),
+        1 => new EndDimension(),
         _ => throw new ArgumentOutOfRangeException($"Invalid Dimension:{id}")
     };
 }

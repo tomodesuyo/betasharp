@@ -17,6 +17,8 @@ public sealed class MapGenStronghold : MapGenStructure
         Biome.DesertHills,
         Biome.ForestHills,
         Biome.ExtremeHillsEdge,
+        Biome.Jungle,
+        Biome.JungleHills,
     ];
 
     private bool _ranBiomeCheck;
@@ -78,6 +80,12 @@ public sealed class MapGenStronghold : MapGenStructure
 
     protected override StructureStart GetStructureStart(int chunkX, int chunkZ)
     {
-        return new EmptyStructureStart();
+        StructureStrongholdStart start;
+        do
+        {
+            start = new StructureStrongholdStart(World, Random, chunkX, chunkZ);
+        } while (!start.IsSizeableStructure() || start.GetComponents().Count == 0);
+
+        return start;
     }
 }

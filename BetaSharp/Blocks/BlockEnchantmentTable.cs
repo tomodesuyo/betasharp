@@ -9,6 +9,16 @@ internal class BlockEnchantmentTable : Block
         setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 0.75F, 1.0F);
     }
 
+    public override int getTexture(int side)
+    {
+        return side switch
+        {
+            0 => textureId + 17,
+            1 => textureId,
+            _ => textureId + 16,
+        };
+    }
+
     public override bool isOpaque() => false;
 
     public override bool isFullCube() => false;

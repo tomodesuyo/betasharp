@@ -320,4 +320,6 @@ public class ServerChunkCache : IChunkSource
             && IsChunkLoaded(chunkX - 1, chunkZ))
             DecorateTerrain(this, chunkX - 1, chunkZ - 1);
     }
+
+    public Vec3i? FindNearestStructure(string structureId, int x, int y, int z) => _generator.FindNearestStructure(structureId, x, y, z);
 }

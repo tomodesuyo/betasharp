@@ -220,6 +220,17 @@ internal class OverworldChunkGenerator : IChunkSource
 
     public string GetDebugInfo() => "RandomLevelSource";
 
+    public Vec3i? FindNearestStructure(string structureId, int x, int y, int z)
+    {
+        return structureId switch
+        {
+            "Stronghold" => _strongholdGenerator.FindNearestStructure(_level, x, y, z),
+            "Village" => _villageGenerator.FindNearestStructure(_level, x, y, z),
+            "Mineshaft" => _mineshaftGenerator.FindNearestStructure(_level, x, y, z),
+            _ => null,
+        };
+    }
+
     private void InitFeatures()
     {
         _featureWaterLake = new LakeFeature(Block.Water.id);
@@ -359,7 +370,7 @@ internal class OverworldChunkGenerator : IChunkSource
         {
             for (int zOffset = 0; zOffset < 16; ++zOffset)
             {
-                Biome verticalScale = biomes[zOffset + horizontalScale * 16];
+                Biome verticalScale = biomes[horizontalScale + zOffset * 16];
                 float temperature = (float)_biomeSource.GetTemperature(chunkX * 16 + horizontalScale, chunkZ * 16 + zOffset);
                 int featureX = (int)(_depthBuffer[horizontalScale + zOffset * 16] / 3.0D + 3.0D + _random.NextDouble() * 0.25D);
                 int featureY = -1;

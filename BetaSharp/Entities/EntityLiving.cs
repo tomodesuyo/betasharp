@@ -691,7 +691,9 @@ public abstract class EntityLiving : Entity
         int x = MathHelper.Floor(base.x);
         int y = MathHelper.Floor(boundingBox.MinY);
         int z = MathHelper.Floor(base.z);
-        return world.Reader.GetBlockId(x, y, z) == Block.Ladder.id;
+        int blockId = world.Reader.GetBlockId(x, y, z);
+        return (blockId == Block.Ladder.id || blockId == Block.Vine.id)
+               && (this is not EntityPlayer player || !player.capabilities.IsSpectatorMode);
     }
 
     public override void writeNbt(NBTTagCompound nbt)

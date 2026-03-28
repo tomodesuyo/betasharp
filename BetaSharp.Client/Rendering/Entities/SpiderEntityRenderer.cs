@@ -31,11 +31,10 @@ public class SpiderEntityRenderer : LivingEntityRenderer
         else
         {
             loadTexture("/mob/spider_eyes.png");
-            float var4 = (1.0F - var1.getBrightnessAtEyes(1.0F)) * 0.5F;
             GLManager.GL.Enable(GLEnum.Blend);
             GLManager.GL.Disable(GLEnum.AlphaTest);
-            GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, var4);
+            GLManager.GL.BlendFunc(GLEnum.One, GLEnum.One);
+            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
             return true;
         }
     }

@@ -10,8 +10,13 @@ internal class BlockStoneBrick : Block
 
     public override int getTexture(int side, int meta)
     {
-        int variant = meta & 3;
-        return textureId + variant;
+        return (meta & 3) switch
+        {
+            1 => 100,
+            2 => 101,
+            3 => 213,
+            _ => 54,
+        };
     }
 
     protected override int getDroppedItemMeta(int blockMeta)

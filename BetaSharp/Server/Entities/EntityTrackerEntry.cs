@@ -332,6 +332,14 @@ internal class EntityTrackerEntry
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 61);
             }
+            else if (currentTrackedEntity is EntityEnderPearl pearl)
+            {
+                return EntitySpawnS2CPacket.Get(currentTrackedEntity, 65, pearl.Thrower != null ? pearl.Thrower.id : currentTrackedEntity.id);
+            }
+            else if (currentTrackedEntity is EntityEnderEye)
+            {
+                return EntitySpawnS2CPacket.Get(currentTrackedEntity, 72);
+            }
             else if (currentTrackedEntity is EntityFireball fireball)
             {
                 var packet = EntitySpawnS2CPacket.Get(fireball, 63, fireball.owner.id);

@@ -23,7 +23,7 @@ public class TeleportDimensionCommand : ICommand
             return;
         }
 
-        if (dim != 0 && dim != -1)
+        if (dim != 0 && dim != -1 && dim != 1)
         {
             c.Output.SendMessage("Dimension " + dim + " does not exist.");
             return;

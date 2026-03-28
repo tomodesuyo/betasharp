@@ -221,7 +221,7 @@ internal sealed class ComponentMineshaftCorridor : StructureComponent
                     BlockEntityMobSpawner? spawner = world.Entities.GetBlockEntity<BlockEntityMobSpawner>(worldX, worldY, worldZ);
                     if (spawner != null)
                     {
-                        spawner.SetSpawnedEntityId("Spider");
+                        spawner.SetSpawnedEntityId("CaveSpider");
                     }
                 }
             }

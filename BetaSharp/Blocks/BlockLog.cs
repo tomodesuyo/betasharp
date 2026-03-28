@@ -41,13 +41,21 @@ internal class BlockLog : Block
 
     public override int getTexture(int side, int meta)
     {
-        int type = meta & 3;
-        if (side == 1 || side == 0)
+        int woodType = meta & 3;
+        int axis = meta & 12;
+        bool isEndFace = axis switch
+        {
+            4 => side is 4 or 5,
+            8 => side is 2 or 3,
+            _ => side is 0 or 1,
+        };
+
+        if (isEndFace)
         {
             return 21;
         }
 
-        return type switch
+        return woodType switch
         {
             1 => 116,
             2 => 117,

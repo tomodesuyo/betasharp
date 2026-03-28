@@ -35,9 +35,11 @@ public class EntityRenderDispatcher
     private EntityRenderDispatcher()
     {
         RegisterRenderer(typeof(EntitySpider), new SpiderEntityRenderer());
+        RegisterRenderer(typeof(EntityCaveSpider), new CaveSpiderEntityRenderer());
         RegisterRenderer(typeof(EntityPig), new PigEntityRenderer(new ModelPig(), new ModelPig(0.5F), 0.7F));
         RegisterRenderer(typeof(EntitySheep), new SheepEntityRenderer(new ModelSheep2(), new ModelSheep1(), 0.7F));
         RegisterRenderer(typeof(EntityCow), new CowEntityRenderer(new ModelCow(), 0.7F));
+        RegisterRenderer(typeof(EntityMooshroom), new MooshroomEntityRenderer(new ModelCow(), 0.7F));
         RegisterRenderer(typeof(EntityWolf), new WolfEntityRenderer(new ModelWolf(), 0.5F));
         RegisterRenderer(typeof(EntityChicken), new ChickenEntityRenderer(new ModelChicken(), 0.3F));
         RegisterRenderer(typeof(EntityCreeper), new CreeperEntityRenderer());
@@ -54,6 +56,8 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityArrow), new ArrowEntityRenderer());
         RegisterRenderer(typeof(EntitySnowball), new ProjectileEntityRenderer(Item.Snowball.getTextureId(0)));
         RegisterRenderer(typeof(EntityEgg), new ProjectileEntityRenderer(Item.Egg.getTextureId(0)));
+        RegisterRenderer(typeof(EntityEnderPearl), new ProjectileEntityRenderer(Item.EnderPearl.getTextureId(0)));
+        RegisterRenderer(typeof(EntityEnderEye), new ProjectileEntityRenderer(Item.EyeOfEnder.getTextureId(0)));
         RegisterRenderer(typeof(EntityExpBottle), new ProjectileEntityRenderer(Item.ExpBottle.getTextureId(0)));
         RegisterRenderer(typeof(EntityFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntityItem), new ItemRenderer());
@@ -63,6 +67,9 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityBoat), new BoatEntityRenderer());
         RegisterRenderer(typeof(EntityFish), new FishingBobberEntityRenderer());
         RegisterRenderer(typeof(EntityLightningBolt), new LightningEntityRenderer());
+        RegisterRenderer(typeof(EntityVillager), new VillagerEntityRenderer());
+        RegisterRenderer(typeof(EntityEnderman), new EndermanEntityRenderer());
+        RegisterRenderer(typeof(EntitySilverfish), new LivingEntityRenderer(new ModelSpider(), 0.3F));
 
         foreach (var render in entityRenderMap.Values)
         {

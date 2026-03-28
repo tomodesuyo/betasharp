@@ -8,11 +8,11 @@ internal class BiomeGenSwamp : Biome
 {
     public BiomeGenSwamp()
     {
-        SetDecorator(treesPerChunk: 2, flowersPerChunk: -999, grassPerChunk: 1, deadBushPerChunk: 1, mushroomsPerChunk: 8, reedsPerChunk: 10, clayPerChunk: 1);
+        SetDecorator(treesPerChunk: 2, flowersPerChunk: -999, grassPerChunk: 1, deadBushPerChunk: 1, mushroomsPerChunk: 8, reedsPerChunk: 10, clayPerChunk: 1, waterLiliesPerChunk: 4);
         SetWaterColor(14745518);
     }
 
-    public override Feature GetRandomWorldGenForTrees(JavaRandom rand) => new OakTreeFeature();
+    public override Feature GetRandomWorldGenForTrees(JavaRandom rand) => new SwampTreeFeature();
 
     public override int GetGrassColorAtCoords(IBlockReader reader, int x, int y, int z)
     {
