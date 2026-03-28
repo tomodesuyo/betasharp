@@ -4,4 +4,4 @@ using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp;
 
-public record SpawnListEntry(Func<IWorldContext, EntityLiving> Factory);
+public record SpawnListEntry(Func<IWorldContext, EntityLiving> Factory, int MinGroupCount = 4, int MaxGroupCount = 4);

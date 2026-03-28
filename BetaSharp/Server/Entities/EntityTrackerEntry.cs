@@ -345,6 +345,10 @@ internal class EntityTrackerEntry
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 62);
             }
+            else if (currentTrackedEntity is EntityExpBottle expBottle)
+            {
+                return EntitySpawnS2CPacket.Get(currentTrackedEntity, 75, expBottle.Thrower != null ? expBottle.Thrower.id : currentTrackedEntity.id);
+            }
             else if (currentTrackedEntity is EntityTNTPrimed)
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 50);

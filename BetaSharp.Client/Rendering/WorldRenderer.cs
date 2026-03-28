@@ -913,6 +913,14 @@ public class WorldRenderer : IWorldEventListener
 
                 _game.particleManager.addBlockDestroyEffects(var3, var4, var5, var6 & 255, var6 >> 8 & 255);
                 break;
+            case 2002:
+                for (var16 = 0; var16 < 8; ++var16)
+                {
+                    _game.particleManager.AddSlime(var3, var4, var5, Item.Potion);
+                }
+
+                _game.sndManager.PlaySound("random.glass", var3 + 0.5F, var4 + 0.5F, var5 + 0.5F, 1.0F, world.Random.NextFloat() * 0.1F + 0.9F);
+                break;
         }
 
     }

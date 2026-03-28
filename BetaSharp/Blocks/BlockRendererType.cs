@@ -21,4 +21,9 @@ public enum BlockRendererType: int
     Repeater = 15,
     PistonBase = 16,
     PistonExtension = 17,
+    Pane = 18,
+    Vine = 20,
+    FenceGate = 21,
+    BrewingStand = 25,
+    EndPortalFrame = 26,
 }

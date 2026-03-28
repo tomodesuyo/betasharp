@@ -27,6 +27,11 @@ public class BlockRenderer
     private static readonly RepeaterRenderer s_repeater = new();
     private static readonly PistonBaseRenderer s_pistonBase = new();
     private static readonly PistonExtensionRenderer s_pistonExt = new();
+    private static readonly PaneRenderer s_pane = new();
+    private static readonly VineRenderer s_vine = new();
+    private static readonly FenceGateRenderer s_fenceGate = new();
+    private static readonly BrewingStandRenderer s_brewingStand = new();
+    private static readonly EndPortalFrameRenderer s_endPortalFrame = new();
 
 
     public static bool RenderBlockByRenderType(IBlockReader world, ILightProvider lighting, Block block, BlockPos pos, Tessellator tess, int overrideTexture = -1, bool renderAllFaces = false)
@@ -76,6 +81,11 @@ public class BlockRenderer
             BlockRendererType.Repeater => s_repeater.Draw(block, pos, ref ctx),
             BlockRendererType.PistonBase => s_pistonBase.Draw(block, pos, ref ctx),
             BlockRendererType.PistonExtension => s_pistonExt.Draw(block, pos, ref ctx),
+            BlockRendererType.Pane => s_pane.Draw(block, pos, ref ctx),
+            BlockRendererType.Vine => s_vine.Draw(block, pos, ref ctx),
+            BlockRendererType.FenceGate => s_fenceGate.Draw(block, pos, ref ctx),
+            BlockRendererType.BrewingStand => s_brewingStand.Draw(block, pos, ref ctx),
+            BlockRendererType.EndPortalFrame => s_endPortalFrame.Draw(block, pos, ref ctx),
             _ => false
         };
     }
@@ -233,6 +243,10 @@ public class BlockRenderer
         return renderType == BlockRendererType.Standard ||
                renderType == BlockRendererType.Stairs ||
                renderType == BlockRendererType.Fence ||
+               renderType == BlockRendererType.Pane ||
+               renderType == BlockRendererType.FenceGate ||
+               renderType == BlockRendererType.BrewingStand ||
+               renderType == BlockRendererType.EndPortalFrame ||
                renderType == BlockRendererType.Cactus ||
                renderType == BlockRendererType.PistonBase;
     }

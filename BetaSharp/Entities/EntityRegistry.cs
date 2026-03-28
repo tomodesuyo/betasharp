@@ -35,6 +35,7 @@ public static class EntityRegistry
     public static readonly EntityType Boat = Register(world => new EntityBoat(world), "Boat", 41);
 
     public static readonly EntityType Egg = Register(world => new EntityEgg(world), "Egg", 62);
+    public static readonly EntityType ExpBottle = Register(world => new EntityExpBottle(world), "ThrownExpBottle", 17);
     public static readonly EntityType Fireball = Register(world => new EntityFireball(world), "Fireball", 63);
     public static readonly EntityType FishHook = Register(world => new EntityFish(world), "FishHook", 64);
     public static readonly EntityType LightningBolt = Register(world => new EntityLightningBolt(world), "LightningBolt", 65);

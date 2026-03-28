@@ -39,7 +39,22 @@ internal class BlockLog : Block
         }
     }
 
-    public override int getTexture(int side, int meta) => side == 1 ? 21 : side == 0 ? 21 : meta == 1 ? 116 : meta == 2 ? 117 : 20;
+    public override int getTexture(int side, int meta)
+    {
+        int type = meta & 3;
+        if (side == 1 || side == 0)
+        {
+            return 21;
+        }
 
-    protected override int getDroppedItemMeta(int blockMeta) => blockMeta;
+        return type switch
+        {
+            1 => 116,
+            2 => 117,
+            3 => 153,
+            _ => 20
+        };
+    }
+
+    protected override int getDroppedItemMeta(int blockMeta) => blockMeta & 3;
 }

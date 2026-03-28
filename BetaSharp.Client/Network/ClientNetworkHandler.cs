@@ -183,6 +183,11 @@ public class ClientNetworkHandler : NetHandler
             entity = new EntityEgg(worldClient, x, y, z);
         }
 
+        if (packet.entityType == 75)
+        {
+            entity = new EntityExpBottle(worldClient, x, y, z);
+        }
+
         if (packet.entityType == 1)
         {
             entity = new EntityBoat(worldClient, x, y, z);
@@ -220,6 +225,15 @@ public class ClientNetworkHandler : NetHandler
                     if (owner is EntityLiving)
                     {
                         ((EntityArrow)entity).owner = (EntityLiving)owner;
+                    }
+                }
+
+                if (packet.entityType == 75)
+                {
+                    Entity? owner = getEntityByID(packet.entityData);
+                    if (owner is EntityLiving)
+                    {
+                        ((EntityExpBottle)entity).Thrower = (EntityLiving)owner;
                     }
                 }
 

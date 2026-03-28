@@ -111,7 +111,7 @@ public sealed class WorldWriter : IBlockWriter
         var chunk = _host.GetChunk(chunkX, chunkZ);
         bool changed = chunk.SetBlock(x & 15, y, z & 15, blockId, meta, notifyBlockPlaced);
 
-        if (!changed || chunk.World is not BetaSharp.Worlds.Core.ServerWorld serverWorld || serverWorld.IsRemote) return changed;
+        if (!changed || chunk.World is not BetaSharp.Worlds.Core.ServerWorld serverWorld || serverWorld.IsRemote || serverWorld.ChunkMap is null) return changed;
 
         if (serverWorld.ChunkMap.IsChunkTrackedAndSent(chunkX, chunkZ))
         {
@@ -133,7 +133,7 @@ public sealed class WorldWriter : IBlockWriter
         var chunk = _host.GetChunk(chunkX, chunkZ);
         bool changed = chunk.SetBlock(x & 15, y, z & 15, blockId, notifyBlockPlaced);
 
-        if (!changed || chunk.World is not BetaSharp.Worlds.Core.ServerWorld serverWorld || serverWorld.IsRemote) return changed;
+        if (!changed || chunk.World is not BetaSharp.Worlds.Core.ServerWorld serverWorld || serverWorld.IsRemote || serverWorld.ChunkMap is null) return changed;
 
         if (serverWorld.ChunkMap.IsChunkTrackedAndSent(chunkX, chunkZ))
         {

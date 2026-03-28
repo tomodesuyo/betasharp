@@ -32,6 +32,55 @@ internal static class NaturalSpawner
         return new BlockPos(x, y, z);
     }
 
+    internal static void SpawnChunkAnimals(IWorldContext world, Biome biome, int x, int z, int width, int depth, JavaRandom random)
+    {
+        var spawnSelector = biome.GetSpawnableList(CreatureKind.Creature);
+        if (spawnSelector.Empty)
+        {
+            return;
+        }
+
+        while (random.NextFloat() < biome.GetBiomeSpawnChance())
+        {
+            SpawnListEntry toSpawn = spawnSelector.GetNext(random);
+            int spawnCount = toSpawn.MinGroupCount + random.NextInt(1 + toSpawn.MaxGroupCount - toSpawn.MinGroupCount);
+            int spawnX = x + random.NextInt(width);
+            int spawnZ = z + random.NextInt(depth);
+            int originX = spawnX;
+            int originZ = spawnZ;
+
+            for (int i = 0; i < spawnCount; ++i)
+            {
+                bool spawned = false;
+
+                for (int attempt = 0; !spawned && attempt < 4; ++attempt)
+                {
+                    int spawnY = world.Reader.GetTopSolidBlockY(spawnX, spawnZ);
+                    if (CreatureKind.Creature.CanSpawnAtLocation(world.Reader, spawnX, spawnY, spawnZ))
+                    {
+                        float entityX = spawnX + 0.5F;
+                        float entityY = spawnY;
+                        float entityZ = spawnZ + 0.5F;
+                        EntityLiving entity = toSpawn.Factory(world);
+                        entity.setPositionAndAnglesKeepPrevAngles(entityX, entityY, entityZ, random.NextFloat() * 360.0F, 0.0F);
+                        world.SpawnEntity(entity);
+                        entity.PostSpawn();
+                        spawned = true;
+                    }
+
+                    spawnX += random.NextInt(5) - random.NextInt(5);
+                    spawnZ += random.NextInt(5) - random.NextInt(5);
+
+                    while (spawnX < x || spawnX >= x + width || spawnZ < z || spawnZ >= z + depth)
+                    {
+                        spawnX = originX + random.NextInt(5) - random.NextInt(5);
+                        spawnZ = originZ + random.NextInt(5) - random.NextInt(5);
+                    }
+                }
+            }
+        }
+    }
+
     internal static void DoSpawning(IWorldContext world, PathFinder pathFinder, bool spawnHostile, bool spawnPeaceful)
     {
         pathFinder.SetWorld(world.Reader);

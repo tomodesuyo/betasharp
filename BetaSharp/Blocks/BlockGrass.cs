@@ -47,10 +47,7 @@ public class BlockGrass : Block
 
     public override int getColorMultiplier(IBlockReader iBlockReader, int x, int y, int z)
     {
-        iBlockReader.GetBiomeSource().GetBiomesInArea(x, z, 1, 1);
-        double temperature = iBlockReader.GetBiomeSource().TemperatureMap[0];
-        double downfall = iBlockReader.GetBiomeSource().DownfallMap[0];
-        return GrassColors.getColor(temperature, downfall);
+        return iBlockReader.GetBiomeSource().GetBiome(x, z).GetGrassColorAtCoords(iBlockReader, x, y, z);
     }
 
     public override void onTick(OnTickEvent ctx)

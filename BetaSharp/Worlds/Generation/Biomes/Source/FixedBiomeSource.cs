@@ -21,10 +21,11 @@ internal class FixedBiomeSource : BiomeSource
     public override Biome GetBiome(int x, int y) => _biome;
 
     public override double GetTemperature(int x, int y) => _temperature;
+    public override double GetTemperature(int x, int y, int z) => _temperature;
 
     public override Biome[] GetBiomesInArea(int x, int y, int width, int depth)
     {
-        Biomes = GetBiomesInArea(Biomes, x, y, width, depth);
+        Biomes = GetBiomesInArea(Biomes, x, y, width, depth, true);
         return Biomes;
     }
 
@@ -40,7 +41,7 @@ internal class FixedBiomeSource : BiomeSource
         return map;
     }
 
-    public override Biome[] GetBiomesInArea(Biome[] biomes, int x, int y, int width, int depth)
+    internal override Biome[] GetBiomesInArea(Biome[] biomes, int x, int y, int width, int depth, bool useCache)
     {
         int size = width * depth;
         if (biomes == null || biomes.Length < size)
@@ -59,5 +60,10 @@ internal class FixedBiomeSource : BiomeSource
         Array.Fill(TemperatureMap, _temperature);
 
         return biomes;
+    }
+
+    public override Biome[] GetBiomesForGeneration(Biome[]? biomes, int x, int y, int width, int depth)
+    {
+        return GetBiomesInArea(biomes!, x, y, width, depth, false);
     }
 }

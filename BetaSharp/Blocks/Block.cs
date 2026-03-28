@@ -35,7 +35,7 @@ public class Block
     public static readonly BlockGrass GrassBlock = (BlockGrass)new BlockGrass(2).setHardness(0.6F).setSoundGroup(SoundGrassFootstep).setBlockName("grass");
     public static readonly Block Dirt = new BlockDirt(3, 2).setHardness(0.5F).setSoundGroup(SoundGravelFootstep).setBlockName("dirt");
     public static readonly Block Cobblestone = new Block(4, 16, Material.Stone).setHardness(2.0F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("stonebrick");
-    public static readonly Block Planks = new Block(5, 4, Material.Wood).setHardness(2.0F).setResistance(5.0F).setSoundGroup(SoundWoodFootstep).setBlockName("wood").IgnoreMetaUpdates();
+    public static readonly Block Planks = new BlockWood(5).setHardness(2.0F).setResistance(5.0F).setSoundGroup(SoundWoodFootstep).setBlockName("wood").IgnoreMetaUpdates();
     public static readonly Block Sapling = new BlockSapling(6, 15).setHardness(0.0F).setSoundGroup(SoundGrassFootstep).setBlockName("sapling").IgnoreMetaUpdates();
     public static readonly Block Bedrock = new Block(7, 17, Material.Stone).setUnbreakable().setResistance(6000000.0F).setSoundGroup(SoundStoneFootstep).setBlockName("bedrock").disableStats();
     public static readonly Block FlowingWater = new BlockFlowing(8, Material.Water).setHardness(100.0F).setOpacity(3).setBlockName("water").disableStats().IgnoreMetaUpdates();
@@ -131,7 +131,36 @@ public class Block
     public static readonly Block Cake = new BlockCake(92, 121).setHardness(0.5F).setSoundGroup(SoundClothFootstep).setBlockName("cake").disableStats().IgnoreMetaUpdates();
     public static readonly Block Repeater = new BlockRedstoneRepeater(93, false).setHardness(0.0F).setSoundGroup(SoundWoodFootstep).setBlockName("diode").disableStats().IgnoreMetaUpdates();
     public static readonly Block PoweredRepeater = new BlockRedstoneRepeater(94, true).setHardness(0.0F).setLuminance(10.0F / 16.0F).setSoundGroup(SoundWoodFootstep).setBlockName("diode").disableStats().IgnoreMetaUpdates();
+    public static readonly Block LockedChest = new BlockLockedChest(95).setHardness(0.0F).setLuminance(1.0F).setSoundGroup(SoundWoodFootstep).setBlockName("lockedchest").IgnoreMetaUpdates();
     public static readonly Block Trapdoor = new BlockTrapDoor(96, Material.Wood).setHardness(3.0F).setSoundGroup(SoundWoodFootstep).setBlockName("trapdoor").disableStats().IgnoreMetaUpdates();
+    public static readonly Block Silverfish = new BlockSilverfish(97).setHardness(12.0F / 16.0F).setBlockName("monsterStoneEgg");
+    public static readonly Block StoneBrick = new BlockStoneBrick(98).setHardness(1.5F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("stonebricksmooth");
+    public static readonly Block MushroomCapBrown = new BlockMushroomCap(99, Material.Wood, 142, 0).setHardness(0.2F).setSoundGroup(SoundWoodFootstep).setBlockName("mushroom").IgnoreMetaUpdates();
+    public static readonly Block MushroomCapRed = new BlockMushroomCap(100, Material.Wood, 142, 1).setHardness(0.2F).setSoundGroup(SoundWoodFootstep).setBlockName("mushroom").IgnoreMetaUpdates();
+    public static readonly Block IronBars = new BlockPane(101, 85, 85, Material.Metal, true).setHardness(5.0F).setResistance(10.0F).setSoundGroup(SoundMetalFootstep).setBlockName("fenceIron");
+    public static readonly Block GlassPane = new BlockPane(102, 49, 148, Material.Glass, false).setHardness(0.3F).setSoundGroup(SoundGlassFootstep).setBlockName("thinGlass");
+    public static readonly Block Melon = new BlockMelon(103).setHardness(1.0F).setSoundGroup(SoundWoodFootstep).setBlockName("melon");
+    public static readonly Block PumpkinStem = new BlockStem(104, Pumpkin).setHardness(0.0F).setSoundGroup(SoundWoodFootstep).setBlockName("pumpkinStem").IgnoreMetaUpdates();
+    public static readonly Block MelonStem = new BlockStem(105, Melon).setHardness(0.0F).setSoundGroup(SoundWoodFootstep).setBlockName("pumpkinStem").IgnoreMetaUpdates();
+    public static readonly Block Vine = new BlockVine(106).setHardness(0.2F).setSoundGroup(SoundGrassFootstep).setBlockName("vine").IgnoreMetaUpdates();
+    public static readonly Block FenceGate = new BlockFenceGate(107, 4).setHardness(2.0F).setResistance(5.0F).setSoundGroup(SoundWoodFootstep).setBlockName("fenceGate").IgnoreMetaUpdates();
+    public static readonly Block BrickStairs = new BlockStairs(108, Bricks).setBlockName("stairsBrick").IgnoreMetaUpdates();
+    public static readonly Block StoneBrickStairs = new BlockStairs(109, StoneBrick).setBlockName("stairsStoneBrickSmooth").IgnoreMetaUpdates();
+    public static readonly Block Mycelium = new BlockMycelium(110).setHardness(0.6F).setSoundGroup(SoundGrassFootstep).setBlockName("mycel");
+    public static readonly Block LilyPad = new BlockLilyPad(111, 76).setHardness(0.0F).setSoundGroup(SoundGrassFootstep).setBlockName("waterlily");
+    public static readonly Block NetherBrick = new Block(112, 224, Material.Stone).setHardness(2.0F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("netherBrick");
+    public static readonly Block NetherFence = new BlockFence(113, 224, Material.Stone).setHardness(2.0F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("netherFence");
+    public static readonly Block NetherBrickStairs = new BlockStairs(114, NetherBrick).setBlockName("stairsNetherBrick").IgnoreMetaUpdates();
+    public static readonly Block NetherWart = new BlockNetherStalk(115).setBlockName("netherStalk").IgnoreMetaUpdates();
+    public static readonly Block EnchantmentTable = new BlockEnchantmentTable(116).setHardness(5.0F).setResistance(2000.0F).setBlockName("enchantmentTable");
+    public static readonly Block BrewingStand = new BlockBrewingStand(117).setHardness(0.5F).setLuminance(2.0F / 16.0F).setBlockName("brewingStand").IgnoreMetaUpdates();
+    public static readonly Block Cauldron = new BlockCauldron(118).setHardness(2.0F).setBlockName("cauldron").IgnoreMetaUpdates();
+    public static readonly Block EndPortal = new BlockEndPortal(119, Material.NetherPortal).setHardness(-1.0F).setResistance(6000000.0F);
+    public static readonly Block EndPortalFrame = new BlockEndPortalFrame(120).setSoundGroup(SoundGlassFootstep).setLuminance(2.0F / 16.0F).setHardness(-1.0F).setBlockName("endPortalFrame").IgnoreMetaUpdates().setResistance(6000000.0F);
+    public static readonly Block EndStone = new Block(121, 175, Material.Stone).setHardness(3.0F).setResistance(15.0F).setSoundGroup(SoundStoneFootstep).setBlockName("whiteStone");
+    public static readonly Block DragonEgg = new BlockDragonEgg(122, 167).setHardness(3.0F).setResistance(15.0F).setSoundGroup(SoundStoneFootstep).setLuminance(2.0F / 16.0F).setBlockName("dragonEgg");
+    public static readonly Block RedstoneLamp = new BlockRedstoneLight(123, false).setHardness(0.3F).setSoundGroup(SoundGlassFootstep).setBlockName("redstoneLight");
+    public static readonly Block LitRedstoneLamp = new BlockRedstoneLight(124, true).setHardness(0.3F).setSoundGroup(SoundGlassFootstep).setBlockName("redstoneLight");
     public readonly int id;
     public readonly Material material;
     private string? blockName;
@@ -548,12 +577,16 @@ public class Block
     static Block()
     {
         Item.ITEMS[Wool.id] = new ItemCloth(Wool.id - 256).setItemName("cloth");
-        Item.ITEMS[Log.id] = new ItemLog(Log.id - 256).setItemName("log");
+        Item.ITEMS[Log.id] = new ItemMetadata(Log.id - 256, Log).setItemName("log");
+        Item.ITEMS[Planks.id] = new ItemMetadata(Planks.id - 256, Planks).setItemName("wood");
+        Item.ITEMS[StoneBrick.id] = new ItemMetadata(StoneBrick.id - 256, StoneBrick).setItemName("stonebricksmooth");
+        Item.ITEMS[Sandstone.id] = new ItemMetadata(Sandstone.id - 256, Sandstone).setItemName("sandStone");
         Item.ITEMS[Slab.id] = new ItemSlab(Slab.id - 256).setItemName("stoneSlab");
         Item.ITEMS[Sapling.id] = new ItemSapling(Sapling.id - 256).setItemName("sapling");
         Item.ITEMS[Leaves.id] = new ItemLeaves(Leaves.id - 256).setItemName("leaves");
         Item.ITEMS[Piston.id] = new ItemPiston(Piston.id - 256);
         Item.ITEMS[StickyPiston.id] = new ItemPiston(StickyPiston.id - 256);
+        Item.ITEMS[LilyPad.id] = new ItemReed(LilyPad.id - 256, LilyPad).setItemName("waterlily");
 
         for (int blockId = 0; blockId < 256; ++blockId)
         {

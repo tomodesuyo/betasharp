@@ -6,7 +6,11 @@ namespace BetaSharp.Worlds.Generation.Biomes;
 
 internal class BiomeGenTaiga : Biome
 {
-    public BiomeGenTaiga() => CreatureList.Add(new SpawnListEntry(w => new EntityWolf(w)), 2);
+    public BiomeGenTaiga()
+    {
+        CreatureList.Add(new SpawnListEntry(w => new EntityWolf(w)), 8);
+        SetDecorator(treesPerChunk: 10, grassPerChunk: 1);
+    }
 
     public override Feature GetRandomWorldGenForTrees(JavaRandom rand) => rand.NextInt(3) == 0 ? new PineTreeFeature() : new SpruceTreeFeature();
 }

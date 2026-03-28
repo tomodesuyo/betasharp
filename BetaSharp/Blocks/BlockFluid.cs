@@ -17,7 +17,27 @@ public abstract class BlockFluid : Block
 
     public override int getColorMultiplier(IBlockReader iBlockReader, int x, int y, int z)
     {
-        return 0xFFFFFF;
+        if (material != Material.Water)
+        {
+            return 0xFFFFFF;
+        }
+
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+
+        for (int offsetZ = -1; offsetZ <= 1; ++offsetZ)
+        {
+            for (int offsetX = -1; offsetX <= 1; ++offsetX)
+            {
+                int color = iBlockReader.GetBiomeSource().GetBiome(x + offsetX, z + offsetZ).WaterColorMultiplier;
+                red += (color & 0xFF0000) >> 16;
+                green += (color & 0x00FF00) >> 8;
+                blue += color & 0x0000FF;
+            }
+        }
+
+        return (red / 9 & 255) << 16 | (green / 9 & 255) << 8 | blue / 9 & 255;
     }
 
     public static float getFluidHeightFromMeta(int meta)

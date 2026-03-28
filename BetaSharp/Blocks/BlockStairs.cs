@@ -28,32 +28,41 @@ internal class BlockStairs : Block
     public override void addIntersectingBoundingBox(IBlockReader world, EntityManager entities, int x, int y, int z, Box box, List<Box> boxes)
     {
         int meta = world.GetBlockMeta(x, y, z);
-        if (meta == 0)
+        int direction = meta & 3;
+        float minY = 0.0F;
+        float maxY = 0.5F;
+        float stepMinY = 0.5F;
+        float stepMaxY = 1.0F;
+
+        if ((meta & 4) != 0)
         {
-            setBoundingBox(0.0F, 0.0F, 0.0F, 0.5F, 0.5F, 1.0F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-            setBoundingBox(0.5F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+            minY = 0.5F;
+            maxY = 1.0F;
+            stepMinY = 0.0F;
+            stepMaxY = 0.5F;
+        }
+
+        setBoundingBox(0.0F, minY, 0.0F, 1.0F, maxY, 1.0F);
+        base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
+
+        if (direction == 0)
+        {
+            setBoundingBox(0.5F, stepMinY, 0.0F, 1.0F, stepMaxY, 1.0F);
             base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
         }
-        else if (meta == 1)
+        else if (direction == 1)
         {
-            setBoundingBox(0.0F, 0.0F, 0.0F, 0.5F, 1.0F, 1.0F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-            setBoundingBox(0.5F, 0.0F, 0.0F, 1.0F, 0.5F, 1.0F);
+            setBoundingBox(0.0F, stepMinY, 0.0F, 0.5F, stepMaxY, 1.0F);
             base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
         }
-        else if (meta == 2)
+        else if (direction == 2)
         {
-            setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5F, 0.5F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-            setBoundingBox(0.0F, 0.0F, 0.5F, 1.0F, 1.0F, 1.0F);
+            setBoundingBox(0.0F, stepMinY, 0.5F, 1.0F, stepMaxY, 1.0F);
             base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
         }
-        else if (meta == 3)
+        else if (direction == 3)
         {
-            setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.5F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-            setBoundingBox(0.0F, 0.0F, 0.5F, 1.0F, 0.5F, 1.0F);
+            setBoundingBox(0.0F, stepMinY, 0.0F, 1.0F, stepMaxY, 0.5F);
             base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
         }
 
@@ -96,7 +105,12 @@ internal class BlockStairs : Block
 
     public override void onPlaced(OnPlacedEvent evt)
     {
-        int meta = 0;
+        int meta = evt.World.Reader.GetBlockMeta(evt.X, evt.Y, evt.Z) & 4;
+        if (evt.Direction == 0)
+        {
+            meta |= 4;
+        }
+
         if (evt.Placer != null)
         {
             int facing = MathHelper.Floor(evt.Placer.yaw * 4.0F / 360.0F + 0.5D) & 3;

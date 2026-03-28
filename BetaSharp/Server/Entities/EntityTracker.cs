@@ -54,6 +54,10 @@ public class EntityTracker
         {
             startTracking(entity, 64, 10, true);
         }
+        else if (entity is EntityExpBottle)
+        {
+            startTracking(entity, 64, 10, true);
+        }
         else if (entity is EntityItem)
         {
             startTracking(entity, 64, 20, true);

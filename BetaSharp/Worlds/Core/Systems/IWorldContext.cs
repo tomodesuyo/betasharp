@@ -32,6 +32,10 @@ public interface IWorldContext
     public void SetDifficulty(int difficulty);
     public long GetTime();
     public int GetSpawnBlockId(int x, int z);
+    public float GetTemperature(int x, int y, int z);
+    public bool CanBlockFreeze(int x, int y, int z);
+    public bool CanBlockFreeze(int x, int y, int z, bool requireSurroundedWater);
+    public bool CanSnowAt(int x, int y, int z);
     public bool SpawnEntity(Entity entity);
     public bool SpawnItemDrop(double x, double y, double z, ItemStack itemStack);
     public bool CanInteract(EntityPlayer player, int x, int y, int z);

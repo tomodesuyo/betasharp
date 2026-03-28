@@ -81,7 +81,6 @@ public class ItemRenderer : EntityRenderer
         else
         {
             GLManager.GL.Scale(0.5F, 0.5F, 0.5F);
-            int var14 = var10.getTextureId();
             if (var10.itemId < 256)
             {
                 loadTexture("/terrain.png");
@@ -92,10 +91,6 @@ public class ItemRenderer : EntityRenderer
             }
 
             Tessellator var15 = Tessellator.instance;
-            var16 = (var14 % 16 * 16 + 0) / 256.0F;
-            var17 = (var14 % 16 * 16 + 16) / 256.0F;
-            var18 = (var14 / 16 * 16 + 0) / 256.0F;
-            float var19 = (var14 / 16 * 16 + 16) / 256.0F;
             float var20 = 1.0F;
             float var21 = 0.5F;
             float var22 = 0.25F;
@@ -103,36 +98,45 @@ public class ItemRenderer : EntityRenderer
             float var24;
             float var25;
             float var26;
-            if (useCustomDisplayColor)
+            int passCount = Item.ITEMS[var10.itemId].requiresMultipleRenderPasses() ? 2 : 1;
+            for (int pass = 0; pass < passCount; ++pass)
             {
-                var23 = Item.ITEMS[var10.itemId].getColorMultiplier(var10.getDamage());
-                var24 = (var23 >> 16 & 255) / 255.0F;
-                var25 = (var23 >> 8 & 255) / 255.0F;
-                var26 = (var23 & 255) / 255.0F;
-                float var27 = var1.getBrightnessAtEyes(var9);
-                GLManager.GL.Color4(var24 * var27, var25 * var27, var26 * var27, 1.0F);
-            }
-
-            for (var23 = 0; var23 < var13; ++var23)
-            {
-                GLManager.GL.PushMatrix();
-                if (var23 > 0)
+                int var14 = Item.ITEMS[var10.itemId].getTextureId(var10.getDamage(), pass);
+                var16 = (var14 % 16 * 16 + 0) / 256.0F;
+                var17 = (var14 % 16 * 16 + 16) / 256.0F;
+                var18 = (var14 / 16 * 16 + 0) / 256.0F;
+                float var19 = (var14 / 16 * 16 + 16) / 256.0F;
+                if (useCustomDisplayColor)
                 {
-                    var24 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
-                    var25 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
-                    var26 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
-                    GLManager.GL.Translate(var24, var25, var26);
+                    var23 = Item.ITEMS[var10.itemId].getColorMultiplier(var10.getDamage(), pass);
+                    var24 = (var23 >> 16 & 255) / 255.0F;
+                    var25 = (var23 >> 8 & 255) / 255.0F;
+                    var26 = (var23 & 255) / 255.0F;
+                    float var27 = var1.getBrightnessAtEyes(var9);
+                    GLManager.GL.Color4(var24 * var27, var25 * var27, var26 * var27, 1.0F);
                 }
 
-                GLManager.GL.Rotate(180.0F - Dispatcher.playerViewY, 0.0F, 1.0F, 0.0F);
-                var15.startDrawingQuads();
-                var15.setNormal(0.0F, 1.0F, 0.0F);
-                var15.addVertexWithUV((double)(0.0F - var21), (double)(0.0F - var22), 0.0D, (double)var16, (double)var19);
-                var15.addVertexWithUV((double)(var20 - var21), (double)(0.0F - var22), 0.0D, (double)var17, (double)var19);
-                var15.addVertexWithUV((double)(var20 - var21), (double)(1.0F - var22), 0.0D, (double)var17, (double)var18);
-                var15.addVertexWithUV((double)(0.0F - var21), (double)(1.0F - var22), 0.0D, (double)var16, (double)var18);
-                var15.draw();
-                GLManager.GL.PopMatrix();
+                for (var23 = 0; var23 < var13; ++var23)
+                {
+                    GLManager.GL.PushMatrix();
+                    if (var23 > 0)
+                    {
+                        var24 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
+                        var25 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
+                        var26 = (random.NextFloat() * 2.0F - 1.0F) * 0.3F;
+                        GLManager.GL.Translate(var24, var25, var26);
+                    }
+
+                    GLManager.GL.Rotate(180.0F - Dispatcher.playerViewY, 0.0F, 1.0F, 0.0F);
+                    var15.startDrawingQuads();
+                    var15.setNormal(0.0F, 1.0F, 0.0F);
+                    var15.addVertexWithUV((double)(0.0F - var21), (double)(0.0F - var22), 0.0D, (double)var16, (double)var19);
+                    var15.addVertexWithUV((double)(var20 - var21), (double)(0.0F - var22), 0.0D, (double)var17, (double)var19);
+                    var15.addVertexWithUV((double)(var20 - var21), (double)(1.0F - var22), 0.0D, (double)var17, (double)var18);
+                    var15.addVertexWithUV((double)(0.0F - var21), (double)(1.0F - var22), 0.0D, (double)var16, (double)var18);
+                    var15.draw();
+                    GLManager.GL.PopMatrix();
+                }
             }
         }
 
@@ -179,16 +183,21 @@ public class ItemRenderer : EntityRenderer
                 var2.BindTexture(var2.GetTextureId("/gui/items.png"));
             }
 
-            int var8 = Item.ITEMS[var3].getColorMultiplier(var4);
-            float var9 = (var8 >> 16 & 255) / 255.0F;
-            float var10 = (var8 >> 8 & 255) / 255.0F;
-            var11 = (var8 & 255) / 255.0F;
-            if (useCustomDisplayColor)
+            int passCount = Item.ITEMS[var3].requiresMultipleRenderPasses() ? 2 : 1;
+            for (int pass = 0; pass < passCount; ++pass)
             {
-                GLManager.GL.Color4(var9, var10, var11, 1.0F);
-            }
+                int textureId = Item.ITEMS[var3].getTextureId(var4, pass);
+                int var8 = Item.ITEMS[var3].getColorMultiplier(var4, pass);
+                float var9 = (var8 >> 16 & 255) / 255.0F;
+                float var10 = (var8 >> 8 & 255) / 255.0F;
+                var11 = (var8 & 255) / 255.0F;
+                if (useCustomDisplayColor)
+                {
+                    GLManager.GL.Color4(var9, var10, var11, 1.0F);
+                }
 
-            renderTexturedQuad(var6, var7, var5 % 16 * 16, var5 / 16 * 16, 16, 16);
+                renderTexturedQuad(var6, var7, textureId % 16 * 16, textureId / 16 * 16, 16, 16);
+            }
             GLManager.GL.Enable(GLEnum.Lighting);
         }
  

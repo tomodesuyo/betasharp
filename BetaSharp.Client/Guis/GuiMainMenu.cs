@@ -9,6 +9,7 @@ namespace BetaSharp.Client.Guis;
 
 public class GuiMainMenu : GuiScreen
 {
+    private const int MissingnoHash = 125780783;
 
     private readonly ILogger<GuiMainMenu> _logger = Log.Instance.For<GuiMainMenu>();
     private const int ButtonOptions = 0;
@@ -33,6 +34,8 @@ public class GuiMainMenu : GuiScreen
     private int _panoramaTimer;
     private GLTexture? _backgroundTexture;
 
+    public override bool PausesGame => false;
+
     public GuiMainMenu()
     {
         try
@@ -54,7 +57,11 @@ public class GuiMainMenu : GuiScreen
 
             if (splashLines.Count > 0)
             {
-                _splashText = splashLines[s_rand.NextInt(splashLines.Count)];
+                do
+                {
+                    _splashText = splashLines[s_rand.NextInt(splashLines.Count)];
+                }
+                while (GetJavaStringHash(_splashText) == MissingnoHash && splashLines.Count > 1);
             }
         }
         catch (Exception ex)
@@ -82,6 +89,7 @@ public class GuiMainMenu : GuiScreen
         else if (now.Month == 6 && now.Day == 1) _splashText = "Happy birthday, Notch!";
         else if (now.Month == 12 && now.Day == 24) _splashText = "Merry X-mas!";
         else if (now.Month == 1 && now.Day == 1) _splashText = "Happy new year!";
+        else if (now.Month == 10 && now.Day == 31) _splashText = "OOoooOOOoooo! Spooky!";
 
         TranslationStorage translator = TranslationStorage.Instance;
         int buttonTopY = Height / 4 + 48;
@@ -347,5 +355,16 @@ public class GuiMainMenu : GuiScreen
         }
 
         base.MouseClicked(mouseX, mouseY, button);
+    }
+
+    private static int GetJavaStringHash(string value)
+    {
+        int hash = 0;
+        foreach (char c in value)
+        {
+            hash = 31 * hash + c;
+        }
+
+        return hash;
     }
 }

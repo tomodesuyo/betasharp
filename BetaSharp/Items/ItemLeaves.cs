@@ -22,6 +22,11 @@ internal class ItemLeaves : ItemBlock
         return Block.Leaves.getTexture(0, meta);
     }
 
+    public override string getItemNameIS(ItemStack itemStack)
+    {
+        return getItemName();
+    }
+
     public override int getColorMultiplier(int leafType)
     {
         return (leafType & 1) == 1 ? FoliageColors.getSpruceColor() : ((leafType & 2) == 2 ? FoliageColors.getBirchColor() : FoliageColors.getDefaultColor());

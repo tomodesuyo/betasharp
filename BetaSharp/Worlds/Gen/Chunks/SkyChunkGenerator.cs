@@ -165,7 +165,7 @@ internal class SkyChunkGenerator : IChunkSource
         {
             for (int localZ = 0; localZ < 16; ++localZ)
             {
-                Biome localBiome = biomes[localX + localZ * 16];
+                Biome localBiome = biomes[localZ + localX * 16];
                 int surfaceDepth = (int)(_depthBuffer[localX + localZ * 16] / 3.0D + 3.0D + _random.NextDouble() * 0.25D);
                 int currentDepth = -1;
                 byte topBlock = localBiome.TopBlockId;
@@ -557,7 +557,7 @@ internal class SkyChunkGenerator : IChunkSource
                 int offsetX = x - (blockX + 8);
                 int offsetZ = z - (blockZ + 8);
                 int topBlockY = _world.Reader.GetTopSolidBlockY(x, z);
-                double temperatureSample = _temperatures[offsetX * 16 + offsetZ] - (topBlockY - 64) / 64.0D * 0.3D;
+                double temperatureSample = _temperatures[offsetZ + offsetX * 16] - (topBlockY - 64) / 64.0D * 0.3D;
 
                 if (temperatureSample < 0.5D && topBlockY > 0 && topBlockY < 128 && _world.Reader.IsAir(x, topBlockY, z) && _world.Reader.GetMaterial(x, topBlockY - 1, z).BlocksMovement && _world.Reader.GetMaterial(x, topBlockY - 1, z) != Material.Ice)
                 {

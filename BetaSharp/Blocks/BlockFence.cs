@@ -10,6 +10,10 @@ internal class BlockFence : Block
     {
     }
 
+    public BlockFence(int id, int texture, Material material) : base(id, texture, material)
+    {
+    }
+
     public override bool canPlaceAt(CanPlaceAtContext context)
     {
         return context.World.Reader.GetBlockId(context.X, context.Y - 1, context.Z) == id ? true : !context.World.Reader.GetMaterial(context.X, context.Y - 1, context.Z).IsSolid ? false : base.canPlaceAt(context);

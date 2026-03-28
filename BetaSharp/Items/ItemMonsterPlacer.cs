@@ -36,16 +36,25 @@ internal sealed class ItemMonsterPlacer : Item
         return _eggs.Keys;
     }
 
+    public override bool requiresMultipleRenderPasses() => true;
+
     public override int getColorMultiplier(int entityId)
     {
         return _eggs.TryGetValue(entityId, out EggInfo? eggInfo) ? eggInfo.PrimaryColor : 0xFFFFFF;
     }
 
+    public override int getColorMultiplier(int entityId, int pass)
+    {
+        return _eggs.TryGetValue(entityId, out EggInfo? eggInfo)
+            ? (pass == 0 ? eggInfo.PrimaryColor : eggInfo.SecondaryColor)
+            : 0xFFFFFF;
+    }
+
+    public override int getTextureId(int damage, int pass) => pass > 0 ? base.getTextureId(damage) + 16 : base.getTextureId(damage);
+
     public override string getItemNameIS(ItemStack itemStack)
     {
-        return _eggs.TryGetValue(itemStack.getDamage(), out EggInfo? eggInfo)
-            ? $"item.monsterPlacer.{eggInfo.EntityName}"
-            : base.getItemNameIS(itemStack);
+        return base.getItemNameIS(itemStack);
     }
 
     public override bool useOnBlock(ItemStack itemStack, EntityPlayer entityPlayer, IWorldContext world, int x, int y, int z, int side)
@@ -101,6 +110,8 @@ internal sealed class ItemMonsterPlacer : Item
         {
             return false;
         }
+
+        living.playLivingSound();
 
         if (!entityPlayer.capabilities.IsCreativeMode)
         {

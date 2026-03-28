@@ -14,9 +14,10 @@ public class ItemShears : Item
 
     public override bool postMine(ItemStack itemStack, int blockId, int x, int y, int z, EntityLiving entityLiving)
     {
-        if (blockId == Block.Leaves.id || blockId == Block.Cobweb.id)
+        if (blockId == Block.Leaves.id || blockId == Block.Cobweb.id || blockId == Block.Grass.id || blockId == Block.Vine.id)
         {
             itemStack.damageItem(1, entityLiving);
+            return true;
         }
 
         return base.postMine(itemStack, blockId, x, y, z, entityLiving);

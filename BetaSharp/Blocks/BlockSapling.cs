@@ -20,7 +20,7 @@ internal class BlockSapling : BlockPlant
         if (!@event.World.IsRemote)
         {
             base.onTick(@event);
-            if (@event.World.Reader.GetBrightness(@event.X, @event.Y + 1, @event.Z) >= 9 && Random.Shared.Next(30) == 0)
+            if (@event.World.Reader.GetBrightness(@event.X, @event.Y + 1, @event.Z) >= 9 && Random.Shared.Next(7) == 0)
             {
                 int saplingMeta = @event.World.Reader.GetBlockMeta(@event.X, @event.Y, @event.Z);
                 if ((saplingMeta & 8) == 0)
@@ -38,7 +38,13 @@ internal class BlockSapling : BlockPlant
     public override int getTexture(int side, int meta)
     {
         meta &= 3;
-        return meta == 1 ? 63 : meta == 2 ? 79 : base.getTexture(side, meta);
+        return meta switch
+        {
+            1 => 63,
+            2 => 79,
+            3 => 30,
+            _ => base.getTexture(side, meta)
+        };
     }
 
     public void generate(IWorldContext world, int x, int y, int z)
@@ -53,6 +59,10 @@ internal class BlockSapling : BlockPlant
         else if (saplingType == 2)
         {
             treeFeature = new BirchTreeFeature();
+        }
+        else if (saplingType == 3)
+        {
+            treeFeature = new LargeOakTreeFeature();
         }
         else
         {

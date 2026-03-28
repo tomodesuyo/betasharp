@@ -286,6 +286,68 @@ public abstract class World : IWorldContext
         return Reader.GetBlockId(x, y, z);
     }
 
+    public float GetTemperature(int x, int y, int z)
+    {
+        return (float)Dimension.BiomeSource.GetTemperature(x, y, z);
+    }
+
+    public bool CanBlockFreeze(int x, int y, int z) => CanBlockFreeze(x, y, z, false);
+
+    public bool CanBlockFreeze(int x, int y, int z, bool requireSurroundedWater)
+    {
+        float temperature = GetTemperature(x, y, z);
+        if (temperature > 0.15F)
+        {
+            return false;
+        }
+
+        if (y < 0 || y >= 128 || Lighting.GetBrightness(LightType.Block, x, y, z) >= 10)
+        {
+            return false;
+        }
+
+        int blockId = Reader.GetBlockId(x, y, z);
+        if ((blockId != Block.Water.id && blockId != Block.FlowingWater.id) || Reader.GetBlockMeta(x, y, z) != 0)
+        {
+            return false;
+        }
+
+        if (!requireSurroundedWater)
+        {
+            return true;
+        }
+
+        bool surroundedByWater =
+            Reader.GetMaterial(x - 1, y, z) == Material.Water &&
+            Reader.GetMaterial(x + 1, y, z) == Material.Water &&
+            Reader.GetMaterial(x, y, z - 1) == Material.Water &&
+            Reader.GetMaterial(x, y, z + 1) == Material.Water;
+
+        return !surroundedByWater;
+    }
+
+    public bool CanSnowAt(int x, int y, int z)
+    {
+        float temperature = GetTemperature(x, y, z);
+        if (temperature > 0.15F)
+        {
+            return false;
+        }
+
+        if (y < 0 || y >= 128 || Lighting.GetBrightness(LightType.Block, x, y, z) >= 10)
+        {
+            return false;
+        }
+
+        int blockBelowId = Reader.GetBlockId(x, y - 1, z);
+        int currentBlockId = Reader.GetBlockId(x, y, z);
+        return currentBlockId == 0
+            && Block.Snow.canPlaceAt(new CanPlaceAtContext(this, 1, x, y, z))
+            && blockBelowId != 0
+            && blockBelowId != Block.Ice.id
+            && Block.Blocks[blockBelowId].material.BlocksMovement;
+    }
+
     public void AddPlayer(EntityPlayer player)
     {
         try
@@ -573,20 +635,14 @@ public abstract class World : IWorldContext
                 int worldZ = localZ + worldZBase;
                 int worldY = Reader.GetTopSolidBlockY(worldX, worldZ);
 
-                if (GetBiomeSource().GetBiome(worldX, worldZ).GetEnableSnow() && worldY >= 0 && worldY < 128 &&
-                    currentChunk.GetLight(LightType.Block, localX, worldY, localZ) < 10)
+                if (worldY >= 0 && worldY < 128 && currentChunk.GetLight(LightType.Block, localX, worldY, localZ) < 10)
                 {
-                    int blockBelowId = currentChunk.GetBlockId(localX, worldY - 1, localZ);
-                    int currentBlockId = currentChunk.GetBlockId(localX, worldY, localZ);
-
-                    if (Environment.IsRaining && currentBlockId == 0 && Block.Snow.canPlaceAt(new CanPlaceAtContext(this, 1, worldX, worldY, worldZ)) &&
-                        blockBelowId != 0 && blockBelowId != Block.Ice.id &&
-                        Block.Blocks[blockBelowId].material.BlocksMovement)
+                    if (Environment.IsRaining && CanSnowAt(worldX, worldY, worldZ))
                     {
                         Writer.SetBlock(worldX, worldY, worldZ, Block.Snow.id);
                     }
 
-                    if (blockBelowId == Block.Water.id && currentChunk.GetBlockMeta(localX, worldY - 1, localZ) == 0)
+                    if (CanBlockFreeze(worldX, worldY - 1, worldZ))
                     {
                         Writer.SetBlock(worldX, worldY - 1, worldZ, Block.Ice.id);
                     }

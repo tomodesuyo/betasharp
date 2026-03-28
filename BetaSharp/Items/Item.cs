@@ -124,9 +124,43 @@ public class Item
     public static Item Cookie = (new ItemCookie(101, 1, false, 8)).setTexturePosition(12, 5).setItemName("cookie");
     public static ItemMap Map = (ItemMap)(new ItemMap(102)).setTexturePosition(12, 3).setItemName("map");
     public static ItemShears Shears = (ItemShears)(new ItemShears(103)).setTexturePosition(13, 5).setItemName("shears");
-    public static Item MonsterPlacer = new ItemMonsterPlacer(104);
+    public static Item Melon = (new ItemFood(104, 2, false)).setTexturePosition(13, 6).setItemName("melon");
+    public static Item PumpkinSeeds = (new ItemSeeds(105, Block.PumpkinStem.id)).setTexturePosition(13, 3).setItemName("seeds_pumpkin");
+    public static Item MelonSeeds = (new ItemSeeds(106, Block.MelonStem.id)).setTexturePosition(14, 3).setItemName("seeds_melon");
+    public static Item RawBeef = (new ItemFood(107, 3, true)).setTexturePosition(9, 6).setItemName("beefRaw");
+    public static Item CookedBeef = (new ItemFood(108, 8, true)).setTexturePosition(10, 6).setItemName("beefCooked");
+    public static Item RawChicken = (new ItemFood(109, 2, true)).setTexturePosition(9, 7).setItemName("chickenRaw");
+    public static Item CookedChicken = (new ItemFood(110, 6, true)).setTexturePosition(10, 7).setItemName("chickenCooked");
+    public static Item RottenFlesh = (new ItemFood(111, 4, true)).setTexturePosition(11, 5).setItemName("rottenFlesh");
+    public static Item EnderPearl = (new Item(112)).setTexturePosition(11, 6).setItemName("enderPearl");
+    public static Item BlazeRod = (new Item(113)).setTexturePosition(12, 6).setItemName("blazeRod");
+    public static Item GhastTear = (new Item(114)).setTexturePosition(11, 7).setItemName("ghastTear");
+    public static Item GoldNugget = (new Item(115)).setTexturePosition(12, 7).setItemName("goldNugget");
+    public static Item NetherWart = (new ItemSeeds(116, Block.NetherWart.id)).setTexturePosition(13, 7).setItemName("netherStalkSeeds");
+    public static Item Potion = (new Item(117)).setTexturePosition(13, 8).setItemName("potion");
+    public static Item GlassBottle = (new Item(118)).setTexturePosition(12, 8).setItemName("glassBottle");
+    public static Item SpiderEye = (new ItemFood(119, 2, false)).setTexturePosition(11, 8).setItemName("spiderEye");
+    public static Item FermentedSpiderEye = (new Item(120)).setTexturePosition(10, 8).setItemName("fermentedSpiderEye");
+    public static Item BlazePowder = (new Item(121)).setTexturePosition(13, 9).setItemName("blazePowder");
+    public static Item MagmaCream = (new Item(122)).setTexturePosition(13, 10).setItemName("magmaCream");
+    public static Item BrewingStand = (new ItemReed(123, Block.BrewingStand)).setTexturePosition(12, 10).setItemName("brewingStand");
+    public static Item Cauldron = (new ItemReed(124, Block.Cauldron)).setTexturePosition(12, 9).setItemName("cauldron");
+    public static Item EyeOfEnder = (new Item(125)).setTexturePosition(11, 9).setItemName("eyeOfEnder");
+    public static Item SpeckledMelon = (new Item(126)).setTexturePosition(9, 8).setItemName("speckledMelon");
+    public static Item MonsterPlacer = (new ItemMonsterPlacer(127)).setTexturePosition(9, 9).setItemName("monsterPlacer");
+    public static Item ExpBottle = (new ItemExpBottle(128)).setTexturePosition(11, 10).setItemName("expBottle");
+    public static Item FireCharge = (new ItemFireball(129)).setTexturePosition(14, 2).setItemName("fireball");
     public static Item RecordThirteen = (new ItemRecord(2000, "13")).setTexturePosition(0, 15).setItemName("record");
     public static Item RecordCat = (new ItemRecord(2001, "cat")).setTexturePosition(1, 15).setItemName("record");
+    public static Item RecordBlocks = (new ItemRecord(2002, "blocks")).setTexturePosition(2, 15).setItemName("record");
+    public static Item RecordChirp = (new ItemRecord(2003, "chirp")).setTexturePosition(3, 15).setItemName("record");
+    public static Item RecordFar = (new ItemRecord(2004, "far")).setTexturePosition(4, 15).setItemName("record");
+    public static Item RecordMall = (new ItemRecord(2005, "mall")).setTexturePosition(5, 15).setItemName("record");
+    public static Item RecordMellohi = (new ItemRecord(2006, "mellohi")).setTexturePosition(6, 15).setItemName("record");
+    public static Item RecordStal = (new ItemRecord(2007, "stal")).setTexturePosition(7, 15).setItemName("record");
+    public static Item RecordStrad = (new ItemRecord(2008, "strad")).setTexturePosition(8, 15).setItemName("record");
+    public static Item RecordWard = (new ItemRecord(2009, "ward")).setTexturePosition(9, 15).setItemName("record");
+    public static Item RecordEleven = (new ItemRecord(2010, "11")).setTexturePosition(10, 15).setItemName("record");
     public readonly int id;
     public int maxCount = 64;
     private int maxDamage;
@@ -314,6 +348,21 @@ public class Item
     public virtual int getColorMultiplier(int color)
     {
         return 0xFFFFFF;
+    }
+
+    public virtual int getColorMultiplier(int damage, int pass)
+    {
+        return getColorMultiplier(damage);
+    }
+
+    public virtual bool requiresMultipleRenderPasses()
+    {
+        return false;
+    }
+
+    public virtual int getTextureId(int damage, int pass)
+    {
+        return getTextureId(damage);
     }
 
     public virtual void inventoryTick(ItemStack itemStack, IWorldContext world, Entity entity, int slotIndex, bool shouldUpdate)

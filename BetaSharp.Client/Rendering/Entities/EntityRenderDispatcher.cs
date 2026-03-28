@@ -54,6 +54,7 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityArrow), new ArrowEntityRenderer());
         RegisterRenderer(typeof(EntitySnowball), new ProjectileEntityRenderer(Item.Snowball.getTextureId(0)));
         RegisterRenderer(typeof(EntityEgg), new ProjectileEntityRenderer(Item.Egg.getTextureId(0)));
+        RegisterRenderer(typeof(EntityExpBottle), new ProjectileEntityRenderer(Item.ExpBottle.getTextureId(0)));
         RegisterRenderer(typeof(EntityFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntityItem), new ItemRenderer());
         RegisterRenderer(typeof(EntityTNTPrimed), new TntEntityRenderer());

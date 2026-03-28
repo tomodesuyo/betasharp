@@ -1,5 +1,6 @@
 using BetaSharp.Blocks.Materials;
 using BetaSharp.Items;
+using BetaSharp.Rules;
 using BetaSharp.Worlds.Colors;
 using BetaSharp.Worlds.Core.Systems;
 
@@ -31,10 +32,22 @@ public class BlockLeaves : BlockLeavesBase
             return FoliageColors.getBirchColor();
         }
 
-        reader.GetBiomeSource().GetBiomesInArea(x, z, 1, 1);
-        double temperature = reader.GetBiomeSource().TemperatureMap[0];
-        double downfall = reader.GetBiomeSource().DownfallMap[0];
-        return FoliageColors.getFoliageColor(temperature, downfall);
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+
+        for (int offsetZ = -1; offsetZ <= 1; ++offsetZ)
+        {
+            for (int offsetX = -1; offsetX <= 1; ++offsetX)
+            {
+                int color = reader.GetBiomeSource().GetBiome(x + offsetX, z + offsetZ).GetFoliageColorAtCoords(reader, x + offsetX, y, z + offsetZ);
+                red += (color & 0xFF0000) >> 16;
+                green += (color & 0x00FF00) >> 8;
+                blue += color & 0x0000FF;
+            }
+        }
+
+        return (red / 9 & 255) << 16 | (green / 9 & 255) << 8 | blue / 9 & 255;
     }
 
     public override void onBreak(OnBreakEvent @event)
@@ -182,9 +195,24 @@ public class BlockLeaves : BlockLeavesBase
         level.Writer.SetBlock(x, y, z, 0);
     }
 
-    public override int getDroppedItemCount() => Random.Shared.Next(20) == 0 ? 1 : 0;
-
     public override int getDroppedItemId(int blockMeta) => Sapling.id;
+
+    public override void dropStacks(OnDropEvent ctx)
+    {
+        if (!ctx.World.IsRemote && ctx.World.Rules.GetBool(DefaultRules.DoTileDrops))
+        {
+            int saplingChance = (ctx.Meta & 3) == 3 ? 40 : 20;
+            if (Random.Shared.Next(saplingChance) == 0 && Random.Shared.NextSingle() <= ctx.Luck)
+            {
+                dropStack(ctx.World, ctx.X, ctx.Y, ctx.Z, new ItemStack(getDroppedItemId(ctx.Meta), 1, getDroppedItemMeta(ctx.Meta)));
+            }
+
+            if ((ctx.Meta & 3) == 0 && Random.Shared.Next(200) == 0 && Random.Shared.NextSingle() <= ctx.Luck)
+            {
+                dropStack(ctx.World, ctx.X, ctx.Y, ctx.Z, new ItemStack(Item.Apple.id, 1, 0));
+            }
+        }
+    }
 
     public override void onAfterBreak(OnAfterBreakEvent ctx)
     {
@@ -203,7 +231,15 @@ public class BlockLeaves : BlockLeavesBase
 
     public override bool isOpaque() => !graphicsLevel;
 
-    public override int getTexture(int side, int meta) => (meta & 3) == 1 ? textureId + 80 : textureId;
+    public override int getTexture(int side, int meta)
+    {
+        return (meta & 3) switch
+        {
+            1 => textureId + 80,
+            3 => textureId + 144,
+            _ => textureId
+        };
+    }
 
     public void setGraphicsLevel(bool bl)
     {
