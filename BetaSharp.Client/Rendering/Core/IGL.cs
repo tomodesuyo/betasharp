@@ -89,6 +89,7 @@ public unsafe interface IGL
     void TexCoordPointer(int size, GLEnum type, uint stride, void* pointer);
     void TexImage2D(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, void* pixels);
     void TexImage2D(GLEnum target, int level, int internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, void* pixels);
+    void CopyTexSubImage2D(GLEnum target, int level, int xoffset, int yoffset, int x, int y, uint width, uint height);
     void TexParameter(TextureTarget target, TextureParameterName pname, int param);
     void TexParameter(GLEnum target, GLEnum pname, int param);
     void TexParameter(GLEnum target, GLEnum pname, float param);

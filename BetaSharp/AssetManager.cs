@@ -90,6 +90,11 @@ public class AssetManager
     private int _embeddedAssetsLoaded;
     private readonly AssetProfile _assetProfile;
     private readonly ILogger<AssetManager> _logger = Log.Instance.For<AssetManager>();
+    private static readonly string[] s_assetRoots =
+    [
+        "assets",
+        Path.Combine("BetaSharp.Client", "assets"),
+    ];
 
     private AssetManager(AssetProfile assetProfile)
     {
@@ -124,6 +129,12 @@ public class AssetManager
         defineAsset("title/black.png", AssetType.Binary);
         defineAsset("title/mclogo.png", AssetType.Binary);
         defineAsset("title/mojang.png", AssetType.Binary);
+        defineAsset("title/bg/panorama0.png", AssetType.Binary);
+        defineAsset("title/bg/panorama1.png", AssetType.Binary);
+        defineAsset("title/bg/panorama2.png", AssetType.Binary);
+        defineAsset("title/bg/panorama3.png", AssetType.Binary);
+        defineAsset("title/bg/panorama4.png", AssetType.Binary);
+        defineAsset("title/bg/panorama5.png", AssetType.Binary);
         defineAsset("achievement/bg.png", AssetType.Binary);
         defineAsset("achievement/icons.png", AssetType.Binary);
 
@@ -294,6 +305,13 @@ public class AssetManager
 
             if (!File.Exists(fsAssetPath))
             {
+                string? fallbackPath = TryResolveAssetPath(assetPath);
+                if (fallbackPath != null)
+                {
+                    File.Copy(fallbackPath, fsAssetPath, overwrite: false);
+                    continue;
+                }
+
                 if (entries.TryGetValue(assetPath, out ZipArchiveEntry? entry))
                 {
                     entry.ExtractToFile(fsAssetPath);
@@ -321,7 +339,13 @@ public class AssetManager
             {
                 try
                 {
-                    _loadedAssets[assetPath] = new(File.ReadAllBytes("assets/" + assetPath));
+                    string? resolvedPath = TryResolveAssetPath(assetPath);
+                    if (resolvedPath == null)
+                    {
+                        throw new FileNotFoundException($"Unable to resolve asset path {assetPath}");
+                    }
+
+                    _loadedAssets[assetPath] = new(File.ReadAllBytes(resolvedPath));
                 }
                 catch (Exception e)
                 {
@@ -332,7 +356,13 @@ public class AssetManager
             {
                 try
                 {
-                    _loadedAssets[assetPath] = new(File.ReadAllText("assets/" + assetPath));
+                    string? resolvedPath = TryResolveAssetPath(assetPath);
+                    if (resolvedPath == null)
+                    {
+                        throw new FileNotFoundException($"Unable to resolve asset path {assetPath}");
+                    }
+
+                    _loadedAssets[assetPath] = new(File.ReadAllText(resolvedPath));
                 }
                 catch (Exception e)
                 {
@@ -356,6 +386,20 @@ public class AssetManager
             string directory = assetPath[..idx];
             _assetDirectories.Add(directory);
         }
+    }
+
+    private static string? TryResolveAssetPath(string assetPath)
+    {
+        foreach (string root in s_assetRoots)
+        {
+            string candidate = Path.Combine(root, assetPath);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     private void defineEmbeddedAsset(string embeddedAssetPath, AssetType type)

@@ -329,6 +329,11 @@ public abstract unsafe class LegacyGL : IGL
         SilkGL.TexImage2D(target.ToModern(), level, internalformat, width, height, border, format.ToModern(), type.ToModern(), pixels);
     }
 
+    public void CopyTexSubImage2D(GLEnum target, int level, int xoffset, int yoffset, int x, int y, uint width, uint height)
+    {
+        SilkGL.CopyTexSubImage2D(target.ToModern(), level, xoffset, yoffset, x, y, width, height);
+    }
+
     public void TexParameter(TextureTarget target, TextureParameterName pname, int param)
     {
         SilkGL.TexParameter(target, pname, param);
