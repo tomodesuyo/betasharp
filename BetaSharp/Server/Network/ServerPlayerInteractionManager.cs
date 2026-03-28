@@ -239,7 +239,7 @@ public class ServerPlayerInteractionManager
     {
         if (player.capabilities.IsSpectatorMode)
         {
-            return false;
+            return player.TryOpenSpectatorContainer(world, x, y, z);
         }
 
         if (!player.isSneaking()) {

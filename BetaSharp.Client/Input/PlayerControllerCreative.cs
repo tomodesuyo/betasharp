@@ -3,6 +3,7 @@ using BetaSharp.Entities;
 using BetaSharp.Items;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
+using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
 
 namespace BetaSharp.Client.Input;
 
@@ -14,11 +15,11 @@ public class PlayerControllerCreative : PlayerController {
 	}
 
 	public static void enableAbilities(EntityPlayer var0) {
-		var0.capabilities.SetGameMode(GameMode.Creative);
+		var0.SetGameMode(WorldGameMode.Creative);
 	}
 
 	public static void disableAbilities(EntityPlayer var0) {
-		var0.capabilities.SetGameMode(GameMode.Survival);
+		var0.SetGameMode(WorldGameMode.Survival);
 	}
 
 	public override void fillHotbar(EntityPlayer var1) {
@@ -114,7 +115,7 @@ public class PlayerControllerCreative : PlayerController {
 	}
 
 	public override int getGameMode() {
-		return GameMode.Creative;
+		return WorldGameMode.Creative;
 	}
 
 	public override bool extendedReach() {

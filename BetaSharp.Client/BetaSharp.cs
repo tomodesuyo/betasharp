@@ -1822,7 +1822,7 @@ public partial class BetaSharp
             }
 
             player.movementInput = new MovementInputFromOptions(options);
-            player.capabilities.SetGameMode(playerController.getGameMode());
+            player.SetGameMode(playerController.getGameMode());
             terrainRenderer?.changeWorld(newWorld);
 
             particleManager?.clearEffects(newWorld);
@@ -2004,7 +2004,7 @@ public partial class BetaSharp
         playerController.flipPlayer(player);
         world.AddPlayer(player);
         player.movementInput = new MovementInputFromOptions(options);
-        player.capabilities.SetGameMode(playerController.getGameMode());
+        player.SetGameMode(playerController.getGameMode());
         player.id = previousPlayerId;
         player.spawn();
         playerController.fillHotbar(player);

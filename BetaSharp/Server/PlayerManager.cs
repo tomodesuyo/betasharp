@@ -170,7 +170,7 @@ public class PlayerManager
             networkHandler = player.networkHandler
         };
         ServerWorld var5 = _server.getWorld(player.dimensionId);
-        serverPlayer.capabilities.SetGameMode(player.capabilities.gameMode);
+        serverPlayer.SetGameMode(player.GameMode);
         if (var3 is (int x, int y, int z))
         {
             Vec3i? var6 = EntityPlayer.findRespawnPosition(_server.getWorld(player.dimensionId), var3);

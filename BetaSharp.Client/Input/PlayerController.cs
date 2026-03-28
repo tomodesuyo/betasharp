@@ -4,6 +4,7 @@ using BetaSharp.Entities;
 using BetaSharp.Items;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
+using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
 
 namespace BetaSharp.Client.Input;
 
@@ -104,12 +105,12 @@ public class PlayerController
 
     public virtual int getGameMode()
     {
-        return GameMode.Survival;
+        return WorldGameMode.Survival;
     }
 
     public virtual bool isSpectatorMode()
     {
-        return getGameMode() == GameMode.Spectator;
+        return getGameMode() == WorldGameMode.Spectator;
     }
 
     public virtual bool extendedReach()
@@ -133,7 +134,7 @@ public class PlayerController
     {
         if (player.capabilities.IsSpectatorMode)
         {
-            return false;
+            return player.TryOpenSpectatorContainer(world, blockX, blockY, blockZ);
         }
 
         int targetId = world.Reader.GetBlockId(blockX, blockY, blockZ);

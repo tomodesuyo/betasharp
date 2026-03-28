@@ -63,7 +63,23 @@ public abstract class EntityPlayer : EntityLiving
         rotationOffset = 180.0F;
         fireImmunityTicks = 20;
         texture = "/mob/char.png";
-        GameMode = GameModes.Get(0);
+        SetGameMode(GameModes.Get(0));
+    }
+
+    public void SetGameMode(GameMode gameMode)
+    {
+        GameMode = gameMode;
+        capabilities.SetGameMode(gameMode.Id);
+        noClip = capabilities.IsSpectatorMode;
+        if (capabilities.IsCreativeMode && fireTicks != 0)
+        {
+            fireTicks = 0;
+        }
+    }
+
+    public void SetGameMode(int gameModeId)
+    {
+        SetGameMode(GameModes.Get(gameModeId));
     }
 
     protected void TickSleep()
@@ -439,10 +455,7 @@ public abstract class EntityPlayer : EntityLiving
         }
 
         capabilities.readCapabilitiesFromNBT(nbt);
-        if (nbt.HasKey("playerGameType"))
-        {
-            capabilities.SetGameMode(nbt.GetInteger("playerGameType"));
-        }
+        SetGameMode(nbt.HasKey("playerGameType") ? nbt.GetInteger("playerGameType") : capabilities.gameMode);
     }
 
     public override void writeNbt(NBTTagCompound nbt)
@@ -590,6 +603,80 @@ public abstract class EntityPlayer : EntityLiving
 
     public virtual void openEditSignScreen(BlockEntitySign sign)
     {
+    }
+
+    public bool TryOpenSpectatorContainer(IWorldContext worldContext, int x, int y, int z)
+    {
+        if (!capabilities.IsSpectatorMode)
+        {
+            return false;
+        }
+
+        if (worldContext.Entities.GetBlockEntity<BlockEntityChest>(x, y, z) is BlockEntityChest chest)
+        {
+            IInventory chestInventory = chest;
+            if (worldContext.Reader.ShouldSuffocate(x, y + 1, z))
+            {
+                return true;
+            }
+
+            if (worldContext.Reader.GetBlockId(x - 1, y, z) == Block.Chest.id && worldContext.Reader.ShouldSuffocate(x - 1, y + 1, z))
+            {
+                return true;
+            }
+
+            if (worldContext.Reader.GetBlockId(x + 1, y, z) == Block.Chest.id && worldContext.Reader.ShouldSuffocate(x + 1, y + 1, z))
+            {
+                return true;
+            }
+
+            if (worldContext.Reader.GetBlockId(x, y, z - 1) == Block.Chest.id && worldContext.Reader.ShouldSuffocate(x, y + 1, z - 1))
+            {
+                return true;
+            }
+
+            if (worldContext.Reader.GetBlockId(x, y, z + 1) == Block.Chest.id && worldContext.Reader.ShouldSuffocate(x, y + 1, z + 1))
+            {
+                return true;
+            }
+
+            if (worldContext.Reader.GetBlockId(x - 1, y, z) == Block.Chest.id)
+            {
+                chestInventory = new InventoryLargeChest("Large chest", worldContext.Entities.GetBlockEntity<BlockEntityChest>(x - 1, y, z), chestInventory);
+            }
+
+            if (worldContext.Reader.GetBlockId(x + 1, y, z) == Block.Chest.id)
+            {
+                chestInventory = new InventoryLargeChest("Large chest", chestInventory, worldContext.Entities.GetBlockEntity<BlockEntityChest>(x + 1, y, z));
+            }
+
+            if (worldContext.Reader.GetBlockId(x, y, z - 1) == Block.Chest.id)
+            {
+                chestInventory = new InventoryLargeChest("Large chest", worldContext.Entities.GetBlockEntity<BlockEntityChest>(x, y, z - 1), chestInventory);
+            }
+
+            if (worldContext.Reader.GetBlockId(x, y, z + 1) == Block.Chest.id)
+            {
+                chestInventory = new InventoryLargeChest("Large chest", chestInventory, worldContext.Entities.GetBlockEntity<BlockEntityChest>(x, y, z + 1));
+            }
+
+            openChestScreen(chestInventory);
+            return true;
+        }
+
+        if (worldContext.Entities.GetBlockEntity<BlockEntityFurnace>(x, y, z) is BlockEntityFurnace furnace)
+        {
+            openFurnaceScreen(furnace);
+            return true;
+        }
+
+        if (worldContext.Entities.GetBlockEntity<BlockEntityDispenser>(x, y, z) is BlockEntityDispenser dispenser)
+        {
+            openDispenserScreen(dispenser);
+            return true;
+        }
+
+        return false;
     }
 
     public void interact(Entity entity)

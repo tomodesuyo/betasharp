@@ -7,6 +7,7 @@ using BetaSharp.Items;
 using BetaSharp.Network.Packets.C2SPlay;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
+using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
 
 namespace BetaSharp.Client.Input;
 
@@ -39,12 +40,12 @@ public class PlayerControllerMP : PlayerController
 
     public override bool sendBlockRemoved(int x, int y, int z, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return false;
         }
 
-        if (GameMode.IsCreative(currentGameMode))
+        if (WorldGameMode.IsCreative(currentGameMode))
         {
             return false;
         }
@@ -67,12 +68,12 @@ public class PlayerControllerMP : PlayerController
 
     public override void clickBlock(int var1, int var2, int var3, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return;
         }
 
-        if (GameMode.IsCreative(currentGameMode))
+        if (WorldGameMode.IsCreative(currentGameMode))
         {
             if (PlayerControllerCreative.IsBlockBreakingRestricted(Game))
             {
@@ -120,12 +121,12 @@ public class PlayerControllerMP : PlayerController
 
     public override void sendBlockRemoving(int var1, int var2, int var3, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return;
         }
 
-        if (GameMode.IsCreative(currentGameMode))
+        if (WorldGameMode.IsCreative(currentGameMode))
         {
             if (PlayerControllerCreative.IsBlockBreakingRestricted(Game))
             {
@@ -211,7 +212,7 @@ public class PlayerControllerMP : PlayerController
 
     public override float getBlockReachDistance()
     {
-        return GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode) ? 5.0F : 4.0F;
+        return WorldGameMode.IsCreative(currentGameMode) || WorldGameMode.IsSpectator(currentGameMode) ? 5.0F : 4.0F;
     }
 
     public override void func_717_a(World var1)
@@ -255,12 +256,12 @@ public class PlayerControllerMP : PlayerController
         }
 
         bool placed;
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return false;
         }
 
-        if (GameMode.IsCreative(currentGameMode) && selectedItem != null)
+        if (WorldGameMode.IsCreative(currentGameMode) && selectedItem != null)
         {
             int damage = selectedItem.getDamage();
             int count = selectedItem.count;
@@ -278,7 +279,7 @@ public class PlayerControllerMP : PlayerController
 
     public override bool sendUseItem(EntityPlayer var1, World var2, ItemStack var3)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return false;
         }
@@ -297,7 +298,7 @@ public class PlayerControllerMP : PlayerController
     public override EntityPlayer createPlayer(World var1)
     {
         EntityClientPlayerMP player = new(Game, var1, Game.session, netClientHandler);
-        player.capabilities.SetGameMode(currentGameMode);
+        player.SetGameMode(currentGameMode);
         return player;
     }
 
@@ -332,16 +333,16 @@ public class PlayerControllerMP : PlayerController
 
     public void SetCreativeMode(bool enabled)
     {
-        SetGameMode(enabled ? GameMode.Creative : GameMode.Survival);
+        SetGameMode(enabled ? WorldGameMode.Creative : WorldGameMode.Survival);
     }
 
     public void SetGameMode(int gameMode)
     {
-        bool enteringSpectator = !GameMode.IsSpectator(currentGameMode) && GameMode.IsSpectator(gameMode);
+        bool enteringSpectator = !WorldGameMode.IsSpectator(currentGameMode) && WorldGameMode.IsSpectator(gameMode);
         currentGameMode = gameMode;
         if (Game.player != null)
         {
-            Game.player.capabilities.SetGameMode(gameMode);
+            Game.player.SetGameMode(gameMode);
             if (enteringSpectator && Game.player is ClientPlayerEntity clientPlayer)
             {
                 clientPlayer.EnterSpectatorModeClient();
@@ -351,12 +352,12 @@ public class PlayerControllerMP : PlayerController
 
     public override bool shouldDrawHUD()
     {
-        return !(GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode));
+        return !(WorldGameMode.IsCreative(currentGameMode) || WorldGameMode.IsSpectator(currentGameMode));
     }
 
     public override bool isInCreativeMode()
     {
-        return GameMode.IsCreative(currentGameMode);
+        return WorldGameMode.IsCreative(currentGameMode);
     }
 
     public override int getGameMode()
@@ -366,12 +367,12 @@ public class PlayerControllerMP : PlayerController
 
     public override bool extendedReach()
     {
-        return GameMode.IsCreative(currentGameMode) || GameMode.IsSpectator(currentGameMode);
+        return WorldGameMode.IsCreative(currentGameMode) || WorldGameMode.IsSpectator(currentGameMode);
     }
 
     public void SendCreativeSlotAction(ItemStack? stack, int slot)
     {
-        if (!GameMode.IsCreative(currentGameMode))
+        if (!WorldGameMode.IsCreative(currentGameMode))
         {
             return;
         }
@@ -381,7 +382,7 @@ public class PlayerControllerMP : PlayerController
 
     public void SendCreativeDropAction(ItemStack stack)
     {
-        if (!GameMode.IsCreative(currentGameMode))
+        if (!WorldGameMode.IsCreative(currentGameMode))
         {
             return;
         }

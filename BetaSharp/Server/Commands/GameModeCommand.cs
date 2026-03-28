@@ -87,7 +87,12 @@ public class GameModeCommand : ICommand
 
     private void SetGameMode(EntityPlayer p, GameMode gameMode, ICommand.CommandContext c)
     {
-        p.GameMode = gameMode;
+        p.SetGameMode(gameMode);
+        if (p is ServerPlayerEntity serverPlayer)
+        {
+            serverPlayer.networkHandler.sendPacket(PlayerCapabilitiesS2CPacket.Get(serverPlayer.capabilities));
+        }
+
         string s = $"{p.name} game mode set to {gameMode.Name}.";
         s_logger.LogInformation(s);
         c.Output.SendMessage(s);

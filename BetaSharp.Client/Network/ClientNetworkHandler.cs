@@ -25,6 +25,7 @@ using BetaSharp.Worlds.Mechanics;
 using BetaSharp.Worlds.Core.Systems;
 using BetaSharp.Worlds.Storage;
 using Microsoft.Extensions.Logging;
+using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
 using Socket = System.Net.Sockets.Socket;
 
 namespace BetaSharp.Client.Network;
@@ -537,11 +538,15 @@ public class ClientNetworkHandler : NetHandler
             return;
         }
 
-        bool enteringSpectator = !_game.player.capabilities.IsSpectatorMode && GameMode.IsSpectator(_pendingGameMode);
+        bool enteringSpectator = !_game.player.capabilities.IsSpectatorMode && WorldGameMode.IsSpectator(_pendingGameMode);
 
         if (_game.playerController is PlayerControllerMP playerControllerMp)
         {
             playerControllerMp.SetGameMode(_pendingGameMode);
+        }
+        else
+        {
+            _game.player.SetGameMode(_pendingGameMode);
         }
 
         _game.player.capabilities.disableDamage = _pendingDisableDamage;
@@ -549,7 +554,7 @@ public class ClientNetworkHandler : NetHandler
         _game.player.capabilities.allowFlying = _pendingAllowFlying;
         _game.player.capabilities.isCreativeMode = _pendingIsCreativeMode;
         _game.player.capabilities.gameMode = _pendingGameMode;
-        _game.player.capabilities.allowEdit = !GameMode.IsAdventure(_game.player.capabilities.gameMode);
+        _game.player.capabilities.allowEdit = !WorldGameMode.IsAdventure(_game.player.capabilities.gameMode);
         _game.player.capabilities.SetFlySpeed(_pendingFlySpeed);
         _game.player.capabilities.SetWalkSpeed(_pendingWalkSpeed);
         _game.player.noClip = _game.player.capabilities.IsSpectatorMode;
@@ -679,8 +684,6 @@ public class ClientNetworkHandler : NetHandler
 
     public override void onOpenScreen(OpenScreenS2CPacket packet)
     {
-        if (!_game.player.GameMode.CanInteract) return;
-
         if (packet.screenHandlerId == 0)
         {
             InventoryBasic inventory = new(packet.name, packet.slotsCount);

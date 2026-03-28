@@ -5,6 +5,7 @@ using BetaSharp.Entities;
 using BetaSharp.Items;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
+using WorldGameMode = BetaSharp.Worlds.Core.Systems.GameMode;
 
 namespace BetaSharp.Client.Input;
 
@@ -17,7 +18,7 @@ public class PlayerControllerSP : PlayerController
     private float prevBlockDamage;
     private float field_1069_h;
     private int blockHitWait;
-    private int currentGameMode = GameMode.Survival;
+    private int currentGameMode = WorldGameMode.Survival;
 
     public PlayerControllerSP(BetaSharp var1) : base(var1)
     {
@@ -31,7 +32,7 @@ public class PlayerControllerSP : PlayerController
 
     public override bool sendBlockRemoved(int x, int y, int z, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return false;
         }
@@ -61,7 +62,7 @@ public class PlayerControllerSP : PlayerController
 
     public override void clickBlock(int var1, int var2, int var3, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return;
         }
@@ -88,7 +89,7 @@ public class PlayerControllerSP : PlayerController
 
     public override void sendBlockRemoving(int var1, int var2, int var3, int var4)
     {
-        if (GameMode.IsSpectator(currentGameMode))
+        if (WorldGameMode.IsSpectator(currentGameMode))
         {
             return;
         }
@@ -171,7 +172,7 @@ public class PlayerControllerSP : PlayerController
 
     public override bool isInCreativeMode()
     {
-        return GameMode.IsCreative(currentGameMode);
+        return WorldGameMode.IsCreative(currentGameMode);
     }
 
     public override int getGameMode()
@@ -181,16 +182,16 @@ public class PlayerControllerSP : PlayerController
 
     public override bool shouldDrawHUD()
     {
-        return !GameMode.IsSpectator(currentGameMode);
+        return !WorldGameMode.IsSpectator(currentGameMode);
     }
 
     public void SetGameMode(int gameMode)
     {
-        bool enteringSpectator = !GameMode.IsSpectator(currentGameMode) && GameMode.IsSpectator(gameMode);
+        bool enteringSpectator = !WorldGameMode.IsSpectator(currentGameMode) && WorldGameMode.IsSpectator(gameMode);
         currentGameMode = gameMode;
         if (Game.player != null)
         {
-            Game.player.capabilities.SetGameMode(gameMode);
+            Game.player.SetGameMode(gameMode);
             if (enteringSpectator && Game.player is ClientPlayerEntity clientPlayer)
             {
                 clientPlayer.EnterSpectatorModeClient();
