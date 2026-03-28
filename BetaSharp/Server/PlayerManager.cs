@@ -75,9 +75,9 @@ public class PlayerManager
         return dimensionId == -1 ? _chunkMaps[1] : _chunkMaps[0];
     }
 
-    public void loadPlayerData(ServerPlayerEntity player)
+    public bool loadPlayerData(ServerPlayerEntity player)
     {
-        _saveHandler.LoadPlayerData(player);
+        return _saveHandler.LoadPlayerData(player);
     }
 
     public void addPlayer(ServerPlayerEntity player)

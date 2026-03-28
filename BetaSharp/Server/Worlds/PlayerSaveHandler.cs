@@ -6,5 +6,5 @@ public interface IPlayerStorage
 {
     void SavePlayerData(EntityPlayer player);
 
-    void LoadPlayerData(EntityPlayer player);
+    bool LoadPlayerData(EntityPlayer player);
 }

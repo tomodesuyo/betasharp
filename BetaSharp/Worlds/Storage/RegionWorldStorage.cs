@@ -249,13 +249,16 @@ internal class RegionWorldStorage : IWorldStorage, IPlayerStorage
         }
     }
 
-    public void LoadPlayerData(EntityPlayer player)
+    public bool LoadPlayerData(EntityPlayer player)
     {
         NBTTagCompound tag = loadPlayerData(player.name);
         if (tag != null)
         {
             player.read(tag);
+            return true;
         }
+
+        return false;
     }
 
     public NBTTagCompound loadPlayerData(string playerName)

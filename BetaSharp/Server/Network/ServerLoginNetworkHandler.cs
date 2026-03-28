@@ -127,11 +127,14 @@ public class ServerLoginNetworkHandler : NetHandler
         ServerPlayerEntity ent = server.playerManager.connectPlayer(this, packet.username);
         if (ent != null)
         {
-            server.playerManager.loadPlayerData(ent);
+            bool hasSavedPlayerData = server.playerManager.loadPlayerData(ent);
             ent.setWorld(server.getWorld(ent.dimensionId));
             _logger.LogInformation($"{getConnectionInfo()} logged in with entity id {ent.id} at ({ent.x}, {ent.y}, {ent.z})");
             ServerWorld var3 = server.getWorld(ent.dimensionId);
-            ent.SetGameMode(var3.Properties.GameType);
+            if (!hasSavedPlayerData)
+            {
+                ent.SetGameMode(var3.Properties.GameType);
+            }
             Vec3i var4 = var3.Properties.GetSpawnPos();
             ServerPlayNetworkHandler handler = new ServerPlayNetworkHandler(server, connection, ent);
             handler.sendPacket(new LoginHelloPacket("", ent.id, var3.Seed, (sbyte)var3.Dimension.Id, (sbyte)var3.Properties.GameType));
