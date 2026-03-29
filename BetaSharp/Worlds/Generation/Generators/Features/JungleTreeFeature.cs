@@ -150,6 +150,29 @@ internal sealed class JungleTreeFeature(int minHeight, int logMeta, int leavesMe
                     }
                 }
             }
+
+            if (treeHeight > 5 && rand.NextInt(5) == 0)
+            {
+                for (int level = 0; level < 2; ++level)
+                {
+                    for (int direction = 0; direction < 4; ++direction)
+                    {
+                        if (rand.NextInt(4 - level) != 0)
+                        {
+                            continue;
+                        }
+
+                        int cocoaAge = rand.NextInt(3);
+                        int cocoaX = x + GetCocoaOffsetX(direction);
+                        int cocoaY = y + treeHeight - 5 + level;
+                        int cocoaZ = z + GetCocoaOffsetZ(direction);
+                        if (world.Reader.IsAir(cocoaX, cocoaY, cocoaZ))
+                        {
+                            world.Writer.SetBlockWithoutNotifyingNeighbors(cocoaX, cocoaY, cocoaZ, Block.Cocoa.id, cocoaAge << 2 | direction, false);
+                        }
+                    }
+                }
+            }
         }
 
         return true;
@@ -164,4 +187,18 @@ internal sealed class JungleTreeFeature(int minHeight, int logMeta, int leavesMe
             world.Writer.SetBlockWithoutNotifyingNeighbors(x, y, z, Block.Vine.id, meta, false);
         }
     }
+
+    private static int GetCocoaOffsetX(int direction) => direction switch
+    {
+        1 => -1,
+        3 => 1,
+        _ => 0
+    };
+
+    private static int GetCocoaOffsetZ(int direction) => direction switch
+    {
+        0 => 1,
+        2 => -1,
+        _ => 0
+    };
 }

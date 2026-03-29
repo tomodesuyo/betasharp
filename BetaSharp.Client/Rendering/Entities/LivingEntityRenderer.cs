@@ -3,6 +3,7 @@ using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Client.Rendering.Core.OpenGL;
 using BetaSharp.Client.Rendering.Entities.Models;
 using BetaSharp.Entities;
+using BetaSharp.Potions;
 using BetaSharp.Util.Maths;
 using Microsoft.Extensions.Logging;
 using Exception = System.Exception;
@@ -29,6 +30,11 @@ public class LivingEntityRenderer : EntityRenderer
 
     public virtual void doRenderLiving(EntityLiving var1, double var2, double var4, double var6, float var8, float var9)
     {
+        if (var1.hasPotionEffect(Potion.Invisibility))
+        {
+            return;
+        }
+
         GLManager.GL.PushMatrix();
         GLManager.GL.Disable(GLEnum.CullFace);
         mainModel.onGround = func_167_c(var1, var9);
@@ -63,10 +69,9 @@ public class LivingEntityRenderer : EntityRenderer
                 var15 = 1.0F;
             }
 
-            LoadDownloadableImageTexture((var1 as EntityPlayer)?.name, var1.getTexture());
             GLManager.GL.Enable(GLEnum.AlphaTest);
             mainModel.setLivingAnimations(var1, var16, var15, var9);
-            mainModel.render(var16, var15, var13, var11 - var10, var12, var14);
+            RenderMainModel(var1, var16, var15, var13, var11 - var10, var12, var14, var9);
 
             for (int var17 = 0; var17 < 4; ++var17)
             {
@@ -174,6 +179,12 @@ public class LivingEntityRenderer : EntityRenderer
 
     protected virtual void renderMore(EntityLiving var1, float var2)
     {
+    }
+
+    protected virtual void RenderMainModel(EntityLiving entity, float limbAngle, float limbDistance, float age, float netHeadYaw, float headPitch, float scale, float tickDelta)
+    {
+        LoadDownloadableImageTexture((entity as EntityPlayer)?.name, entity.getTexture());
+        mainModel.render(limbAngle, limbDistance, age, netHeadYaw, headPitch, scale);
     }
 
     protected virtual bool func_27005_b(EntityLiving var1, int var2, float var3)

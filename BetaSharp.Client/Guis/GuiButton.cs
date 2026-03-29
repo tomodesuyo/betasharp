@@ -55,7 +55,7 @@ public class GuiButton : Gui
         return HoverState.Normal;
     }
 
-    public void DrawButton(BetaSharp game, int mouseX, int mouseY)
+    public virtual void DrawButton(BetaSharp game, int mouseX, int mouseY)
     {
         if (!Visible) return;
 

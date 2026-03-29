@@ -1,3 +1,5 @@
+using BetaSharp.Blocks;
+using BetaSharp.Client.Rendering.Blocks;
 using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Client.Rendering.Core.OpenGL;
 using BetaSharp.Client.Rendering.Entities.Models;
@@ -44,6 +46,29 @@ public sealed class EndermanEntityRenderer : LivingEntityRenderer
         GLManager.GL.BlendFunc(GLEnum.One, GLEnum.One);
         GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
         return true;
+    }
+
+    protected override void renderMore(EntityLiving entity, float tickDelta)
+    {
+        base.renderMore(entity, tickDelta);
+        EntityEnderman enderman = (EntityEnderman)entity;
+        int carriedId = enderman.GetCarried();
+        if (carriedId <= 0)
+        {
+            return;
+        }
+
+        Block carriedBlock = Block.Blocks[carriedId];
+        GLManager.GL.Enable(GLEnum.RescaleNormal);
+        GLManager.GL.PushMatrix();
+        GLManager.GL.Translate(0.0F, 11.0F / 16.0F, -(12.0F / 16.0F));
+        GLManager.GL.Rotate(20.0F, 1.0F, 0.0F, 0.0F);
+        GLManager.GL.Rotate(45.0F, 0.0F, 1.0F, 0.0F);
+        GLManager.GL.Scale(0.5F, -0.5F, 0.5F);
+        loadTexture("/terrain.png");
+        BlockRenderer.RenderBlockOnInventory(carriedBlock, enderman.GetCarryingData(), 1.0F, Tessellator.instance);
+        GLManager.GL.PopMatrix();
+        GLManager.GL.Disable(GLEnum.RescaleNormal);
     }
 
     private double NextGaussian()

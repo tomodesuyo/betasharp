@@ -644,6 +644,26 @@ public class EntityManager
             }
         }
 
+        int entityCount = results.Count;
+        for (int i = 0; i < entityCount; ++i)
+        {
+            if (results[i] is not EntityDragon dragon)
+            {
+                continue;
+            }
+
+            for (int partIndex = 0; partIndex < dragon.DragonPartArray.Length; ++partIndex)
+            {
+                EntityDragonPart part = dragon.DragonPartArray[partIndex];
+                if ((excludeEntity == dragon || excludeEntity == part) || !part.boundingBox.Intersects(area))
+                {
+                    continue;
+                }
+
+                results.Add(part);
+            }
+        }
+
         return results;
     }
 

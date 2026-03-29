@@ -402,7 +402,10 @@ public abstract class ScreenHandler
             {
                 slotToInsertStack = Slots[slotIndex];
                 itemStackToInsert = slotToInsertStack.getStack();
-                if (itemStackToInsert is not null && itemStackToInsert.itemId == stack.itemId && (!stack.getHasSubtypes() || stack.getDamage() == itemStackToInsert.getDamage()))
+                if (itemStackToInsert is not null
+                    && slotToInsertStack.canInsert(stack)
+                    && itemStackToInsert.itemId == stack.itemId
+                    && (!stack.getHasSubtypes() || stack.getDamage() == itemStackToInsert.getDamage()))
                 {
                     int newitemStackSize = itemStackToInsert.count + stack.count;
                     if (newitemStackSize <= stack.getMaxCount())
@@ -445,7 +448,7 @@ public abstract class ScreenHandler
             {
                 slotToInsertStack = Slots[slotIndex];
                 itemStackToInsert = slotToInsertStack.getStack();
-                if (itemStackToInsert is null)
+                if (itemStackToInsert is null && slotToInsertStack.canInsert(stack))
                 {
                     slotToInsertStack.setStack(stack.copy());
                     slotToInsertStack.markDirty();

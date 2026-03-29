@@ -2,6 +2,7 @@ using BetaSharp.Blocks;
 using BetaSharp.Blocks.Materials;
 using BetaSharp.Items;
 using BetaSharp.NBT;
+using BetaSharp.Potions;
 using BetaSharp.Util.Hit;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
@@ -62,6 +63,8 @@ public abstract class EntityLiving : Entity
     protected float movementSpeed = 0.7F;
     private Entity lookTarget;
     protected int lookTimer;
+    private readonly Dictionary<int, PotionEffect> _activePotionEffects = new();
+    private int _potionDamageSpill;
 
     public EntityLiving(IWorldContext world) : base(world)
     {
@@ -123,6 +126,7 @@ public abstract class EntityLiving : Entity
     {
         lastSwingAnimationProgress = swingAnimationProgress;
         base.baseTick();
+        UpdatePotionEffects();
         if (random.NextInt(1000) < livingSoundTime++)
         {
             livingSoundTime = -getTalkInterval();
@@ -134,7 +138,7 @@ public abstract class EntityLiving : Entity
             damage(null, 1);
         }
 
-        if (isImmuneToFire || world.IsRemote)
+        if (HasFireImmunity() || world.IsRemote)
         {
             fireTicks = 0;
         }
@@ -358,9 +362,9 @@ public abstract class EntityLiving : Entity
         if (health > 0)
         {
             health += amount;
-            if (health > 20)
+            if (health > maxHealth)
             {
-                health = 20;
+                health = maxHealth;
             }
 
             hearts = maxHealth / 2;
@@ -382,6 +386,12 @@ public abstract class EntityLiving : Entity
             }
             else
             {
+                amount = ApplyPotionDamageReduction(amount);
+                if (amount <= 0)
+                {
+                    return false;
+                }
+
                 walkAnimationSpeed = 1.5F;
                 bool var3 = true;
                 if ((float)hearts > (float)maxHealth / 2.0F)
@@ -456,6 +466,19 @@ public abstract class EntityLiving : Entity
     protected virtual void applyDamage(int amount)
     {
         health -= amount;
+    }
+
+    protected virtual int ApplyPotionDamageReduction(int amount)
+    {
+        if (hasPotionEffect(Potion.Resistance))
+        {
+            int reduction = (getActivePotionEffect(Potion.Resistance)!.Amplifier + 1) * 5;
+            int adjusted = amount * (25 - reduction) + _potionDamageSpill;
+            amount = adjusted / 25;
+            _potionDamageSpill = adjusted % 25;
+        }
+
+        return amount;
     }
 
     protected virtual float getSoundVolume()
@@ -539,11 +562,19 @@ public abstract class EntityLiving : Entity
     protected override void onLanding(float fallDistance)
     {
         base.onLanding(fallDistance);
-        int var2 = (int)Math.Ceiling((double)(fallDistance - 3.0F));
+        GetLandingBlockPos(out int landingX, out int landingY, out int landingZ);
+        int landingBlockId = world.Reader.GetBlockId(landingX, landingY, landingZ);
+        if (landingBlockId == Block.SlimeBlock.id && !isSneaking())
+        {
+            return;
+        }
+
+        float damageMultiplier = landingBlockId == Block.Hay.id ? 0.2F : 1.0F;
+        int var2 = (int)Math.Ceiling((double)(fallDistance - 3.0F) * damageMultiplier);
         if (var2 > 0)
         {
             damage(null, var2);
-            int var3 = world.Reader.GetBlockId(MathHelper.Floor(x), MathHelper.Floor(y - (double)0.2F - (double)standingEyeHeight), MathHelper.Floor(z));
+            int var3 = landingBlockId;
             if (var3 > 0)
             {
                 BlockSoundGroup soundGroup = Block.Blocks[var3].soundGroup;
@@ -673,12 +704,12 @@ public abstract class EntityLiving : Entity
 
     protected virtual float getAirMovementSpeed()
     {
-        return 0.02F;
+        return 0.02F * GetSpeedModifier();
     }
 
     protected virtual float getGroundMovementSpeed()
     {
-        return 0.1F;
+        return 0.1F * GetSpeedModifier();
     }
 
     protected virtual bool ignoresFluidMovementSlowdown()
@@ -702,6 +733,20 @@ public abstract class EntityLiving : Entity
         nbt.SetShort("HurtTime", (short)hurtTime);
         nbt.SetShort("DeathTime", (short)deathTime);
         nbt.SetShort("AttackTime", (short)attackTime);
+        if (_activePotionEffects.Count > 0)
+        {
+            NBTTagList effects = new();
+            foreach (PotionEffect effect in _activePotionEffects.Values)
+            {
+                NBTTagCompound effectTag = new();
+                effectTag.SetByte("Id", (sbyte)effect.PotionId);
+                effectTag.SetByte("Amplifier", (sbyte)effect.Amplifier);
+                effectTag.SetInteger("Duration", effect.Duration);
+                effects.SetTag(effectTag);
+            }
+
+            nbt.SetTag("ActiveEffects", effects);
+        }
     }
 
     public override void readNbt(NBTTagCompound nbt)
@@ -715,6 +760,19 @@ public abstract class EntityLiving : Entity
         hurtTime = nbt.GetShort("HurtTime");
         deathTime = nbt.GetShort("DeathTime");
         attackTime = nbt.GetShort("AttackTime");
+        _activePotionEffects.Clear();
+        if (nbt.HasKey("ActiveEffects"))
+        {
+            NBTTagList effects = nbt.GetTagList("ActiveEffects");
+            for (int i = 0; i < effects.TagCount(); ++i)
+            {
+                NBTTagCompound effectTag = (NBTTagCompound)effects.TagAt(i);
+                int id = effectTag.GetByte("Id");
+                int amplifier = effectTag.GetByte("Amplifier");
+                int duration = effectTag.GetInteger("Duration");
+                _activePotionEffects[id] = new PotionEffect(id, duration, amplifier);
+            }
+        }
     }
 
     public override bool isAlive()
@@ -724,7 +782,7 @@ public abstract class EntityLiving : Entity
 
     public virtual bool canBreatheUnderwater()
     {
-        return false;
+        return hasPotionEffect(Potion.WaterBreathing);
     }
 
     public virtual void tickMovement()
@@ -856,6 +914,11 @@ public abstract class EntityLiving : Entity
     protected virtual void jump()
     {
         velocityY = (double)0.42F;
+        if (hasPotionEffect(Potion.Jump))
+        {
+            velocityY += (getActivePotionEffect(Potion.Jump)!.Amplifier + 1) * 0.1F;
+        }
+
         if (isSprinting())
         {
             float yawRadians = yaw * 0.017453292F;
@@ -1130,5 +1193,144 @@ public abstract class EntityLiving : Entity
     public virtual int getItemStackTextureId(ItemStack item)
     {
         return item.getTextureId();
+    }
+
+    public IEnumerable<PotionEffect> getActivePotionEffects()
+    {
+        return _activePotionEffects.Values;
+    }
+
+    public bool hasPotionEffect(Potion potion)
+    {
+        return _activePotionEffects.ContainsKey(potion.Id);
+    }
+
+    public PotionEffect? getActivePotionEffect(Potion potion)
+    {
+        _activePotionEffects.TryGetValue(potion.Id, out PotionEffect? effect);
+        return effect;
+    }
+
+    public void addPotionEffect(PotionEffect effect)
+    {
+        if (!isPotionApplicable(effect))
+        {
+            return;
+        }
+
+        if (_activePotionEffects.TryGetValue(effect.PotionId, out PotionEffect? existing))
+        {
+            existing.Combine(effect);
+            onChangedPotionEffect(existing);
+        }
+        else
+        {
+            _activePotionEffects[effect.PotionId] = effect;
+            onNewPotionEffect(effect);
+        }
+    }
+
+    public void clearPotionEffects()
+    {
+        if (_activePotionEffects.Count == 0)
+        {
+            return;
+        }
+
+        List<PotionEffect> removedEffects = _activePotionEffects.Values.ToList();
+        _activePotionEffects.Clear();
+        for (int i = 0; i < removedEffects.Count; ++i)
+        {
+            onFinishedPotionEffect(removedEffects[i]);
+        }
+    }
+
+    public bool removePotionEffect(int potionId)
+    {
+        if (!_activePotionEffects.Remove(potionId, out PotionEffect? effect))
+        {
+            return false;
+        }
+
+        onFinishedPotionEffect(effect);
+        return true;
+    }
+
+    public bool removePotionEffect(Potion potion)
+    {
+        return removePotionEffect(potion.Id);
+    }
+
+    public virtual bool isPotionApplicable(PotionEffect effect)
+    {
+        return !isUndead() || effect.PotionId != Potion.Regeneration.Id && effect.PotionId != Potion.Poison.Id;
+    }
+
+    public virtual bool isUndead()
+    {
+        return false;
+    }
+
+    public override float getBrightnessAtEyes(float var1)
+    {
+        float brightness = base.getBrightnessAtEyes(var1);
+        return hasPotionEffect(Potion.NightVision) ? Math.Max(brightness, 1.0F) : brightness;
+    }
+
+    protected virtual void onNewPotionEffect(PotionEffect effect)
+    {
+    }
+
+    protected virtual void onChangedPotionEffect(PotionEffect effect)
+    {
+    }
+
+    protected virtual void onFinishedPotionEffect(PotionEffect effect)
+    {
+    }
+
+    protected float GetSpeedModifier()
+    {
+        float modifier = 1.0F;
+        if (hasPotionEffect(Potion.MoveSpeed))
+        {
+            modifier *= 1.0F + 0.2F * (getActivePotionEffect(Potion.MoveSpeed)!.Amplifier + 1);
+        }
+
+        if (hasPotionEffect(Potion.MoveSlowdown))
+        {
+            modifier *= 1.0F - 0.15F * (getActivePotionEffect(Potion.MoveSlowdown)!.Amplifier + 1);
+        }
+
+        return modifier;
+    }
+
+    protected override bool HasFireImmunity()
+    {
+        return base.HasFireImmunity() || hasPotionEffect(Potion.FireResistance);
+    }
+
+    private void UpdatePotionEffects()
+    {
+        if (_activePotionEffects.Count == 0)
+        {
+            return;
+        }
+
+        List<int> expired = [];
+        foreach ((int id, PotionEffect effect) in _activePotionEffects)
+        {
+            if (!effect.OnUpdate(this))
+            {
+                expired.Add(id);
+            }
+        }
+
+        for (int i = 0; i < expired.Count; ++i)
+        {
+            PotionEffect effect = _activePotionEffects[expired[i]];
+            _activePotionEffects.Remove(expired[i]);
+            onFinishedPotionEffect(effect);
+        }
     }
 }

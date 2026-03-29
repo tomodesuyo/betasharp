@@ -5,20 +5,25 @@ using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp.Worlds.Generation.Structures;
 
-internal sealed class ComponentStrongholdPortalRoom : StructureComponent
+internal sealed class ComponentStrongholdPortalRoom : ComponentStronghold
 {
     private bool _hasSpawner;
 
-    public ComponentStrongholdPortalRoom(int componentType, StructureBoundingBox bounds, int facing) : base(componentType)
+    public ComponentStrongholdPortalRoom(int componentType, JavaRandom random, StructureBoundingBox bounds, int facing) : base(componentType)
     {
         Facing = facing;
         BoundingBox = bounds;
     }
 
-    public static ComponentStrongholdPortalRoom? Create(int x, int y, int z, int facing, int componentType, List<StructureComponent> components)
+    public static ComponentStrongholdPortalRoom? FindValidPlacement(List<StructureComponent> components, JavaRandom random, int x, int y, int z, int facing, int componentType)
     {
         StructureBoundingBox bounds = StructureBoundingBox.Create(x, y, z, -4, -1, 0, 11, 8, 16, facing);
-        return bounds.MinY > 10 && FindIntersecting(components, bounds) == null ? new ComponentStrongholdPortalRoom(componentType, bounds, facing) : null;
+        return CanStrongholdGoDeeper(bounds) && FindIntersecting(components, bounds) == null ? new ComponentStrongholdPortalRoom(componentType, random, bounds, facing) : null;
+    }
+
+    public static ComponentStrongholdPortalRoom? Create(int x, int y, int z, int facing, int componentType, List<StructureComponent> components)
+    {
+        return FindValidPlacement(components, new JavaRandom(0L), x, y, z, facing, componentType);
     }
 
     public override void BuildComponent(StructureComponent component, List<StructureComponent> components, JavaRandom random)
@@ -31,53 +36,41 @@ internal sealed class ComponentStrongholdPortalRoom : StructureComponent
 
     public override bool AddComponentParts(IWorldContext world, JavaRandom random, StructureBoundingBox bounds)
     {
-        if (IsLiquidInStructureBoundingBox(world, bounds))
+        FillWithRandomizedBlocks(world, bounds, 0, 0, 0, 10, 7, 15, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        PlaceDoor(world, random, bounds, StrongholdDoor.Grates, 4, 1, 0);
+        const int ceilingY = 6;
+        FillWithRandomizedBlocks(world, bounds, 1, ceilingY, 1, 1, ceilingY, 14, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 9, ceilingY, 1, 9, ceilingY, 14, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 2, ceilingY, 1, 8, ceilingY, 2, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 2, ceilingY, 14, 8, ceilingY, 14, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 1, 1, 1, 2, 1, 4, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 8, 1, 1, 9, 1, 4, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithBlocks(world, bounds, 1, 1, 1, 1, 1, 3, Block.FlowingLava.id, Block.FlowingLava.id, false);
+        FillWithBlocks(world, bounds, 9, 1, 1, 9, 1, 3, Block.FlowingLava.id, Block.FlowingLava.id, false);
+        FillWithRandomizedBlocks(world, bounds, 3, 1, 8, 7, 1, 12, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithBlocks(world, bounds, 4, 1, 9, 6, 1, 11, Block.FlowingLava.id, Block.FlowingLava.id, false);
+
+        for (int z = 3; z < 14; z += 2)
         {
-            return false;
+            FillWithBlocks(world, bounds, 0, 3, z, 0, 4, z, Block.IronBars.id, Block.IronBars.id, false);
+            FillWithBlocks(world, bounds, 10, 3, z, 10, 4, z, Block.IronBars.id, Block.IronBars.id, false);
         }
 
-        FillWithBlocks(world, bounds, 0, 0, 0, 10, 7, 15, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 1, 1, 1, 9, 6, 14, 0, 0, false);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 1, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 2, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 3, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, 0, 0, 5, 1, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, 0, 0, 5, 2, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 5, 3, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 1, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 2, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 3, 0, bounds);
-
-        int ceilingY = 6;
-        FillWithBlocks(world, bounds, 1, ceilingY, 1, 1, ceilingY, 14, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 9, ceilingY, 1, 9, ceilingY, 14, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 2, ceilingY, 1, 8, ceilingY, 2, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 2, ceilingY, 14, 8, ceilingY, 14, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 1, 1, 1, 2, 1, 4, Block.Lava.id, 0, false);
-        FillWithBlocks(world, bounds, 8, 1, 1, 9, 1, 4, Block.Lava.id, 0, false);
-        FillWithBlocks(world, bounds, 3, 1, 8, 7, 1, 12, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 4, 1, 9, 6, 1, 11, Block.Lava.id, 0, false);
-
-        for (int localZ = 3; localZ < 14; localZ += 2)
+        for (int x = 2; x < 9; x += 2)
         {
-            FillWithBlocks(world, bounds, 0, 3, localZ, 0, 4, localZ, Block.IronBars.id, 0, false);
-            FillWithBlocks(world, bounds, 10, 3, localZ, 10, 4, localZ, Block.IronBars.id, 0, false);
-        }
-
-        for (int localX = 2; localX < 9; localX += 2)
-        {
-            FillWithBlocks(world, bounds, localX, 3, 15, localX, 4, 15, Block.IronBars.id, 0, false);
+            FillWithBlocks(world, bounds, x, 3, 15, x, 4, 15, Block.IronBars.id, Block.IronBars.id, false);
         }
 
         int stairsMeta = GetMetadataWithOffset(Block.StoneBrickStairs.id, 3);
-        FillWithBlocks(world, bounds, 4, 1, 5, 6, 1, 7, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 4, 2, 6, 6, 2, 7, Block.StoneBrick.id, 0, false);
-        FillWithBlocks(world, bounds, 4, 3, 7, 6, 3, 7, Block.StoneBrick.id, 0, false);
-        for (int localX = 4; localX <= 6; ++localX)
+        FillWithRandomizedBlocks(world, bounds, 4, 1, 5, 6, 1, 7, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 4, 2, 6, 6, 2, 7, false, random, StructureStrongholdPieces.GetStrongholdStones());
+        FillWithRandomizedBlocks(world, bounds, 4, 3, 7, 6, 3, 7, false, random, StructureStrongholdPieces.GetStrongholdStones());
+
+        for (int x = 4; x <= 6; ++x)
         {
-            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, localX, 1, 4, bounds);
-            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, localX, 2, 5, bounds);
-            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, localX, 3, 6, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, x, 1, 4, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, x, 2, 5, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.StoneBrickStairs.id, stairsMeta, x, 3, 6, bounds);
         }
 
         int north = 2;
@@ -104,16 +97,16 @@ internal sealed class ComponentStrongholdPortalRoom : StructureComponent
                 break;
         }
 
-        for (int localX = 4; localX <= 6; ++localX)
+        for (int x = 4; x <= 6; ++x)
         {
-            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, north + (random.NextFloat() > 0.9F ? 4 : 0), localX, 3, 8, bounds);
-            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, south + (random.NextFloat() > 0.9F ? 4 : 0), localX, 3, 12, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, north + (random.NextFloat() > 0.9F ? 4 : 0), x, 3, 8, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, south + (random.NextFloat() > 0.9F ? 4 : 0), x, 3, 12, bounds);
         }
 
-        for (int localZ = 9; localZ <= 11; ++localZ)
+        for (int z = 9; z <= 11; ++z)
         {
-            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, west + (random.NextFloat() > 0.9F ? 4 : 0), 3, 3, localZ, bounds);
-            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, east + (random.NextFloat() > 0.9F ? 4 : 0), 7, 3, localZ, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, west + (random.NextFloat() > 0.9F ? 4 : 0), 3, 3, z, bounds);
+            PlaceBlockAtCurrentPosition(world, Block.EndPortalFrame.id, east + (random.NextFloat() > 0.9F ? 4 : 0), 7, 3, z, bounds);
         }
 
         if (!_hasSpawner)

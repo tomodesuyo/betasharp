@@ -228,6 +228,25 @@ public class LegacyBiomeLayersTests
     }
 
     [Fact]
+    public void StructureMetadataOffsetDoesNotRotateVariantMetadata()
+    {
+        MetadataProbeComponent component = new(1);
+
+        Assert.Equal(0, component.MapMeta(Block.Planks.id, 0));
+        Assert.Equal(2, component.MapMeta(Block.StoneBrick.id, 2));
+        Assert.Equal(5, component.MapMeta(Block.EndPortalFrame.id, 5));
+    }
+
+    [Fact]
+    public void StructureMetadataOffsetStillRotatesDirectionalBlocks()
+    {
+        MetadataProbeComponent component = new(1);
+
+        Assert.Equal(2, component.MapMeta(Block.CobblestoneStairs.id, 0));
+        Assert.Equal(1, component.MapMeta(Block.Door.id, 0));
+    }
+
+    [Fact]
     public void OverworldSpawnPointRequiresGrassBlock()
     {
         OverworldDimension dimension = new();
@@ -290,5 +309,19 @@ public class LegacyBiomeLayersTests
         return (string)typeof(RegionChunkStorage)
             .GetField("_dir", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .GetValue(storage)!;
+    }
+
+    private sealed class MetadataProbeComponent(int facing) : StructureComponent(0)
+    {
+        public int MapMeta(int blockId, int meta)
+        {
+            Facing = facing;
+            return GetMetadataWithOffset(blockId, meta);
+        }
+
+        public override bool AddComponentParts(IWorldContext world, JavaRandom random, StructureBoundingBox bounds)
+        {
+            return true;
+        }
     }
 }

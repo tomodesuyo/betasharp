@@ -126,6 +126,8 @@ public class AssetManager
     private void defineFullAssets()
     {
         defineAsset("title/splashes.txt", AssetType.Text);
+        defineAsset("title/win.txt", AssetType.Text);
+        defineAsset("title/credits.txt", AssetType.Text);
         defineAsset("title/black.png", AssetType.Binary);
         defineAsset("title/mclogo.png", AssetType.Binary);
         defineAsset("title/mojang.png", AssetType.Binary);
@@ -169,6 +171,9 @@ public class AssetManager
         defineAsset("gui/logo.png", AssetType.Binary);
         defineAsset("gui/particles.png", AssetType.Binary);
         defineAsset("gui/slot.png", AssetType.Binary);
+        defineAsset("gui/alchemy.png", AssetType.Binary);
+        defineAsset("gui/enchant.png", AssetType.Binary);
+        defineAsset("gui/trading.png", AssetType.Binary);
         defineAsset("gui/trap.png", AssetType.Binary);
         defineAsset("gui/unknown_pack.png", AssetType.Binary);
         defineAsset("gui/Pointer.png", AssetType.Binary);
@@ -236,23 +241,69 @@ public class AssetManager
         defineAsset("mob/chicken.png", AssetType.Binary);
         defineAsset("mob/cow.png", AssetType.Binary);
         defineAsset("mob/creeper.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/beam.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/body.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/crystal.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/dragon.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/ender.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/ender_eyes.png", AssetType.Binary);
+        defineAsset("mob/enderdragon/shuffle.png", AssetType.Binary);
         defineAsset("mob/enderman.png", AssetType.Binary);
         defineAsset("mob/enderman_eyes.png", AssetType.Binary);
+        defineAsset("mob/fire.png", AssetType.Binary);
         defineAsset("mob/ghast.png", AssetType.Binary);
         defineAsset("mob/ghast_fire.png", AssetType.Binary);
+        defineAsset("mob/lava.png", AssetType.Binary);
+        foreach (string horseTexture in new[]
+                 {
+                     "donkey.png",
+                     "horse_black.png",
+                     "horse_brown.png",
+                     "horse_chestnut.png",
+                     "horse_creamy.png",
+                     "horse_darkbrown.png",
+                     "horse_gray.png",
+                     "horse_markings_blackdots.png",
+                     "horse_markings_white.png",
+                     "horse_markings_whitedots.png",
+                     "horse_markings_whitefield.png",
+                     "horse_skeleton.png",
+                     "horse_white.png",
+                     "horse_zombie.png",
+                     "mule.png",
+                 })
+        {
+            defineAsset($"mob/horse/{horseTexture}", AssetType.Binary);
+        }
         defineAsset("mob/pig.png", AssetType.Binary);
         defineAsset("mob/pigman.png", AssetType.Binary);
         defineAsset("mob/pigzombie.png", AssetType.Binary);
+        foreach (string rabbitTexture in new[]
+                 {
+                     "black.png",
+                     "brown.png",
+                     "caerbannog.png",
+                     "gold.png",
+                     "salt.png",
+                     "toast.png",
+                     "white.png",
+                     "white_splotched.png",
+                 })
+        {
+            defineAsset($"mob/rabbit/{rabbitTexture}", AssetType.Binary);
+        }
         defineAsset("mob/redcow.png", AssetType.Binary);
         defineAsset("mob/saddle.png", AssetType.Binary);
         defineAsset("mob/sheep.png", AssetType.Binary);
         defineAsset("mob/sheep_fur.png", AssetType.Binary);
         defineAsset("mob/silverfish.png", AssetType.Binary);
         defineAsset("mob/skeleton.png", AssetType.Binary);
+        defineAsset("mob/skeleton_wither.png", AssetType.Binary);
         defineAsset("mob/slime.png", AssetType.Binary);
         defineAsset("mob/spider.png", AssetType.Binary);
         defineAsset("mob/spider_eyes.png", AssetType.Binary);
         defineAsset("mob/squid.png", AssetType.Binary);
+        defineAsset("mob/villager_golem.png", AssetType.Binary);
         defineAsset("mob/villager.png", AssetType.Binary);
         defineAsset("mob/villager/butcher.png", AssetType.Binary);
         defineAsset("mob/villager/farmer.png", AssetType.Binary);
@@ -260,6 +311,17 @@ public class AssetManager
         defineAsset("mob/villager/priest.png", AssetType.Binary);
         defineAsset("mob/villager/smith.png", AssetType.Binary);
         defineAsset("mob/villager/villager.png", AssetType.Binary);
+        defineAsset("mob/wither.png", AssetType.Binary);
+        defineAsset("mob/wither_invul.png", AssetType.Binary);
+        foreach (string witherTexture in new[]
+                 {
+                     "wither.png",
+                     "wither_armor.png",
+                     "wither_invulnerable.png",
+                 })
+        {
+            defineAsset($"mob/wither/{witherTexture}", AssetType.Binary);
+        }
         defineAsset("mob/wolf.png", AssetType.Binary);
         defineAsset("mob/wolf_angry.png", AssetType.Binary);
         defineAsset("mob/wolf_tame.png", AssetType.Binary);

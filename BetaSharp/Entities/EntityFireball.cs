@@ -138,16 +138,7 @@ public class EntityFireball : Entity
 
         if (var3.Type != HitResultType.MISS)
         {
-            if (!world.IsRemote)
-            {
-                if (var3.Entity != null && var3.Entity.damage(owner, 0))
-                {
-                }
-
-                world.CreateExplosion(null, x, y, z, 1.0F, true);
-            }
-
-            markDead();
+            OnImpact(var3);
         }
 
         x += velocityX;
@@ -256,5 +247,21 @@ public class EntityFireball : Entity
     public override float getShadowRadius()
     {
         return 0.0F;
+    }
+
+    protected virtual void OnImpact(HitResult hitResult)
+    {
+        if (!world.IsRemote)
+        {
+            if (hitResult.Entity != null)
+            {
+                Entity attacker = owner is null ? this : owner;
+                hitResult.Entity.damage(attacker, 0);
+            }
+
+            world.CreateExplosion(null, x, y, z, 1.0F, true);
+        }
+
+        markDead();
     }
 }

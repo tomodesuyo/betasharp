@@ -1,8 +1,10 @@
+using BetaSharp;
 using BetaSharp.Blocks;
 using BetaSharp.Creative;
 using BetaSharp.Entities;
 using BetaSharp.Inventorys;
 using BetaSharp.Items;
+using BetaSharp.Potions;
 using BetaSharp.Screens.Slots;
 
 namespace BetaSharp.Screens;
@@ -21,6 +23,7 @@ public class CreativeScreenHandler : ScreenHandler
     private readonly InventoryPlayer _playerInventory;
 
     private string _searchQuery = string.Empty;
+    private static List<ItemStack>? s_cachedPotionVariants;
 
     public CreativeScreenHandler(InventoryPlayer inventoryPlayer)
     {
@@ -123,6 +126,11 @@ public class CreativeScreenHandler : ScreenHandler
             }
 
             _visibleStacks.Add(stack);
+        }
+
+        if (CurrentTab == CreativeInventoryTab.Brewing || CurrentTab == CreativeInventoryTab.Search)
+        {
+            _visibleStacks.Sort(CompareVisibleStacks);
         }
 
         ScrollTo(0.0F);
@@ -291,10 +299,13 @@ public class CreativeScreenHandler : ScreenHandler
             var id when id == Block.Chest.id => true,
             var id when id == Block.Jukebox.id => true,
             var id when id == Block.Snow.id => true,
+            var id when id == Block.Carpet.id => true,
             var id when id == Block.Cactus.id => true,
             var id when id == Block.LilyPad.id => true,
+            var id when id == Block.Cocoa.id => true,
             var id when id == Block.EnchantmentTable.id => true,
             var id when id == Block.EndPortalFrame.id => true,
+            var id when id == Block.Silverfish.id => true,
             _ => stack.itemId == Item.Sign.id
                  || stack.itemId == Item.Painting.id
                  || stack.itemId == Item.Bed.id
@@ -322,6 +333,7 @@ public class CreativeScreenHandler : ScreenHandler
             var id when id == Block.Trapdoor.id => true,
             var id when id == Block.FenceGate.id => true,
             var id when id == Block.RedstoneLamp.id => true,
+            var id when id == Block.RedstoneBlock.id => true,
             _ => stack.itemId == Item.Redstone.id
                  || stack.itemId == Item.Repeater.id
                  || stack.itemId == Item.WoodenDoor.id
@@ -392,7 +404,13 @@ public class CreativeScreenHandler : ScreenHandler
             var id when id == Block.Cauldron.id => true,
             _ => stack.itemId == Item.Potion.id
                  || stack.itemId == Item.GlassBottle.id
+                 || stack.itemId == Item.NetherWart.id
+                 || stack.itemId == Item.SpiderEye.id
                  || stack.itemId == Item.GhastTear.id
+                 || stack.itemId == Item.Redstone.id
+                 || stack.itemId == Item.GlowstoneDust.id
+                 || stack.itemId == Item.Sugar.id
+                 || stack.itemId == Item.Gunpowder.id
                  || stack.itemId == Item.BlazePowder.id
                  || stack.itemId == Item.MagmaCream.id
                  || stack.itemId == Item.FermentedSpiderEye.id
@@ -464,9 +482,13 @@ public class CreativeScreenHandler : ScreenHandler
                 if (item is ItemMonsterPlacer monsterPlacer)
                 {
                     foreach (int entityId in monsterPlacer.GetSupportedEntityIds())
-                    {
-                        _allStacks.Add(new ItemStack(item.id, 1, entityId));
-                    }
+                {
+                    _allStacks.Add(new ItemStack(item.id, 1, entityId));
+                }
+            }
+                else if (item is ItemPotion potionItem)
+                {
+                    AddPotionVariants(potionItem);
                 }
                 else
                 {
@@ -482,6 +504,9 @@ public class CreativeScreenHandler : ScreenHandler
         AddMetadataVariants(Block.Sapling, 4);
         AddMetadataVariants(Block.Leaves, 4);
         AddMetadataVariants(Block.StoneBrick, 4);
+        AddMetadataVariants(Block.Silverfish, 3);
+        AddMetadataVariants(Block.Carpet, 16);
+        AddMetadataVariants(Block.Sponge, 2);
         AddMetadataVariants(Item.Dye, 16, 1);
     }
 
@@ -499,5 +524,62 @@ public class CreativeScreenHandler : ScreenHandler
         {
             _allStacks.Add(new ItemStack(item.id, 1, meta));
         }
+    }
+
+    private void AddPotionVariants(ItemPotion potionItem)
+    {
+        if (s_cachedPotionVariants == null)
+        {
+            Dictionary<string, int> representativePotionData = new(StringComparer.Ordinal);
+            for (int potionDamage = 0; potionDamage <= short.MaxValue; ++potionDamage)
+            {
+                List<PotionEffect>? effects = potionItem.GetEffects(potionDamage);
+                if (effects == null || effects.Count == 0)
+                {
+                    continue;
+                }
+
+                string signature = GetPotionVariantSignature(effects, ItemPotion.IsSplash(potionDamage));
+                representativePotionData.TryAdd(signature, potionDamage);
+            }
+
+            s_cachedPotionVariants = [new ItemStack(Item.Potion, 1, 0)];
+            foreach (int potionDamage in representativePotionData.Values.OrderBy(value => value))
+            {
+                s_cachedPotionVariants.Add(new ItemStack(Item.Potion, 1, potionDamage));
+            }
+        }
+
+        for (int i = 0; i < s_cachedPotionVariants.Count; ++i)
+        {
+            _allStacks.Add(s_cachedPotionVariants[i].copy());
+        }
+    }
+
+    private static string GetPotionVariantSignature(List<PotionEffect> effects, bool splash)
+    {
+        IEnumerable<PotionEffect> orderedEffects = effects
+            .OrderBy(effect => effect.PotionId)
+            .ThenBy(effect => effect.Amplifier)
+            .ThenBy(effect => effect.Duration);
+        return (splash ? "splash|" : "drink|") + string.Join(";", orderedEffects.Select(effect => $"{effect.PotionId}:{effect.Amplifier}:{effect.Duration}"));
+    }
+
+    private static int CompareVisibleStacks(ItemStack a, ItemStack b)
+    {
+        int compare = string.Compare(GetLocalizedStackName(a), GetLocalizedStackName(b), StringComparison.OrdinalIgnoreCase);
+        if (compare != 0)
+        {
+            return compare;
+        }
+
+        compare = a.itemId.CompareTo(b.itemId);
+        return compare != 0 ? compare : a.getDamage().CompareTo(b.getDamage());
+    }
+
+    private static string GetLocalizedStackName(ItemStack stack)
+    {
+        string translated = TranslationStorage.Instance.TranslateNamedKey(stack.getItemName()).Trim();
+        return translated.Length > 0 ? translated : stack.getItemName();
     }
 }

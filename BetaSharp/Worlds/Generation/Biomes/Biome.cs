@@ -176,6 +176,10 @@ public class Biome
         MushroomIsland.CreatureList.Add(new SpawnListEntry(w => new EntityMooshroom(w), 4, 8), 8);
         MushroomIslandShore.CreatureList.Clear();
         MushroomIslandShore.CreatureList.Add(new SpawnListEntry(w => new EntityMooshroom(w), 4, 8), 8);
+        Plains.CreatureList.Add(new SpawnListEntry(w => new EntityHorse(w), 2, 6), 5);
+        Savanna.CreatureList.Add(new SpawnListEntry(w => new EntityHorse(w), 2, 6), 5);
+        Desert.CreatureList.Add(new SpawnListEntry(w => new EntityRabbit(w), 2, 3), 4);
+        Taiga.CreatureList.Add(new SpawnListEntry(w => new EntityRabbit(w), 2, 3), 4);
     }
 
     public virtual Feature GetRandomWorldGenForTrees(JavaRandom rand)

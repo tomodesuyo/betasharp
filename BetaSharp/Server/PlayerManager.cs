@@ -292,7 +292,18 @@ public class PlayerManager
             Vec3i spawnPos = targetWorld.Properties.GetSpawnPos();
             x = spawnPos.X + 0.5D;
             z = spawnPos.Z + 0.5D;
-            player.setPositionAndAnglesKeepPrevAngles(x, spawnPos.Y + 1.0D, z, player.yaw, player.pitch);
+            int spawnY = targetWorld.Reader.GetSpawnPositionValidityY(spawnPos.X, spawnPos.Z);
+            if (spawnY < 0)
+            {
+                spawnY = targetWorld.Reader.GetTopSolidBlockY(spawnPos.X, spawnPos.Z);
+            }
+
+            if (spawnY < 0)
+            {
+                spawnY = spawnPos.Y + 1;
+            }
+
+            player.setPositionAndAnglesKeepPrevAngles(x, spawnY, z, player.yaw, player.pitch);
             if (player.isAlive())
             {
                 currentWorld.Entities.UpdateEntity(player, false);
@@ -306,7 +317,15 @@ public class PlayerManager
             targetWorld.Entities.UpdateEntity(player, false);
             if (targetDim == 1)
             {
-                PrepareEndSpawnPlatform(targetWorld, player);
+                targetWorld.ChunkCache.forceLoad = true;
+                try
+                {
+                    PrepareEndSpawnPlatform(targetWorld, player);
+                }
+                finally
+                {
+                    targetWorld.ChunkCache.forceLoad = false;
+                }
             }
             else if (sourceDim != 1)
             {
@@ -324,6 +343,12 @@ public class PlayerManager
         player.networkHandler.teleport(player.x, player.y, player.z, player.yaw, player.pitch);
         player.setWorld(targetWorld);
         sendWorldInfo(player, targetWorld);
+        if (sourceDim == 1 && player.ShowEndCreditsOnReturn)
+        {
+            player.ShowEndCreditsOnReturn = false;
+            player.networkHandler.sendPacket(GameStateChangeS2CPacket.Get(3));
+        }
+
         sendPlayerStatus(player);
     }
 

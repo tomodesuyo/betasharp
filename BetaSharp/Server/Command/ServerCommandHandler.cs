@@ -64,6 +64,7 @@ internal class ServerCommandHandler
         Register(new KillSelfCommand());
         Register(new HealCommand());
         Register(new ClearCommand());
+        Register(new EffectCommand());
         Register(new TeleportCommand());
         Register(new TeleportDimensionCommand());
         Register(new GiveCommand());
@@ -78,9 +79,12 @@ internal class ServerCommandHandler
         Register(new WeatherCommand());
         Register(new SummonCommand());
         Register(new KillAllCommand());
+        Register(new KillDragonCommand());
         Register(new GameRuleCommand());
         Register(new GameModeCommand());
         Register(new SeedCommand());
+        Register(new LocateCommand());
+        Register(new PlaceStructureCommand());
 
         // Chat commands
         Register(new SayCommand());

@@ -7,6 +7,7 @@ using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Client.Rendering.Core.Textures;
 using BetaSharp.Client.Rendering.Items;
 using BetaSharp.Entities;
+using BetaSharp.Potions;
 using BetaSharp.Profiling;
 using BetaSharp.Util.Hit;
 using BetaSharp.Util.Maths;
@@ -914,6 +915,26 @@ public class GameRenderer
             _fogColorBlue = 0.0F;
         }
 
+        if (var3.hasPotionEffect(Potion.Blindness))
+        {
+            PotionEffect blindness = var3.getActivePotionEffect(Potion.Blindness)!;
+            float darkness = blindness.Duration < 20 ? blindness.Duration / 20.0F : 0.0F;
+            _fogColorRed *= darkness;
+            _fogColorGreen *= darkness;
+            _fogColorBlue *= darkness;
+        }
+
+        if (var3.hasPotionEffect(Potion.NightVision))
+        {
+            float nightVisionBrightness = GetNightVisionBrightness(var3, tickDelta);
+            float brightnessScale = 1.0F / Math.Max(0.0001F, _fogColorRed);
+            brightnessScale = Math.Min(brightnessScale, 1.0F / Math.Max(0.0001F, _fogColorGreen));
+            brightnessScale = Math.Min(brightnessScale, 1.0F / Math.Max(0.0001F, _fogColorBlue));
+            _fogColorRed = _fogColorRed * (1.0F - nightVisionBrightness) + _fogColorRed * brightnessScale * nightVisionBrightness;
+            _fogColorGreen = _fogColorGreen * (1.0F - nightVisionBrightness) + _fogColorGreen * brightnessScale * nightVisionBrightness;
+            _fogColorBlue = _fogColorBlue * (1.0F - nightVisionBrightness) + _fogColorBlue * brightnessScale * nightVisionBrightness;
+        }
+
         var12 = cameraController.LastViewBob + (cameraController.ViewBob - cameraController.LastViewBob) * tickDelta;
         _fogColorRed *= var12;
         _fogColorGreen *= var12;
@@ -936,12 +957,39 @@ public class GameRenderer
             _client.terrainRenderer.chunkRenderer.SetFogMode(1);
             _client.terrainRenderer.chunkRenderer.SetFogDensity(0.1f);
         }
+        else if (var3.hasPotionEffect(Potion.Blindness))
+        {
+            float fogDistance = 5.0F;
+            PotionEffect blindness = var3.getActivePotionEffect(Potion.Blindness)!;
+            if (blindness.Duration < 20)
+            {
+                fogDistance = 5.0F + (_viewDistance - 5.0F) * (1.0F - blindness.Duration / 20.0F);
+            }
+
+            GLManager.GL.Fog(GLEnum.FogMode, (int)GLEnum.Linear);
+            _client.terrainRenderer.chunkRenderer.SetFogMode(0);
+            if (mode < 0)
+            {
+                GLManager.GL.Fog(GLEnum.FogStart, 0.0F);
+                GLManager.GL.Fog(GLEnum.FogEnd, fogDistance * 0.8F);
+                _client.terrainRenderer.chunkRenderer.SetFogStart(0.0f);
+                _client.terrainRenderer.chunkRenderer.SetFogEnd(fogDistance * 0.8f);
+            }
+            else
+            {
+                GLManager.GL.Fog(GLEnum.FogStart, fogDistance * 0.25F);
+                GLManager.GL.Fog(GLEnum.FogEnd, fogDistance);
+                _client.terrainRenderer.chunkRenderer.SetFogStart(fogDistance * 0.25f);
+                _client.terrainRenderer.chunkRenderer.SetFogEnd(fogDistance);
+            }
+        }
         else if (var3.isInFluid(Material.Water))
         {
             GLManager.GL.Fog(GLEnum.FogMode, (int)GLEnum.Exp);
-            GLManager.GL.Fog(GLEnum.FogDensity, 0.1F);
+            float fogDensity = var3.hasPotionEffect(Potion.WaterBreathing) ? 0.03F : 0.1F;
+            GLManager.GL.Fog(GLEnum.FogDensity, fogDensity);
             _client.terrainRenderer.chunkRenderer.SetFogMode(1);
-            _client.terrainRenderer.chunkRenderer.SetFogDensity(0.1f);
+            _client.terrainRenderer.chunkRenderer.SetFogDensity(fogDensity);
         }
         else if (var3.isInFluid(Material.Lava))
         {
@@ -984,5 +1032,13 @@ public class GameRenderer
         _fogColorBuffer[2] = var3;
         _fogColorBuffer[3] = var4;
         return _fogColorBuffer;
+    }
+
+    private static float GetNightVisionBrightness(EntityLiving entity, float tickDelta)
+    {
+        PotionEffect nightVision = entity.getActivePotionEffect(Potion.NightVision)!;
+        return nightVision.Duration > 200
+            ? 1.0F
+            : 0.7F + MathHelper.Sin((nightVision.Duration - tickDelta) * (float)Math.PI * 0.2F) * 0.3F;
     }
 }

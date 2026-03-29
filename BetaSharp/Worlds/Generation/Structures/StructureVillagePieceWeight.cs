@@ -9,6 +9,5 @@ public sealed class StructureVillagePieceWeight(Type pieceType, int weight, int 
 
     public bool CanSpawnMoreVillagePieces() => VillagePiecesLimit == 0 || VillagePiecesSpawned < VillagePiecesLimit;
 
-    public bool CanSpawnMoreVillagePiecesOfType(int componentType) =>
-        CanSpawnMoreVillagePieces() && (VillagePiecesLimit == 0 || componentType + 1 < VillagePiecesLimit);
+    public bool CanSpawnMoreVillagePiecesOfType(int componentType) => CanSpawnMoreVillagePieces();
 }

@@ -199,7 +199,7 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
                 }
                 else
                 {
-                    changeDimensionCooldown += capabilities.IsCreativeMode ? 1.0F : 0.0125F;
+                    changeDimensionCooldown += instantDimensionChange || capabilities.IsCreativeMode ? 1.0F : 0.0125F;
                     if (changeDimensionCooldown >= 1.0F)
                     {
                         changeDimensionCooldown = 1.0F;
@@ -210,6 +210,7 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
                 }
 
                 inTeleportationState = false;
+                instantDimensionChange = false;
             }
         }
         else
@@ -452,6 +453,27 @@ public class ServerPlayerEntity : EntityPlayer, ScreenHandlerListener
         currentScreenHandler = new DispenserScreenHandler(inventory, dispenser);
         currentScreenHandler.SyncId = screenHandlerSyncId;
         currentScreenHandler.AddListener(this);
+    }
+
+    public override void openBrewingStandScreen(BlockEntityBrewingStand brewingStand)
+    {
+        incrementScreenHandlerSyncId();
+        networkHandler.sendPacket(OpenScreenS2CPacket.Get(screenHandlerSyncId, 5, brewingStand.getName(), brewingStand.size()));
+        currentScreenHandler = new BrewingStandScreenHandler(inventory, brewingStand);
+        currentScreenHandler.SyncId = screenHandlerSyncId;
+        currentScreenHandler.AddListener(this);
+    }
+
+    public void openMerchantScreen(IMerchant merchant, string title)
+    {
+        incrementScreenHandlerSyncId();
+        MerchantScreenHandler screenHandler = new(inventory, merchant);
+        screenHandler.SyncId = screenHandlerSyncId;
+        screenHandler.SetOffers(merchant.GetRecipes(this), 0);
+        networkHandler.sendPacket(OpenScreenS2CPacket.Get(screenHandlerSyncId, 7, title, 3));
+        currentScreenHandler = screenHandler;
+        currentScreenHandler.AddListener(this);
+        screenHandler.SendOffersTo(this);
     }
 
     public void onContentsUpdate(ScreenHandler screenHandler) => onContentsUpdate(screenHandler, screenHandler.GetStacks());

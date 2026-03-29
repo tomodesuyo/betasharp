@@ -26,6 +26,15 @@ public static class EntityRegistry
     public static readonly EntityType Enderman = Register(world => new EntityEnderman(world), "Enderman", 58);
     public static readonly EntityType CaveSpider = Register(world => new EntityCaveSpider(world), "CaveSpider", 59);
     public static readonly EntityType Silverfish = Register(world => new EntitySilverfish(world), "Silverfish", 60);
+    public static readonly EntityType Blaze = Register(world => new EntityBlaze(world), "Blaze", 61);
+    public static readonly EntityType Wither = Register(world => new EntityWither(world), "WitherBoss", 64);
+    public static readonly EntityType WitherSkeleton = Register(world => new EntityWitherSkeleton(world), "WitherSkeleton", 66);
+    public static readonly EntityType MagmaCube = Register(world => new EntityMagmaCube(world), "MagmaCube", 67);
+    public static readonly EntityType IronGolem = Register(world => new EntityIronGolem(world), "VillagerGolem", 99);
+    public static readonly EntityType Horse = Register(world => new EntityHorse(world), "EntityHorse", 100);
+    public static readonly EntityType Rabbit = Register(world => new EntityRabbit(world), "Rabbit", 101);
+    public static readonly EntityType EnderDragon = Register(world => new EntityDragon(world), "EnderDragon", 121);
+    public static readonly EntityType EnderCrystal = Register(world => new EntityEnderCrystal(world), "EnderCrystal", 122);
     public static readonly EntityType Villager = Register(world => new EntityVillager(world), "Villager", 120);
     public static readonly EntityType Pig = Register(world => new EntityPig(world), "Pig", 90);
     public static readonly EntityType Sheep = Register(world => new EntitySheep(world), "Sheep", 91);
@@ -42,11 +51,13 @@ public static class EntityRegistry
     public static readonly EntityType Egg = Register(world => new EntityEgg(world), "Egg", 62);
     public static readonly EntityType EnderPearl = Register(world => new EntityEnderPearl(world), "ThrownEnderpearl", 14);
     public static readonly EntityType EyeOfEnderSignal = Register(world => new EntityEnderEye(world), "EyeOfEnderSignal", 15);
+    public static readonly EntityType Potion = Register(world => new EntityPotion(world), "ThrownPotion", 16);
     public static readonly EntityType ExpBottle = Register(world => new EntityExpBottle(world), "ThrownExpBottle", 17);
     public static readonly EntityType Fireball = Register(world => new EntityFireball(world), "Fireball", 63);
-    public static readonly EntityType FishHook = Register(world => new EntityFish(world), "FishHook", 64);
+    public static readonly EntityType SmallFireball = Register(world => new EntitySmallFireball(world), "SmallFireball", 13);
+    public static readonly EntityType FishHook = Register(world => new EntityFish(world), "FishHook", 124);
     public static readonly EntityType LightningBolt = Register(world => new EntityLightningBolt(world), "LightningBolt", 65);
-    public static readonly EntityType Player = Register<ServerPlayerEntity>(_ => throw new NotSupportedException("Players must be created via ServerPlayerEntity constructor"), "Player", 100);
+    public static readonly EntityType Player = Register<ServerPlayerEntity>(_ => throw new NotSupportedException("Players must be created via ServerPlayerEntity constructor"), "Player", 125);
 
     private static EntityType Register<T>(Func<IWorldContext, T> factory, string id, int rawId) where T : Entity
     {

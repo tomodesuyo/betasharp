@@ -22,13 +22,20 @@ public abstract class MapGenStructure
         {
             for (int scanZ = chunkZ - range; scanZ <= chunkZ + range; ++scanZ)
             {
-                Random.SetSeed((long)scanX * seedX ^ (long)scanZ * seedZ ^ world.Seed);
-                RecursiveGenerate(world, scanX, scanZ);
+                EnsureStructureStart(world, scanX, scanZ, seedX, seedZ);
             }
         }
     }
 
     protected void RecursiveGenerate(IWorldContext world, int chunkX, int chunkZ)
+    {
+        Random.SetSeed(world.Seed);
+        long seedX = Random.NextLong();
+        long seedZ = Random.NextLong();
+        EnsureStructureStart(world, chunkX, chunkZ, seedX, seedZ);
+    }
+
+    protected void EnsureStructureStart(IWorldContext world, int chunkX, int chunkZ, long seedX, long seedZ)
     {
         long key = (uint)chunkX | ((long)(uint)chunkZ << 32);
         if (StructureMap.ContainsKey(key))
@@ -36,6 +43,7 @@ public abstract class MapGenStructure
             return;
         }
 
+        Random.SetSeed((long)chunkX * seedX ^ (long)chunkZ * seedZ ^ world.Seed);
         Random.NextInt();
         if (CanSpawnStructureAtCoords(chunkX, chunkZ))
         {
@@ -83,16 +91,13 @@ public abstract class MapGenStructure
         return false;
     }
 
-    public Vec3i? FindNearestStructure(IWorldContext world, int x, int y, int z)
+    public virtual Vec3i? FindNearestStructure(IWorldContext world, int x, int y, int z)
     {
         World = world;
         Random.SetSeed(world.Seed);
         long seedX = Random.NextLong();
         long seedZ = Random.NextLong();
-        long mixedX = (x >> 4) * seedX;
-        long mixedZ = (z >> 4) * seedZ;
-        Random.SetSeed(mixedX ^ mixedZ ^ world.Seed);
-        RecursiveGenerate(world, x >> 4, z >> 4);
+        EnsureStructureStart(world, x >> 4, z >> 4, seedX, seedZ);
 
         List<Vec3i>? coords = GetCoordList();
         if (coords != null)
@@ -100,7 +105,7 @@ public abstract class MapGenStructure
             for (int i = 0; i < coords.Count; ++i)
             {
                 Vec3i pos = coords[i];
-                RecursiveGenerate(world, pos.X >> 4, pos.Z >> 4);
+                EnsureStructureStart(world, pos.X >> 4, pos.Z >> 4, seedX, seedZ);
             }
         }
 

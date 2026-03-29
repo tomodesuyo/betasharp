@@ -4,7 +4,7 @@ namespace BetaSharp.Network.Packets.S2CPlay;
 
 public class GameStateChangeS2CPacket() : Packet(PacketId.GameStateChangeS2C)
 {
-    public static readonly string[] REASONS = ["tile.bed.notValid", null, null];
+    public static readonly string[] REASONS = ["tile.bed.notValid", null, null, null];
     public int reason;
 
     public static GameStateChangeS2CPacket Get(int reason)

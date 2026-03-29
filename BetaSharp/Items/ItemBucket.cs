@@ -11,6 +11,10 @@ namespace BetaSharp.Items;
 
 internal class ItemBucket : Item
 {
+    private static ItemStack PreserveCreativeStack(EntityPlayer player, ItemStack originalStack, Item replacement)
+    {
+        return player.capabilities.IsCreativeMode ? originalStack : new ItemStack(replacement);
+    }
 
     private int isFull;
 
@@ -59,20 +63,25 @@ internal class ItemBucket : Item
                     if (world.Reader.GetMaterial(hitX, hitY, hitZ) == Material.Water && world.Reader.GetBlockMeta(hitX, hitY, hitZ) == 0)
                     {
                         world.Writer.SetBlock(hitX, hitY, hitZ, 0);
-                        return new ItemStack(Item.WaterBucket);
+                        return PreserveCreativeStack(entityPlayer, itemStack, Item.WaterBucket);
                     }
 
                     if (world.Reader.GetMaterial(hitX, hitY, hitZ) == Material.Lava && world.Reader.GetBlockMeta(hitX, hitY, hitZ) == 0)
                     {
                         world.Writer.SetBlock(hitX, hitY, hitZ, 0);
-                        return new ItemStack(Item.LavaBucket);
+                        return PreserveCreativeStack(entityPlayer, itemStack, Item.LavaBucket);
                     }
                 }
                 else
                 {
                     if (isFull < 0)
                     {
-                        return new ItemStack(Item.Bucket);
+                        if (entityPlayer is EntityLiving living)
+                        {
+                            living.clearPotionEffects();
+                        }
+
+                        return PreserveCreativeStack(entityPlayer, itemStack, Item.Bucket);
                     }
 
                     if (hitResult.Side == 0)
@@ -121,13 +130,13 @@ internal class ItemBucket : Item
                             world.Writer.SetBlock(hitX, hitY, hitZ, isFull, 0);
                         }
 
-                        return new ItemStack(Item.Bucket);
+                        return PreserveCreativeStack(entityPlayer, itemStack, Item.Bucket);
                     }
                 }
             }
             else if (isFull == 0 && hitResult.Entity is EntityCow)
             {
-                return new ItemStack(Item.MilkBucket);
+                return PreserveCreativeStack(entityPlayer, itemStack, Item.MilkBucket);
             }
 
             return itemStack;

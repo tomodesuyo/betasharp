@@ -16,6 +16,18 @@ internal sealed class EndDimension : Dimension
         BiomeSource = new FixedBiomeSource(Biome.End, 0.5D, 0.0D);
     }
 
+    protected override void InitBrightnessTable()
+    {
+        // The End is a no-sky dimension, but it should not render as cave-dark.
+        const float offset = 0.1F;
+
+        for (int i = 0; i <= 15; ++i)
+        {
+            float factor = 1.0F - i / 15.0F;
+            LightLevelToLuminance[i] = (1.0F - factor) / (factor * 3.0F + 1.0F) * (1.0F - offset) + offset;
+        }
+    }
+
     public override bool HasWorldSpawn => false;
 
     public override IChunkSource CreateChunkGenerator() => new EndChunkGenerator(World, World.Seed);

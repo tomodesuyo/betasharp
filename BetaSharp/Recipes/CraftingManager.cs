@@ -29,6 +29,8 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Item.Paper, 3), ["###", '#', Item.SugarCane]);
         AddRecipe(new ItemStack(Item.Book, 1), ["#", "#", "#", '#', Item.Paper]);
         AddRecipe(new ItemStack(Block.Fence, 2), ["###", "###", '#', Item.Stick]);
+        AddRecipe(new ItemStack(Block.NetherFence, 6), ["###", "###", '#', Block.NetherBrick]);
+        AddRecipe(new ItemStack(Block.FenceGate, 1), ["#W#", "#W#", '#', Item.Stick, 'W', Block.Planks]);
         AddRecipe(new ItemStack(Block.Jukebox, 1), ["###", "#X#", "###", '#', Block.Planks, 'X', Item.Diamond]);
         AddRecipe(new ItemStack(Block.Noteblock, 1), ["###", "#X#", "###", '#', Block.Planks, 'X', Item.Redstone]);
         AddRecipe(new ItemStack(Block.Bookshelf, 1), ["###", "XXX", "###", '#', Block.Planks, 'X', Item.Book]);
@@ -38,11 +40,13 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.Glowstone, 1), ["##", "##", '#', Item.GlowstoneDust]);
         AddRecipe(new ItemStack(Block.Wool, 1), ["##", "##", '#', Item.String]);
         AddRecipe(new ItemStack(Block.TNT, 1), ["X#X", "#X#", "X#X", 'X', Item.Gunpowder, '#', Block.Sand]);
-        AddRecipe(new ItemStack(Block.Slab, 3, 3), ["###", '#', Block.Cobblestone]);
-        AddRecipe(new ItemStack(Block.Slab, 3, 0), ["###", '#', Block.Stone]);
-        AddRecipe(new ItemStack(Block.Slab, 3, 1), ["###", '#', Block.Sandstone]);
-        AddRecipe(new ItemStack(Block.Slab, 3, 2), ["###", '#', Block.Planks]);
-        AddRecipe(new ItemStack(Block.Ladder, 2), ["# #", "###", "# #", '#', Item.Stick]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 3), ["###", '#', Block.Cobblestone]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 0), ["###", '#', Block.Stone]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 1), ["###", '#', Block.Sandstone]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 2), ["###", '#', Block.Planks]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 4), ["###", '#', Block.Bricks]);
+        AddRecipe(new ItemStack(Block.Slab, 6, 5), ["###", '#', Block.StoneBrick]);
+        AddRecipe(new ItemStack(Block.Ladder, 3), ["# #", "###", "# #", '#', Item.Stick]);
         AddRecipe(new ItemStack(Item.WoodenDoor, 1), ["##", "##", "##", '#', Block.Planks]);
         AddRecipe(new ItemStack(Block.Trapdoor, 2), ["###", "###", '#', Block.Planks]);
         AddRecipe(new ItemStack(Item.IronDoor, 1), ["##", "##", "##", '#', Item.IronIngot]);
@@ -57,10 +61,13 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.Torch, 4), ["X", "#", 'X', Item.Coal, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.Torch, 4), ["X", "#", 'X', new ItemStack(Item.Coal, 1, 1), '#', Item.Stick]);
         AddRecipe(new ItemStack(Item.Bowl, 4), ["# #", " # ", '#', Block.Planks]);
+        AddRecipe(new ItemStack(Item.GlassBottle, 3), ["# #", " # ", '#', Block.Glass]);
         AddRecipe(new ItemStack(Block.Rail, 16), ["X X", "X#X", "X X", 'X', Item.IronIngot, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.PoweredRail, 6), ["X X", "X#X", "XRX", 'X', Item.GoldIngot, 'R', Item.Redstone, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.DetectorRail, 6), ["X X", "X#X", "XRX", 'X', Item.IronIngot, 'R', Item.Redstone, '#', Block.StonePressurePlate]);
         AddRecipe(new ItemStack(Item.Minecart, 1), ["# #", "###", '#', Item.IronIngot]);
+        AddRecipe(new ItemStack(Item.Cauldron, 1), ["# #", "# #", "###", '#', Item.IronIngot]);
+        AddRecipe(new ItemStack(Item.BrewingStand, 1), [" B ", "###", '#', Block.Cobblestone, 'B', Item.BlazeRod]);
         AddRecipe(new ItemStack(Block.JackLantern, 1), ["A", "B", 'A', Block.Pumpkin, 'B', Block.Torch]);
         AddRecipe(new ItemStack(Item.ChestMinecart, 1), ["A", "B", 'A', Block.Chest, 'B', Item.Minecart]);
         AddRecipe(new ItemStack(Item.FurnaceMinecart, 1), ["A", "B", 'A', Block.Furnace, 'B', Item.Minecart]);
@@ -71,8 +78,11 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.WoodenStairs, 4), ["#  ", "## ", "###", '#', Block.Planks]);
         AddRecipe(new ItemStack(Item.FishingRod, 1), ["  #", " #X", "# X", '#', Item.Stick, 'X', Item.String]);
         AddRecipe(new ItemStack(Block.CobblestoneStairs, 4), ["#  ", "## ", "###", '#', Block.Cobblestone]);
+        AddRecipe(new ItemStack(Block.BrickStairs, 4), ["#  ", "## ", "###", '#', Block.Bricks]);
+        AddRecipe(new ItemStack(Block.StoneBrickStairs, 4), ["#  ", "## ", "###", '#', Block.StoneBrick]);
+        AddRecipe(new ItemStack(Block.NetherBrickStairs, 4), ["#  ", "## ", "###", '#', Block.NetherBrick]);
         AddRecipe(new ItemStack(Item.Painting, 1), ["###", "#X#", "###", '#', Item.Stick, 'X', Block.Wool]);
-        AddRecipe(new ItemStack(Item.GoldenApple, 1), ["###", "#X#", "###", '#', Block.GoldBlock, 'X', Item.Apple]);
+        AddRecipe(new ItemStack(Item.GoldenApple, 1), ["###", "#X#", "###", '#', Item.GoldNugget, 'X', Item.Apple]);
         AddRecipe(new ItemStack(Block.Lever, 1), ["X", "#", '#', Block.Cobblestone, 'X', Item.Stick]);
         AddRecipe(new ItemStack(Block.LitRedstoneTorch, 1), ["X", "#", '#', Item.Stick, 'X', Item.Redstone]);
         AddRecipe(new ItemStack(Item.Repeater, 1), ["#X#", "III", '#', Block.LitRedstoneTorch, 'X', Item.Redstone, 'I', Block.Stone]);
@@ -86,6 +96,10 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.Piston, 1), ["TTT", "#X#", "#R#", '#', Block.Cobblestone, 'X', Item.IronIngot, 'R', Item.Redstone, 'T', Block.Planks]);
         AddRecipe(new ItemStack(Block.StickyPiston, 1), ["S", "P", 'S', Item.Slimeball, 'P', Block.Piston]);
         AddRecipe(new ItemStack(Item.Bed, 1), ["###", "XXX", '#', Block.Wool, 'X', Block.Planks]);
+        AddRecipe(new ItemStack(Block.EnchantmentTable, 1), [" B ", "D#D", "###", '#', Block.Obsidian, 'B', Item.Book, 'D', Item.Diamond]);
+        AddShapelessRecipe(new ItemStack(Item.EyeOfEnder, 1), Item.EnderPearl, Item.BlazePowder);
+        AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, Item.Coal);
+        AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, new ItemStack(Item.Coal, 1, 1));
         Recipes.Sort(new RecipeSorter());
         _logger.LogInformation($"{Recipes.Count} recipes");
     }
@@ -167,8 +181,59 @@ internal class CraftingManager
 
     public ItemStack? FindMatchingRecipe(InventoryCrafting craftingInventory)
     {
-        return Recipes
-            .FirstOrDefault(r => r.Matches(craftingInventory))
-            ?.GetCraftingResult(craftingInventory);
+        int stackCount = 0;
+        ItemStack? first = null;
+        ItemStack? second = null;
+
+        for (int i = 0; i < craftingInventory.size(); ++i)
+        {
+            ItemStack? stack = craftingInventory.getStack(i);
+            if (stack == null)
+            {
+                continue;
+            }
+
+            if (stackCount == 0)
+            {
+                first = stack;
+            }
+            else if (stackCount == 1)
+            {
+                second = stack;
+            }
+
+            ++stackCount;
+        }
+
+        if (stackCount == 2 &&
+            first != null &&
+            second != null &&
+            first.itemId == second.itemId &&
+            first.count == 1 &&
+            second.count == 1 &&
+            first.isDamageable())
+        {
+            int remainingFirst = first.getMaxDamage() - first.getDamage();
+            int remainingSecond = second.getMaxDamage() - second.getDamage();
+            int repaired = remainingFirst + remainingSecond + first.getMaxDamage() * 10 / 100;
+            int damage = first.getMaxDamage() - repaired;
+            if (damage < 0)
+            {
+                damage = 0;
+            }
+
+            return new ItemStack(first.itemId, 1, damage);
+        }
+
+        for (int i = 0; i < Recipes.Count; ++i)
+        {
+            IRecipe recipe = Recipes[i];
+            if (recipe.Matches(craftingInventory))
+            {
+                return recipe.GetCraftingResult(craftingInventory);
+            }
+        }
+
+        return null;
     }
 }

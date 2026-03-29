@@ -4,6 +4,7 @@ using BetaSharp.Blocks.Materials;
 using BetaSharp.Inventorys;
 using BetaSharp.Items;
 using BetaSharp.NBT;
+using BetaSharp.Potions;
 using BetaSharp.Screens;
 using BetaSharp.Stats;
 using BetaSharp.Util.Maths;
@@ -44,8 +45,10 @@ public abstract class EntityPlayer : EntityLiving
     public int portalCooldown = 20;
     protected bool inTeleportationState;
     public int queuedDimensionId = int.MinValue;
+    public bool ShowEndCreditsOnReturn;
     public float changeDimensionCooldown;
     public float lastScreenDistortion;
+    protected bool instantDimensionChange;
     protected int flyToggleTimer;
     private int damageSpill;
     public EntityFish fishHook = null;
@@ -418,6 +421,16 @@ public abstract class EntityPlayer : EntityLiving
     public float getBlockBreakingSpeed(Block block)
     {
         float var2 = inventory.getStrVsBlock(block);
+        if (hasPotionEffect(Potion.DigSpeed))
+        {
+            var2 *= 1.0F + (getActivePotionEffect(Potion.DigSpeed)!.Amplifier + 1) * 0.2F;
+        }
+
+        if (hasPotionEffect(Potion.DigSlowdown))
+        {
+            var2 *= 1.0F - (getActivePotionEffect(Potion.DigSlowdown)!.Amplifier + 1) * 0.2F;
+        }
+
         if (isInFluid(Material.Water))
         {
             var2 /= 5.0F;
@@ -602,6 +615,14 @@ public abstract class EntityPlayer : EntityLiving
     {
     }
 
+    public virtual void openBrewingStandScreen(BlockEntityBrewingStand brewingStand)
+    {
+    }
+
+    public virtual void openMerchantScreen(string title)
+    {
+    }
+
     public virtual void openEditSignScreen(BlockEntitySign sign)
     {
     }
@@ -677,6 +698,12 @@ public abstract class EntityPlayer : EntityLiving
             return true;
         }
 
+        if (worldContext.Entities.GetBlockEntity<BlockEntityBrewingStand>(x, y, z) is BlockEntityBrewingStand brewingStand)
+        {
+            openBrewingStandScreen(brewingStand);
+            return true;
+        }
+
         return false;
     }
 
@@ -723,6 +750,16 @@ public abstract class EntityPlayer : EntityLiving
     {
         if (!GameMode.CanInflictDamage) return;
         int var2 = inventory.getDamageVsEntity(target);
+        if (hasPotionEffect(Potion.DamageBoost))
+        {
+            var2 += 3 << getActivePotionEffect(Potion.DamageBoost)!.Amplifier;
+        }
+
+        if (hasPotionEffect(Potion.Weakness))
+        {
+            var2 -= 2 << getActivePotionEffect(Potion.Weakness)!.Amplifier;
+        }
+
         if (var2 > 0)
         {
             if (velocityY < 0.0D)
@@ -1057,7 +1094,7 @@ public abstract class EntityPlayer : EntityLiving
             return getAirMovementSpeed();
         }
 
-        return isSprinting() ? 0.13F : base.getGroundMovementSpeed();
+        return (isSprinting() ? 0.13F : 0.1F) * GetSpeedModifier();
     }
 
     protected override bool ignoresFluidMovementSlowdown()
@@ -1183,9 +1220,10 @@ public abstract class EntityPlayer : EntityLiving
         return var2;
     }
 
-    public void QueueDimensionChange(int dimensionId)
+    public void QueueDimensionChange(int dimensionId, bool instant = false)
     {
         queuedDimensionId = dimensionId;
+        instantDimensionChange = instant;
         tickPortalCooldown();
     }
 

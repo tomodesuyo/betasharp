@@ -211,6 +211,8 @@ public abstract class Packet
             New(PacketId.ScreenHandlerPropertyUpdateS2C, true, false, false, () => new ScreenHandlerPropertyUpdateS2CPacket()),
             New(PacketId.ScreenHandlerAcknowledgement, true, true, false, () => new ScreenHandlerAcknowledgementPacket()),
             New(PacketId.CreativeInventoryActionC2S, false, true, false, () => new CreativeInventoryActionC2SPacket()),
+            New(PacketId.MerchantOffersS2C, true, false, false, () => new MerchantOffersS2CPacket()),
+            New(PacketId.SelectMerchantTradeC2S, false, true, false, () => new SelectMerchantTradeC2SPacket()),
             New(PacketId.UpdateSign, true, true, true, () => new UpdateSignPacket()),
             New(PacketId.MapUpdateS2C, true, false, true, () => new MapUpdateS2CPacket()),
             New(PacketId.PlayerConnectionUpdateS2C, true, false, false, () => new PlayerConnectionUpdateS2CPacket()),

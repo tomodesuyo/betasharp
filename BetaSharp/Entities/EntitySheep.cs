@@ -33,6 +33,12 @@ public class EntitySheep : EntityAnimal
             dropItem(new ItemStack(Block.Wool.id, 1, getFleeceColor()), 0.0F);
         }
 
+        int muttonCount = random.NextInt(2) + 1;
+        for (int i = 0; i < muttonCount; ++i)
+        {
+            dropItem(fireTicks > 0 ? Item.CookedMutton.id : Item.RawMutton.id, 1);
+        }
+
     }
 
     protected override int getDropItemId()

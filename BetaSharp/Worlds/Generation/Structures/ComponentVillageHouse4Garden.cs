@@ -20,7 +20,7 @@ public sealed class ComponentVillageHouse4Garden : ComponentVillage
     public static ComponentVillageHouse4Garden? FindValidPlacement(List<StructureComponent> components, JavaRandom random, int x, int y, int z, int facing, int componentType)
     {
         StructureBoundingBox bounds = StructureBoundingBox.Create(x, y, z, 0, 0, 0, 5, 6, 5, facing);
-        return StructureComponent.FindIntersecting(components, bounds) == null
+        return CanVillageGoDeeper(bounds) && StructureComponent.FindIntersecting(components, bounds) == null
             ? new ComponentVillageHouse4Garden(componentType, random, bounds, facing)
             : null;
     }

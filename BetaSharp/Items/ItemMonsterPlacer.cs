@@ -12,13 +12,18 @@ internal sealed class ItemMonsterPlacer : Item
         [51] = new("Skeleton", 0xC1C1C1, 0x494949),
         [52] = new("Spider", 0x342D27, 0xA80E0E),
         [53] = new("Giant", 0x799C65, 0x799C65),
-        [54] = new("Zombie", 0x00AF00, 0x799C65),
+        [54] = new("Zombie", 0x00AFAF, 0x799C65),
         [55] = new("Slime", 0x51A03E, 0x7EBF6E),
         [56] = new("Ghast", 0xF9F9F9, 0xBCBCBC),
         [57] = new("PigZombie", 0xEA9393, 0x4C7129),
         [58] = new("Enderman", 0x161616, 0x000000),
         [59] = new("CaveSpider", 0x0C424E, 0xA80E0E),
         [60] = new("Silverfish", 0x6E6E6E, 0x303030),
+        [61] = new("Blaze", 0xF6B201, 0xFFF87E),
+        [64] = new("WitherBoss", 0x1F1F1F, 0xA0A0A0),
+        [66] = new("WitherSkeleton", 0x141414, 0x6F6F6F),
+        [67] = new("MagmaCube", 0x340000, 0xFCB201),
+        [99] = new("VillagerGolem", 0xD8D8D8, 0x7A7A7A),
         [90] = new("Pig", 0xF0A5A2, 0xDB635F),
         [91] = new("Sheep", 0xE7E7E7, 0xFFB5B5),
         [92] = new("Cow", 0x443626, 0xA1A1A1),
@@ -26,7 +31,10 @@ internal sealed class ItemMonsterPlacer : Item
         [94] = new("Squid", 0x223B4D, 0x708899),
         [95] = new("Wolf", 0xD7D3D3, 0xCEAF96),
         [96] = new("MushroomCow", 0xA00F10, 0xB7B7B7),
-        [120] = new("Villager", 0x563C33, 0xBC9862)
+        [100] = new("Horse", 0xC09E7D, 0xEEE500),
+        [101] = new("Rabbit", 0x995F40, 0x734831),
+        [120] = new("Villager", 0x563C33, 0xBD8B72),
+        [121] = new("EnderDragon", 0x1A1A1A, 0xB85AE0)
     };
 
     public ItemMonsterPlacer(int id) : base(id)
@@ -59,11 +67,35 @@ internal sealed class ItemMonsterPlacer : Item
 
     public override string getItemNameIS(ItemStack itemStack)
     {
-        return base.getItemNameIS(itemStack);
+        return _eggs.ContainsKey(itemStack.getDamage())
+            ? $"item.monsterPlacer.{itemStack.getDamage()}"
+            : base.getItemNameIS(itemStack);
     }
 
     public override bool useOnBlock(ItemStack itemStack, EntityPlayer entityPlayer, IWorldContext world, int x, int y, int z, int side)
     {
+        if (world.Reader.GetBlockId(x, y, z) == BetaSharp.Blocks.Block.Spawner.id &&
+            world.Entities.GetBlockEntity<BetaSharp.Blocks.Entities.BlockEntityMobSpawner>(x, y, z) is { } spawner)
+        {
+            if (!_eggs.TryGetValue(itemStack.getDamage(), out EggInfo? eggInfo))
+            {
+                return false;
+            }
+
+            if (!world.IsRemote)
+            {
+                spawner.SetSpawnedEntityId(eggInfo.EntityName);
+                spawner.markDirty();
+
+                if (!entityPlayer.capabilities.IsCreativeMode)
+                {
+                    --itemStack.count;
+                }
+            }
+
+            return true;
+        }
+
         if (!TryGetPlacementPosition(world, x, y, z, side, out double spawnX, out double spawnY, out double spawnZ))
         {
             return false;

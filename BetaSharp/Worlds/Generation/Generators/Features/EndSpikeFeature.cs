@@ -1,4 +1,5 @@
 using BetaSharp.Blocks;
+using BetaSharp.Entities;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
 
@@ -46,7 +47,11 @@ internal sealed class EndSpikeFeature : Feature
             }
         }
 
-        level.Writer.SetBlock(x, Math.Min(127, y + height), z, Block.Bedrock.id, 0, false);
+        int topY = Math.Min(127, y + height);
+        EntityEnderCrystal crystal = new(level);
+        crystal.setPositionAndAngles(x + 0.5D, topY, z + 0.5D, rand.NextFloat() * 360.0F, 0.0F);
+        level.SpawnEntity(crystal);
+        level.Writer.SetBlockWithoutNotifyingNeighbors(x, topY, z, Block.Bedrock.id, 0, false);
         return true;
     }
 }

@@ -1,42 +1,102 @@
 using BetaSharp.Blocks.Materials;
+using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp.Blocks;
 
-internal class BlockSponge : Block
+internal sealed class BlockSponge : Block
 {
     public BlockSponge(int id) : base(id, Material.Sponge) => textureId = 48;
 
+    public override int getTexture(int side, int meta)
+    {
+        return textureId;
+    }
+
+    protected override int getDroppedItemMeta(int blockMeta) => blockMeta & 1;
+
     public override void onPlaced(OnPlacedEvent @event)
     {
-        sbyte radius = 2;
+        TryAbsorb(@event.World, @event.X, @event.Y, @event.Z);
+    }
 
-        for (int checkX = @event.X - radius; checkX <= @event.X + radius; ++checkX)
+    public override void neighborUpdate(OnTickEvent @event)
+    {
+        TryAbsorb(@event.World, @event.X, @event.Y, @event.Z);
+    }
+
+    private void TryAbsorb(IWorldContext world, int x, int y, int z)
+    {
+        if (world.IsRemote || world.Reader.GetBlockMeta(x, y, z) != 0)
         {
-            for (int checkY = @event.Y - radius; checkY <= @event.Y + radius; ++checkY)
-            {
-                for (int checkZ = @event.Z - radius; checkZ <= @event.Z + radius; ++checkZ)
-                {
-                    if (@event.World.Reader.GetMaterial(checkX, checkY, checkZ) == Material.Water)
-                    {
-                    }
-                }
-            }
+            return;
+        }
+
+        if (Absorb(world, x, y, z))
+        {
+            world.Writer.SetBlockMeta(x, y, z, 1);
         }
     }
 
-    public override void onBreak(OnBreakEvent @event)
+    private static bool Absorb(IWorldContext world, int originX, int originY, int originZ)
     {
-        sbyte radius = 2;
+        Queue<(int X, int Y, int Z, int Depth)> queue = new();
+        queue.Enqueue((originX, originY, originZ, 0));
 
-        for (int checkX = @event.X - radius; checkX <= @event.X + radius; ++checkX)
+        int absorbedCount = 0;
+        while (queue.Count > 0)
         {
-            for (int checkY = @event.Y - radius; checkY <= @event.Y + radius; ++checkY)
+            var (x, y, z, depth) = queue.Dequeue();
+            for (int side = 0; side < 6; ++side)
             {
-                for (int checkZ = @event.Z - radius; checkZ <= @event.Z + radius; ++checkZ)
+                int neighborX = x;
+                int neighborY = y;
+                int neighborZ = z;
+
+                switch (side)
                 {
-                    @event.World.Broadcaster.NotifyNeighbors(checkX, checkY, checkZ, @event.World.Reader.GetBlockId(checkX, checkY, checkZ));
+                    case 0:
+                        --neighborY;
+                        break;
+                    case 1:
+                        ++neighborY;
+                        break;
+                    case 2:
+                        --neighborZ;
+                        break;
+                    case 3:
+                        ++neighborZ;
+                        break;
+                    case 4:
+                        --neighborX;
+                        break;
+                    default:
+                        ++neighborX;
+                        break;
+                }
+
+                if (world.Reader.GetMaterial(neighborX, neighborY, neighborZ) != Material.Water)
+                {
+                    continue;
+                }
+
+                if (!world.Writer.SetBlock(neighborX, neighborY, neighborZ, 0))
+                {
+                    continue;
+                }
+
+                ++absorbedCount;
+                if (absorbedCount >= 64)
+                {
+                    return true;
+                }
+
+                if (depth < 6)
+                {
+                    queue.Enqueue((neighborX, neighborY, neighborZ, depth + 1));
                 }
             }
         }
+
+        return absorbedCount > 0;
     }
 }

@@ -58,6 +58,10 @@ public class EntityTracker
         {
             startTracking(entity, 64, 10, true);
         }
+        else if (entity is EntityPotion)
+        {
+            startTracking(entity, 64, 2, true);
+        }
         else if (entity is EntityEnderPearl)
         {
             startTracking(entity, 64, 10, true);

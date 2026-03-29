@@ -221,7 +221,7 @@ public abstract class Entity
         }
         else if (fireTicks > 0)
         {
-            if (isImmuneToFire)
+            if (HasFireImmunity())
             {
                 fireTicks -= 4;
                 if (fireTicks < 0)
@@ -261,7 +261,7 @@ public abstract class Entity
 
     protected void setOnFire()
     {
-        if (!isImmuneToFire)
+        if (!HasFireImmunity())
         {
             damage((Entity)null, 4);
             fireTicks = 600;
@@ -524,6 +524,25 @@ public abstract class Entity
                 velocityZ = 0.0D;
             }
 
+            int landingBlockX = 0;
+            int landingBlockY = 0;
+            int landingBlockZ = 0;
+            int landingBlockId = 0;
+            if (onGround)
+            {
+                GetLandingBlockPos(out landingBlockX, out landingBlockY, out landingBlockZ);
+                landingBlockId = world.Reader.GetBlockId(landingBlockX, landingBlockY, landingBlockZ);
+
+                if (var13 < 0.0D && landingBlockId == Block.SlimeBlock.id && !isSneaking())
+                {
+                    velocityY = -var13;
+                    if (this is not EntityLiving)
+                    {
+                        velocityY *= 0.8D;
+                    }
+                }
+            }
+
             var37 = this.x - var7;
             var23 = this.z - var9;
             int var26;
@@ -535,14 +554,16 @@ public abstract class Entity
 
                 if (onGround)
                 {
-                    var38 = MathHelper.Floor(this.x);
-                    var26 = MathHelper.Floor(this.y - (double)0.2F - (double)standingEyeHeight);
-                    var39 = MathHelper.Floor(this.z);
-                    var28 = world.Reader.GetBlockId(var38, var26, var39);
-                    if (world.Reader.GetBlockId(var38, var26 - 1, var39) == Block.Fence.id)
+                    if (landingBlockId == 0)
                     {
-                        var28 = world.Reader.GetBlockId(var38, var26 - 1, var39);
+                        GetLandingBlockPos(out landingBlockX, out landingBlockY, out landingBlockZ);
+                        landingBlockId = world.Reader.GetBlockId(landingBlockX, landingBlockY, landingBlockZ);
                     }
+
+                    var38 = landingBlockX;
+                    var26 = landingBlockY;
+                    var39 = landingBlockZ;
+                    var28 = landingBlockId;
 
                     if (horizontalSpeed > (float)nextStepSoundDistance && var28 > 0)
                     {
@@ -643,11 +664,16 @@ public abstract class Entity
 
     protected virtual void damage(int var1)
     {
-        if (!isImmuneToFire)
+        if (!HasFireImmunity())
         {
             damage((Entity)null, var1);
         }
 
+    }
+
+    protected virtual bool HasFireImmunity()
+    {
+        return isImmuneToFire;
     }
 
     protected virtual void onLanding(float fallDistance)
@@ -657,6 +683,17 @@ public abstract class Entity
             passenger.onLanding(fallDistance);
         }
 
+    }
+
+    protected void GetLandingBlockPos(out int x, out int y, out int z)
+    {
+        x = MathHelper.Floor(this.x);
+        y = MathHelper.Floor(this.y - (double)0.2F - (double)standingEyeHeight);
+        z = MathHelper.Floor(this.z);
+        if (world.Reader.GetBlockId(x, y - 1, z) == Block.Fence.id)
+        {
+            --y;
+        }
     }
 
     public bool isWet()

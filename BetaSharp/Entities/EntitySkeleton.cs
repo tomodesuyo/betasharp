@@ -105,4 +105,9 @@ public class EntitySkeleton : EntityMonster
     {
         return defaultHeldItem;
     }
+
+    public override bool isUndead()
+    {
+        return true;
+    }
 }

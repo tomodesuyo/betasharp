@@ -1,5 +1,6 @@
 using BetaSharp.Worlds.Biomes.Source;
 using BetaSharp.Util.Maths;
+using BetaSharp.Worlds.Generation.Biomes;
 
 namespace BetaSharp.Worlds.Generation.Structures;
 
@@ -9,6 +10,8 @@ public sealed class ComponentVillageStartPiece : ComponentVillageWell
     public readonly List<StructureComponent> PendingRoads = [];
     public readonly List<StructureVillagePieceWeight> StructureVillageWeightedPieceList;
     public readonly int TerrainType;
+    public readonly bool InDesert;
+    public readonly Biome StartBiome;
     public StructureVillagePieceWeight? CurrentPieceWeight;
     private readonly BiomeSource _biomeSource;
 
@@ -18,6 +21,9 @@ public sealed class ComponentVillageStartPiece : ComponentVillageWell
         _biomeSource = biomeSource;
         StructureVillageWeightedPieceList = weightedPieces;
         TerrainType = terrainType;
+        StartBiome = biomeSource.GetBiome(x, z);
+        InDesert = StartBiome == Biome.Desert || StartBiome == Biome.DesertHills;
+        SetStartPiece(this);
     }
 
     public BiomeSource GetBiomeSource() => _biomeSource;

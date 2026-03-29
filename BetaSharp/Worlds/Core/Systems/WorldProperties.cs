@@ -24,6 +24,7 @@ public class WorldProperties
         IsRaining = nbt.GetBoolean("raining");
         ThunderTime = nbt.GetInteger("thunderTime");
         IsThundering = nbt.GetBoolean("thundering");
+        HasSpawnedEnderDragon = nbt.GetBoolean("HasSpawnedEnderDragon");
 
         if (nbt.HasKey("generatorName"))
         {
@@ -117,6 +118,7 @@ public class WorldProperties
         IsThundering = WorldProp.IsThundering;
         GeneratorOptions = WorldProp.GeneratorOptions;
         GameType = WorldProp.GameType;
+        HasSpawnedEnderDragon = WorldProp.HasSpawnedEnderDragon;
     }
 
     public virtual long RandomSeed { get; }
@@ -138,6 +140,7 @@ public class WorldProperties
     public virtual int ThunderTime { get; set; }
     public virtual string GeneratorOptions { get; set; } = "";
     public virtual int GameType { get; set; }
+    public virtual bool HasSpawnedEnderDragon { get; set; }
     public bool IsCreativeMode => GameMode.IsCreative(GameType);
     public bool IsSpectatorMode => GameMode.IsSpectator(GameType);
 
@@ -180,6 +183,7 @@ public class WorldProperties
         worldNbt.SetBoolean("raining", IsRaining);
         worldNbt.SetInteger("thunderTime", ThunderTime);
         worldNbt.SetBoolean("thundering", IsThundering);
+        worldNbt.SetBoolean("HasSpawnedEnderDragon", HasSpawnedEnderDragon);
 
         if (TerrainType != null)
         {

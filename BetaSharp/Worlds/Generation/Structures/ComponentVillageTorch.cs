@@ -39,10 +39,10 @@ public sealed class ComponentVillageTorch : ComponentVillage
         PlaceBlockAtCurrentPosition(world, Block.Fence.id, 0, 1, 1, 0, bounds);
         PlaceBlockAtCurrentPosition(world, Block.Fence.id, 0, 1, 2, 0, bounds);
         PlaceBlockAtCurrentPosition(world, Block.Wool.id, 15, 1, 3, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 5, 0, 3, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 5, 1, 3, 1, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 5, 2, 3, 0, bounds);
-        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 5, 1, 3, -1, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 0, 0, 3, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 0, 1, 3, 1, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 0, 2, 3, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.Torch.id, 0, 1, 3, -1, bounds);
         return true;
     }
 }

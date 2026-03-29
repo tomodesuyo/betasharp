@@ -1,6 +1,7 @@
 using BetaSharp.Util.Maths;
 using BetaSharp.Blocks;
 using BetaSharp.Entities;
+using BetaSharp.Items;
 using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp.Worlds.Generation.Structures;
@@ -8,6 +9,7 @@ namespace BetaSharp.Worlds.Generation.Structures;
 public abstract class ComponentVillage(int componentType) : StructureComponent(componentType)
 {
     private int _villagersSpawned;
+    protected ComponentVillageStartPiece? StartPiece { get; private set; }
 
     protected StructureComponent? GetNextComponentNN(ComponentVillageStartPiece startPiece, List<StructureComponent> components, JavaRandom random, int y, int z)
     {
@@ -74,6 +76,47 @@ public abstract class ComponentVillage(int componentType) : StructureComponent(c
 
     protected virtual int GetVillagerType(int index) => 0;
 
+    internal void SetStartPiece(ComponentVillageStartPiece startPiece)
+    {
+        StartPiece = startPiece;
+    }
+
+    protected override int GetStructureBlockId(int blockId, int meta)
+    {
+        if (StartPiece?.InDesert != true)
+        {
+            return blockId;
+        }
+
+        return blockId switch
+        {
+            var _ when blockId == Block.Log.id => Block.Sandstone.id,
+            var _ when blockId == Block.Cobblestone.id => Block.Sandstone.id,
+            var _ when blockId == Block.Planks.id => Block.Sandstone.id,
+            var _ when blockId == Block.WoodenStairs.id => Block.SandstoneStairs.id,
+            var _ when blockId == Block.CobblestoneStairs.id => Block.SandstoneStairs.id,
+            var _ when blockId == Block.Gravel.id => Block.Sandstone.id,
+            _ => blockId,
+        };
+    }
+
+    protected override int GetStructureBlockMeta(int blockId, int meta)
+    {
+        if (StartPiece?.InDesert != true)
+        {
+            return meta;
+        }
+
+        return blockId switch
+        {
+            var _ when blockId == Block.Log.id => 0,
+            var _ when blockId == Block.Cobblestone.id => 0,
+            var _ when blockId == Block.Planks.id => 2,
+            var _ when blockId == Block.Gravel.id => 0,
+            _ => meta,
+        };
+    }
+
     protected void PlaceDoorAtCurrentPosition(IWorldContext world, StructureBoundingBox bounds, JavaRandom random, int x, int y, int z, int meta)
     {
         int worldX = GetXWithOffset(x, z);
@@ -84,8 +127,6 @@ public abstract class ComponentVillage(int componentType) : StructureComponent(c
             return;
         }
 
-        int doorMeta = GetMetadataWithOffset(Block.Door.id, meta);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY, worldZ, Block.Door.id, doorMeta, false);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY + 1, worldZ, Block.Door.id, 8, false);
+        ItemDoor.PlaceDoorBlock(world, worldX, worldY, worldZ, GetMetadataWithOffset(Block.Door.id, meta), Block.Door);
     }
 }

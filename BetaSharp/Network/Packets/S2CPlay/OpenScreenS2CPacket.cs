@@ -55,6 +55,8 @@ public class OpenScreenS2CPacket() : Packet(PacketId.OpenScreenS2C)
         /// Also known as Dispenser
         /// </summary>
         Trap = 4,
-        Minecart = 5
+        BrewingStand = 5,
+        Minecart = 6,
+        Merchant = 7
     }
 }

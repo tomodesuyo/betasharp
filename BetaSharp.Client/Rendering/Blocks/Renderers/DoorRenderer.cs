@@ -48,7 +48,7 @@ public class DoorRenderer : IBlockRenderer
 
         ctx.Tess.setColorOpaque_F(lightZ * faceLuminance, lightZ * faceLuminance, lightZ * faceLuminance);
         int textureId = block.getTextureId(ctx.BlockReader, pos.x, pos.y, pos.z, 2);
-
+        flatCtx.FlipTexture = false;
 
         if (textureId < 0)
         {
@@ -64,7 +64,7 @@ public class DoorRenderer : IBlockRenderer
 
         ctx.Tess.setColorOpaque_F(lightZ * faceLuminance, lightZ * faceLuminance, lightZ * faceLuminance);
         textureId = block.getTextureId(ctx.BlockReader, pos.x, pos.y, pos.z, 3);
-
+        flatCtx.FlipTexture = false;
 
         if (textureId < 0)
         {
@@ -80,7 +80,7 @@ public class DoorRenderer : IBlockRenderer
 
         ctx.Tess.setColorOpaque_F(lightX * faceLuminance, lightX * faceLuminance, lightX * faceLuminance);
         textureId = block.getTextureId(ctx.BlockReader, pos.x, pos.y, pos.z, 4);
-
+        flatCtx.FlipTexture = false;
 
         if (textureId < 0)
         {
@@ -96,7 +96,7 @@ public class DoorRenderer : IBlockRenderer
 
         ctx.Tess.setColorOpaque_F(lightX * faceLuminance, lightX * faceLuminance, lightX * faceLuminance);
         textureId = block.getTextureId(ctx.BlockReader, pos.x, pos.y, pos.z, 5);
-
+        flatCtx.FlipTexture = false;
 
         if (textureId < 0)
         {

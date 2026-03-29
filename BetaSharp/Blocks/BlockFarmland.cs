@@ -59,10 +59,6 @@ internal class BlockFarmland : Block
 
     public override void onSteppedOn(OnEntityStepEvent @event)
     {
-        if (Random.Shared.Next(4) == 0)
-        {
-            @event.World.Writer.SetBlock(@event.X, @event.Y, @event.Z, Dirt.id);
-        }
     }
 
     private static bool hasCrop(IBlockReader world, int x, int y, int z)
@@ -72,11 +68,12 @@ internal class BlockFarmland : Block
         for (int var6 = x - cropRadius; var6 <= x + cropRadius; ++var6)
         {
             for (int var7 = z - cropRadius; var7 <= z + cropRadius; ++var7)
-            {
-                if (world.GetBlockId(var6, y + 1, var7) == Wheat.id)
                 {
-                    return true;
-                }
+                    int cropId = world.GetBlockId(var6, y + 1, var7);
+                    if (cropId == Wheat.id || cropId == Carrot.id || cropId == Potato.id || cropId == PumpkinStem.id || cropId == MelonStem.id)
+                    {
+                        return true;
+                    }
             }
         }
 

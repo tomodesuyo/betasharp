@@ -31,20 +31,10 @@ public sealed class EndPortalFrameRenderer : IBlockRenderer
             {
                 OverrideBounds = new Box(4.0F / 16.0F, 13.0F / 16.0F, 4.0F / 16.0F, 12.0F / 16.0F, 1.0F, 12.0F / 16.0F),
                 OverrideTexture = 174,
-                EnableAo = false
-            };
-            eyeCtx.DrawBlock(block, pos);
-
-            FaceColors colors = FaceColors.AssignVertexColors(1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, true);
-            Vec3D worldPos = new(pos.x, pos.y, pos.z);
-            var insetTopCtx = ctx with
-            {
                 EnableAo = false,
-                OverrideTexture = 174,
-                OverrideBounds = new Box(4.0F / 16.0F, 15.0F / 16.0F, 4.0F / 16.0F, 12.0F / 16.0F, 15.0F / 16.0F, 12.0F / 16.0F),
                 UvRotateTop = topRotation
             };
-            insetTopCtx.DrawTopFace(block, in worldPos, colors, 174);
+            eyeCtx.DrawBlock(block, pos);
         }
 
         return true;

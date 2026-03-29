@@ -34,6 +34,8 @@ public class BlockRenderer
     private static readonly CauldronRenderer s_cauldron = new();
     private static readonly BrewingStandRenderer s_brewingStand = new();
     private static readonly EndPortalFrameRenderer s_endPortalFrame = new();
+    private static readonly DragonEggRenderer s_dragonEgg = new();
+    private static readonly CocoaRenderer s_cocoa = new();
 
 
     public static bool RenderBlockByRenderType(IBlockReader world, ILightProvider lighting, Block block, BlockPos pos, Tessellator tess, int overrideTexture = -1, bool renderAllFaces = false)
@@ -90,6 +92,8 @@ public class BlockRenderer
             BlockRendererType.Cauldron => s_cauldron.Draw(block, pos, ref ctx),
             BlockRendererType.BrewingStand => s_brewingStand.Draw(block, pos, ref ctx),
             BlockRendererType.EndPortalFrame => s_endPortalFrame.Draw(block, pos, ref ctx),
+            BlockRendererType.DragonEgg => s_dragonEgg.Draw(block, pos, ref ctx),
+            BlockRendererType.Cocoa => s_cocoa.Draw(block, pos, ref ctx),
             _ => false
         };
     }
@@ -253,6 +257,7 @@ public class BlockRenderer
                renderType == BlockRendererType.Cauldron ||
                renderType == BlockRendererType.BrewingStand ||
                renderType == BlockRendererType.EndPortalFrame ||
+               renderType == BlockRendererType.DragonEgg ||
                renderType == BlockRendererType.Cactus ||
                renderType == BlockRendererType.PistonBase;
     }

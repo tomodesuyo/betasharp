@@ -221,6 +221,11 @@ public class PlayerControllerMP : PlayerController
         base.func_717_a(var1);
     }
 
+    public void SelectMerchantTrade(int syncId, int recipeIndex)
+    {
+        netClientHandler.addToSendQueue(SelectMerchantTradeC2SPacket.Get(syncId, recipeIndex));
+    }
+
     public override void updateController()
     {
         syncCurrentPlayItem();

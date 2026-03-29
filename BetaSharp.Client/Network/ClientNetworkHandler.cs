@@ -188,6 +188,12 @@ public class ClientNetworkHandler : NetHandler
             packet.entityData = 0;
         }
 
+        if (packet.entityType == 64)
+        {
+            entity = new EntitySmallFireball(worldClient, x, y, z, packet.velocityX / 8000.0D, packet.velocityY / 8000.0D, packet.velocityZ / 8000.0D);
+            packet.entityData = 0;
+        }
+
         if (packet.entityType == 62)
         {
             entity = new EntityEgg(worldClient, x, y, z);
@@ -196,6 +202,11 @@ public class ClientNetworkHandler : NetHandler
         if (packet.entityType == 75)
         {
             entity = new EntityExpBottle(worldClient, x, y, z);
+        }
+
+        if (packet.entityType == 73)
+        {
+            entity = new EntityPotion(worldClient, x, y, z);
         }
 
         if (packet.entityType == 1)
@@ -216,6 +227,11 @@ public class ClientNetworkHandler : NetHandler
         if (packet.entityType == 71)
         {
             entity = new EntityFallingSand(worldClient, x, y, z, Block.Gravel.id);
+        }
+
+        if (packet.entityType == 74)
+        {
+            entity = new EntityFallingSand(worldClient, x, y, z, Block.DragonEgg.id);
         }
 
         if (entity != null)
@@ -244,6 +260,15 @@ public class ClientNetworkHandler : NetHandler
                     if (owner is EntityLiving)
                     {
                         ((EntityExpBottle)entity).Thrower = (EntityLiving)owner;
+                    }
+                }
+
+                if (packet.entityType == 73)
+                {
+                    Entity? owner = getEntityByID(packet.entityData);
+                    if (owner is EntityLiving)
+                    {
+                        ((EntityPotion)entity).Thrower = (EntityLiving)owner;
                     }
                 }
 
@@ -735,10 +760,21 @@ public class ClientNetworkHandler : NetHandler
             _game.player.openDispenserScreen(dispenser);
             _game.player.currentScreenHandler.SyncId = packet.syncId;
         }
+        else if (packet.screenHandlerId == 5)
+        {
+            BlockEntityBrewingStand brewingStand = new();
+            _game.player.openBrewingStandScreen(brewingStand);
+            _game.player.currentScreenHandler.SyncId = packet.syncId;
+        }
         else if (packet.screenHandlerId == 1)
         {
             ClientPlayerEntity player = _game.player;
             _game.player.openCraftingScreen(MathHelper.Floor(player.x), MathHelper.Floor(player.y), MathHelper.Floor(player.z));
+            _game.player.currentScreenHandler.SyncId = packet.syncId;
+        }
+        else if (packet.screenHandlerId == 7)
+        {
+            _game.player.openMerchantScreen(packet.name);
             _game.player.currentScreenHandler.SyncId = packet.syncId;
         }
 
@@ -835,6 +871,15 @@ public class ClientNetworkHandler : NetHandler
 
     }
 
+    public override void onMerchantOffers(MerchantOffersS2CPacket packet)
+    {
+        if (_game.player.currentScreenHandler is MerchantScreenHandler merchantScreenHandler
+            && merchantScreenHandler.SyncId == packet.syncId)
+        {
+            merchantScreenHandler.SetOffers(packet.offers, packet.selectedRecipeIndex);
+        }
+    }
+
     public override void onEntityEquipmentUpdate(EntityEquipmentUpdateS2CPacket packet)
     {
         Entity? ent = getEntityByID(packet.EntityId);
@@ -882,6 +927,10 @@ public class ClientNetworkHandler : NetHandler
         {
             worldClient.Properties.IsThundering = false;
             worldClient.Environment.SetThunderGradient(0.0F);
+        }
+        else if (reason == 3)
+        {
+            _game.displayGuiScreen(new GuiWinGame());
         }
     }
 

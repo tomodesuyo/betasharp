@@ -28,4 +28,6 @@ public enum BlockRendererType: int
     Cauldron = 24,
     BrewingStand = 25,
     EndPortalFrame = 26,
+    DragonEgg = 27,
+    Cocoa = 28,
 }

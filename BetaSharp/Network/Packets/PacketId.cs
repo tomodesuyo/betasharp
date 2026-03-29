@@ -56,6 +56,8 @@ public enum PacketId : byte
     ScreenHandlerPropertyUpdateS2C = 105,
     ScreenHandlerAcknowledgement = 106,
     CreativeInventoryActionC2S = 107,
+    MerchantOffersS2C = 108,
+    SelectMerchantTradeC2S = 109,
     UpdateSign = 130,
     MapUpdateS2C = 131,
     PlayerConnectionUpdateS2C = 132,

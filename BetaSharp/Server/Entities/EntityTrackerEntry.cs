@@ -340,9 +340,18 @@ internal class EntityTrackerEntry
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 72);
             }
+            else if (currentTrackedEntity is EntitySmallFireball smallFireball)
+            {
+                var packet = EntitySpawnS2CPacket.Get(smallFireball, 64, smallFireball.owner != null ? smallFireball.owner.id : currentTrackedEntity.id);
+                packet.velocityX = (int)(smallFireball.powerX * 8000.0);
+                packet.velocityY = (int)(smallFireball.powerY * 8000.0);
+                packet.velocityZ = (int)(smallFireball.powerZ * 8000.0);
+
+                return packet;
+            }
             else if (currentTrackedEntity is EntityFireball fireball)
             {
-                var packet = EntitySpawnS2CPacket.Get(fireball, 63, fireball.owner.id);
+                var packet = EntitySpawnS2CPacket.Get(fireball, 63, fireball.owner != null ? fireball.owner.id : currentTrackedEntity.id);
                 packet.velocityX = (int)(fireball.powerX * 8000.0);
                 packet.velocityY = (int)(fireball.powerY * 8000.0);
                 packet.velocityZ = (int)(fireball.powerZ * 8000.0);
@@ -356,6 +365,10 @@ internal class EntityTrackerEntry
             else if (currentTrackedEntity is EntityExpBottle expBottle)
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 75, expBottle.Thrower != null ? expBottle.Thrower.id : currentTrackedEntity.id);
+            }
+            else if (currentTrackedEntity is EntityPotion potion)
+            {
+                return EntitySpawnS2CPacket.Get(currentTrackedEntity, 73, potion.Thrower != null ? potion.Thrower.id : currentTrackedEntity.id);
             }
             else if (currentTrackedEntity is EntityTNTPrimed)
             {
@@ -373,6 +386,11 @@ internal class EntityTrackerEntry
                     if (var3.blockId == Block.Gravel.id)
                     {
                         return EntitySpawnS2CPacket.Get(currentTrackedEntity, 71);
+                    }
+
+                    if (var3.blockId == Block.DragonEgg.id)
+                    {
+                        return EntitySpawnS2CPacket.Get(currentTrackedEntity, 74);
                     }
                 }
 

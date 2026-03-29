@@ -38,17 +38,17 @@ internal class BlockVine : Block
     {
         int meta = world.GetBlockMeta(x, y, z);
         float minX = 1.0F;
-        float maxX = 1.0F;
         float minY = 1.0F;
-        float maxY = 1.0F;
         float minZ = 1.0F;
-        float maxZ = 1.0F;
+        float maxX = 0.0F;
+        float maxY = 0.0F;
+        float maxZ = 0.0F;
         bool attached = meta > 0;
 
         if ((meta & 2) != 0)
         {
-            minX = MathF.Max(minX, 1.0F / 16.0F);
-            maxX = 0.0F;
+            maxX = MathF.Max(maxX, 1.0F / 16.0F);
+            minX = 0.0F;
             minY = 0.0F;
             maxY = 1.0F;
             minZ = 0.0F;
@@ -58,8 +58,8 @@ internal class BlockVine : Block
 
         if ((meta & 8) != 0)
         {
-            minX = 1.0F;
-            maxX = MathF.Min(maxX, 15.0F / 16.0F);
+            minX = MathF.Min(minX, 15.0F / 16.0F);
+            maxX = 1.0F;
             minY = 0.0F;
             maxY = 1.0F;
             minZ = 0.0F;
@@ -69,8 +69,8 @@ internal class BlockVine : Block
 
         if ((meta & 4) != 0)
         {
-            minZ = MathF.Max(minZ, 1.0F / 16.0F);
-            maxZ = 0.0F;
+            maxZ = MathF.Max(maxZ, 1.0F / 16.0F);
+            minZ = 0.0F;
             minX = 0.0F;
             maxX = 1.0F;
             minY = 0.0F;
@@ -80,8 +80,8 @@ internal class BlockVine : Block
 
         if ((meta & 1) != 0)
         {
-            minZ = 1.0F;
-            maxZ = MathF.Min(maxZ, 15.0F / 16.0F);
+            minZ = MathF.Min(minZ, 15.0F / 16.0F);
+            maxZ = 1.0F;
             minX = 0.0F;
             maxX = 1.0F;
             minY = 0.0F;

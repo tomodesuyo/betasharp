@@ -49,7 +49,6 @@ public static class Stats
         Used = InitItemUsedStats(Used, "stat.useItem", 16908288, 0, Block.Blocks.Length);
         Broken = InitializeBrokenItemStats(Broken, "stat.breakItem", 16973824, 0, Block.Blocks.Length);
         _hasBasicItemStatsInitialized = true;
-        InitializeCraftedItemStats();
     }
 
     public static void InitializeExtendedItemStats()
@@ -62,7 +61,7 @@ public static class Stats
 
     public static void InitializeCraftedItemStats()
     {
-        if (_hasBasicItemStatsInitialized && _hasExtendedItemStatsInitialized)
+        if (_hasBasicItemStatsInitialized && _hasExtendedItemStatsInitialized && Item.AreAllItemsInitialized)
         {
             HashSet<int> craftedIds = new HashSet<int>();
 

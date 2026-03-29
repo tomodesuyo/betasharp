@@ -18,13 +18,22 @@ internal class SmeltingRecipeManager
         AddSmelting(Block.IronOre.id, new ItemStack(Item.IronIngot));
         AddSmelting(Block.GoldOre.id, new ItemStack(Item.GoldIngot));
         AddSmelting(Block.DiamondOre.id, new ItemStack(Item.Diamond));
+        AddSmelting(Block.EmeraldOre.id, new ItemStack(Item.Emerald));
         AddSmelting(Block.Sand.id, new ItemStack(Block.Glass));
         AddSmelting(Item.RawPorkchop.id, new ItemStack(Item.CookedPorkchop));
+        AddSmelting(Item.RawBeef.id, new ItemStack(Item.CookedBeef));
+        AddSmelting(Item.RawChicken.id, new ItemStack(Item.CookedChicken));
         AddSmelting(Item.RawFish.id, new ItemStack(Item.CookedFish));
+        AddSmelting(Item.Potato.id, new ItemStack(Item.BakedPotato));
+        AddSmelting(Item.RawMutton.id, new ItemStack(Item.CookedMutton));
+        AddSmelting(Item.RawRabbit.id, new ItemStack(Item.CookedRabbit));
         AddSmelting(Block.Cobblestone.id, new ItemStack(Block.Stone));
         AddSmelting(Item.Clay.id, new ItemStack(Item.Brick));
         AddSmelting(Block.Cactus.id, new ItemStack(Item.Dye, 1, 2));
         AddSmelting(Block.Log.id, new ItemStack(Item.Coal, 1, 1));
+        AddSmelting(Block.CoalOre.id, new ItemStack(Item.Coal));
+        AddSmelting(Block.RedstoneOre.id, new ItemStack(Item.Redstone));
+        AddSmelting(Block.LapisOre.id, new ItemStack(Item.Dye, 1, 4));
     }
 
     public void AddSmelting(int inputId, ItemStack output)

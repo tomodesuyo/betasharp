@@ -25,7 +25,7 @@ internal class BlockPressurePlate : Block
 
     public override bool isFullCube() => false;
 
-    public override bool canPlaceAt(CanPlaceAtContext context) => context.World.Reader.ShouldSuffocate(context.X, context.Y - 1, context.Z);
+    public override bool canPlaceAt(CanPlaceAtContext context) => CanBePlacedOn(context.World.Reader, context.X, context.Y - 1, context.Z);
 
     public override void onPlaced(OnPlacedEvent @event)
     {
@@ -34,7 +34,7 @@ internal class BlockPressurePlate : Block
     public override void neighborUpdate(OnTickEvent @event)
     {
         bool shouldBreak = false;
-        if (!@event.World.Reader.ShouldSuffocate(@event.X, @event.Y - 1, @event.Z))
+        if (!CanBePlacedOn(@event.World.Reader, @event.X, @event.Y - 1, @event.Z))
         {
             shouldBreak = true;
         }
@@ -159,4 +159,15 @@ internal class BlockPressurePlate : Block
     }
 
     public override int getPistonBehavior() => 1;
+
+    private static bool CanBePlacedOn(IBlockReader world, int x, int y, int z)
+    {
+        if (world.ShouldSuffocate(x, y, z))
+        {
+            return true;
+        }
+
+        Block? block = Blocks[world.GetBlockId(x, y, z)];
+        return block is BlockFence;
+    }
 }

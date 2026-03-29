@@ -55,6 +55,11 @@ public record struct Vec3D
         return new Vec3D(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x);
     }
 
+    public double dotProduct(Vec3D other)
+    {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
     public Vec3D? getIntermediateWithXValue(Vec3D var1, double var2)
     {
         double var4 = var1.x - x;

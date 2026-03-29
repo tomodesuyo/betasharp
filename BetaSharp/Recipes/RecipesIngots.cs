@@ -5,7 +5,7 @@ namespace BetaSharp.Recipes;
 
 internal class RecipesIngots
 {
-    private object[][] recipeItems = [[Block.GoldBlock, new ItemStack(Item.GoldIngot, 9)], [Block.IronBlock, new ItemStack(Item.IronIngot, 9)], [Block.DiamondBlock, new ItemStack(Item.Diamond, 9)], [Block.LapisBlock, new ItemStack(Item.Dye, 9, 4)]];
+    private object[][] recipeItems = [[Block.GoldBlock, new ItemStack(Item.GoldIngot, 9)], [Block.IronBlock, new ItemStack(Item.IronIngot, 9)], [Block.DiamondBlock, new ItemStack(Item.Diamond, 9)], [Block.LapisBlock, new ItemStack(Item.Dye, 9, 4)], [Block.EmeraldBlock, new ItemStack(Item.Emerald, 9)], [Block.RedstoneBlock, new ItemStack(Item.Redstone, 9)], [Block.Hay, new ItemStack(Item.Wheat, 9)]];
 
     public void AddRecipes(CraftingManager m)
     {

@@ -1,6 +1,7 @@
 using BetaSharp.Blocks;
 using BetaSharp.Blocks.Materials;
 using BetaSharp.Entities;
+using BetaSharp.Potions;
 using BetaSharp.Stats;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core;
@@ -12,9 +13,11 @@ namespace BetaSharp.Items;
 public class Item
 {
     private readonly ILogger<Item> _logger = Log.Instance.For<Item>();
+    internal static bool AreAllItemsInitialized { get; private set; }
 
     static Item()
     {
+        AreAllItemsInitialized = true;
         Stats.Stats.InitializeExtendedItemStats();
     }
 
@@ -28,7 +31,7 @@ public class Item
     public static Item BOW = (new ItemBow(5)).setTexturePosition(5, 1).setItemName("bow");
     public static Item ARROW = (new Item(6)).setTexturePosition(5, 2).setItemName("arrow");
     public static Item Coal = (new ItemCoal(7)).setTexturePosition(7, 0).setItemName("coal");
-    public static Item Diamond = (new Item(8)).setTexturePosition(7, 3).setItemName("emerald");
+    public static Item Diamond = (new Item(8)).setTexturePosition(7, 3).setItemName("diamond");
     public static Item IronIngot = (new Item(9)).setTexturePosition(7, 1).setItemName("ingotIron");
     public static Item GoldIngot = (new Item(10)).setTexturePosition(7, 2).setItemName("ingotGold");
     public static Item IronSword = (new ItemSword(11, EnumToolMaterial.IRON)).setTexturePosition(2, 4).setItemName("swordIron");
@@ -53,7 +56,7 @@ public class Item
     public static Item GoldenAxe = (new ItemAxe(30, EnumToolMaterial.GOLD)).setTexturePosition(4, 7).setItemName("hatchetGold");
     public static Item String = (new Item(31)).setTexturePosition(8, 0).setItemName("string");
     public static Item Feather = (new Item(32)).setTexturePosition(8, 1).setItemName("feather");
-    public static Item Gunpowder = (new Item(33)).setTexturePosition(8, 2).setItemName("sulphur");
+    public static Item Gunpowder = (new Item(33)).setTexturePosition(8, 2).setItemName("sulphur").setPotionEffect(PotionHelper.GunpowderEffect);
     public static Item WoodenHoe = (new ItemHoe(34, EnumToolMaterial.WOOD)).setTexturePosition(0, 8).setItemName("hoeWood");
     public static Item StoneHoe = (new ItemHoe(35, EnumToolMaterial.STONE)).setTexturePosition(1, 8).setItemName("hoeStone");
     public static Item IronHoe = (new ItemHoe(36, EnumToolMaterial.IRON)).setTexturePosition(2, 8).setItemName("hoeIron");
@@ -86,7 +89,7 @@ public class Item
     public static Item RawPorkchop = (new ItemFood(63, 3, true)).setTexturePosition(7, 5).setItemName("porkchopRaw");
     public static Item CookedPorkchop = (new ItemFood(64, 8, true)).setTexturePosition(8, 5).setItemName("porkchopCooked");
     public static Item Painting = (new ItemPainting(65)).setTexturePosition(10, 1).setItemName("painting");
-    public static Item GoldenApple = (new ItemFood(66, 42, false)).setTexturePosition(11, 0).setItemName("appleGold");
+    public static Item GoldenApple = (new ItemFood(66, 42, false)).SetPotionEffect(BetaSharp.Potions.Potion.Regeneration.Id, 5, 0, 1.0F).setTexturePosition(11, 0).setItemName("appleGold");
     public static Item Sign = (new ItemSign(67)).setTexturePosition(10, 2).setItemName("sign");
     public static Item WoodenDoor = (new ItemDoor(68, Material.Wood)).setTexturePosition(11, 2).setItemName("doorWood");
     public static Item Bucket = (new ItemBucket(69, 0)).setTexturePosition(10, 4).setItemName("bucket");
@@ -95,7 +98,7 @@ public class Item
     public static Item Minecart = (new ItemMinecart(72, 0)).setTexturePosition(7, 8).setItemName("minecart");
     public static Item Saddle = (new ItemSaddle(73)).setTexturePosition(8, 6).setItemName("saddle");
     public static Item IronDoor = (new ItemDoor(74, Material.Metal)).setTexturePosition(12, 2).setItemName("doorIron");
-    public static Item Redstone = (new ItemRedstone(75)).setTexturePosition(8, 3).setItemName("redstone");
+    public static Item Redstone = (new ItemRedstone(75)).setTexturePosition(8, 3).setItemName("redstone").setPotionEffect(PotionHelper.RedstoneEffect);
     public static Item Snowball = (new ItemSnowball(76)).setTexturePosition(14, 0).setItemName("snowball");
     public static Item Boat = (new ItemBoat(77)).setTexturePosition(8, 8).setItemName("boat");
     public static Item Leather = (new Item(78)).setTexturePosition(7, 6).setItemName("Leather");
@@ -112,12 +115,12 @@ public class Item
     public static Item Compass = (new Item(89)).setTexturePosition(6, 3).setItemName("compass");
     public static Item FishingRod = (new ItemFishingRod(90)).setTexturePosition(5, 4).setItemName("fishingRod");
     public static Item Clock = (new Item(91)).setTexturePosition(6, 4).setItemName("clock");
-    public static Item GlowstoneDust = (new Item(92)).setTexturePosition(9, 4).setItemName("yellowDust");
+    public static Item GlowstoneDust = (new Item(92)).setTexturePosition(9, 4).setItemName("yellowDust").setPotionEffect(PotionHelper.GlowstoneEffect);
     public static Item RawFish = (new ItemFood(93, 2, false)).setTexturePosition(9, 5).setItemName("fishRaw");
     public static Item CookedFish = (new ItemFood(94, 5, false)).setTexturePosition(10, 5).setItemName("fishCooked");
     public static Item Dye = (new ItemDye(95)).setTexturePosition(14, 4).setItemName("dyePowder");
     public static Item Bone = (new Item(96)).setTexturePosition(12, 1).setItemName("bone").setHandheld();
-    public static Item Sugar = (new Item(97)).setTexturePosition(13, 0).setItemName("sugar").setHandheld();
+    public static Item Sugar = (new Item(97)).setTexturePosition(13, 0).setItemName("sugar").setHandheld().setPotionEffect(PotionHelper.SugarEffect);
     public static Item Cake = (new ItemReed(98, Block.Cake)).setMaxCount(1).setTexturePosition(13, 1).setItemName("cake");
     public static Item Bed = (new ItemBed(99)).setMaxCount(1).setTexturePosition(13, 2).setItemName("bed");
     public static Item Repeater = (new ItemReed(100, Block.Repeater)).setTexturePosition(6, 5).setItemName("diode");
@@ -129,27 +132,40 @@ public class Item
     public static Item MelonSeeds = (new ItemSeeds(106, Block.MelonStem.id)).setTexturePosition(14, 3).setItemName("seeds_melon");
     public static Item RawBeef = (new ItemFood(107, 3, true)).setTexturePosition(9, 6).setItemName("beefRaw");
     public static Item CookedBeef = (new ItemFood(108, 8, true)).setTexturePosition(10, 6).setItemName("beefCooked");
-    public static Item RawChicken = (new ItemFood(109, 2, true)).setTexturePosition(9, 7).setItemName("chickenRaw");
+    public static Item RawChicken = (new ItemFood(109, 2, true)).SetPotionEffect(BetaSharp.Potions.Potion.Hunger.Id, 30, 0, 0.3F).setTexturePosition(9, 7).setItemName("chickenRaw");
     public static Item CookedChicken = (new ItemFood(110, 6, true)).setTexturePosition(10, 7).setItemName("chickenCooked");
-    public static Item RottenFlesh = (new ItemFood(111, 4, true)).setTexturePosition(11, 5).setItemName("rottenFlesh");
+    public static Item RottenFlesh = (new ItemFood(111, 4, true)).SetPotionEffect(BetaSharp.Potions.Potion.Hunger.Id, 30, 0, 0.8F).setTexturePosition(11, 5).setItemName("rottenFlesh");
     public static Item EnderPearl = (new ItemEnderPearl(112)).setTexturePosition(11, 6).setItemName("enderPearl");
     public static Item BlazeRod = (new Item(113)).setTexturePosition(12, 6).setItemName("blazeRod");
-    public static Item GhastTear = (new Item(114)).setTexturePosition(11, 7).setItemName("ghastTear");
+    public static Item GhastTear = (new Item(114)).setTexturePosition(11, 7).setItemName("ghastTear").setPotionEffect(PotionHelper.GhastTearEffect);
     public static Item GoldNugget = (new Item(115)).setTexturePosition(12, 7).setItemName("goldNugget");
-    public static Item NetherWart = (new ItemSeeds(116, Block.NetherWart.id)).setTexturePosition(13, 7).setItemName("netherStalkSeeds");
-    public static Item Potion = (new Item(117)).setTexturePosition(13, 8).setItemName("potion");
-    public static Item GlassBottle = (new Item(118)).setTexturePosition(12, 8).setItemName("glassBottle");
-    public static Item SpiderEye = (new ItemFood(119, 2, false)).setTexturePosition(11, 8).setItemName("spiderEye");
-    public static Item FermentedSpiderEye = (new Item(120)).setTexturePosition(10, 8).setItemName("fermentedSpiderEye");
-    public static Item BlazePowder = (new Item(121)).setTexturePosition(13, 9).setItemName("blazePowder");
-    public static Item MagmaCream = (new Item(122)).setTexturePosition(13, 10).setItemName("magmaCream");
+    public static Item NetherWart = (new ItemSeeds(116, Block.NetherWart.id)).setTexturePosition(13, 7).setItemName("netherStalkSeeds").setPotionEffect("+4");
+    public static Item Potion = (new ItemPotion(117)).setTexturePosition(13, 8).setItemName("potion");
+    public static Item GlassBottle = (new ItemGlassBottle(118)).setTexturePosition(12, 8).setItemName("glassBottle");
+    public static Item SpiderEye = (new ItemFood(119, 2, false)).SetPotionEffect(BetaSharp.Potions.Potion.Poison.Id, 5, 0, 1.0F).setTexturePosition(11, 8).setItemName("spiderEye").setPotionEffect(PotionHelper.SpiderEyeEffect);
+    public static Item FermentedSpiderEye = (new Item(120)).setTexturePosition(10, 8).setItemName("fermentedSpiderEye").setPotionEffect(PotionHelper.FermentedSpiderEyeEffect);
+    public static Item BlazePowder = (new Item(121)).setTexturePosition(13, 9).setItemName("blazePowder").setPotionEffect(PotionHelper.BlazePowderEffect);
+    public static Item MagmaCream = (new Item(122)).setTexturePosition(13, 10).setItemName("magmaCream").setPotionEffect(PotionHelper.MagmaCreamEffect);
     public static Item BrewingStand = (new ItemReed(123, Block.BrewingStand)).setTexturePosition(12, 10).setItemName("brewingStand");
     public static Item Cauldron = (new ItemReed(124, Block.Cauldron)).setTexturePosition(12, 9).setItemName("cauldron");
     public static Item EyeOfEnder = (new ItemEnderEye(125)).setTexturePosition(11, 9).setItemName("eyeOfEnder");
-    public static Item SpeckledMelon = (new Item(126)).setTexturePosition(9, 8).setItemName("speckledMelon");
+    public static Item SpeckledMelon = (new Item(126)).setTexturePosition(9, 8).setItemName("speckledMelon").setPotionEffect(PotionHelper.SpeckledMelonEffect);
     public static Item MonsterPlacer = (new ItemMonsterPlacer(127)).setTexturePosition(9, 9).setItemName("monsterPlacer");
     public static Item ExpBottle = (new ItemExpBottle(128)).setTexturePosition(11, 10).setItemName("expBottle");
     public static Item FireCharge = (new ItemFireball(129)).setTexturePosition(14, 2).setItemName("fireball");
+    public static Item Emerald = (new Item(132)).setTexturePosition(10, 11).setItemName("emerald");
+    public static Item NetherStar = (new Item(143)).setTexturePosition(9, 11).setItemName("netherStar");
+    public static Item Carrot = (new ItemSeedFood(135, 4, Block.Carrot.id, Block.Farmland.id)).setTexturePosition(8, 7).setItemName("carrots");
+    public static Item Potato = (new ItemSeedFood(136, 1, Block.Potato.id, Block.Farmland.id)).setTexturePosition(7, 7).setItemName("potato");
+    public static Item BakedPotato = (new ItemFood(137, 6, false)).setTexturePosition(6, 7).setItemName("potatoBaked");
+    public static Item PoisonousPotato = (new ItemFood(138, 2, false)).SetPotionEffect(BetaSharp.Potions.Potion.Poison.Id, 5, 0, 0.6F).setTexturePosition(6, 8).setItemName("potatoPoisonous");
+    public static Item GoldenCarrot = (new ItemFood(140, 6, false)).setTexturePosition(6, 9).setItemName("carrotGolden");
+    public static Item RawMutton = (new ItemFood(153, 2, true)).setTexturePosition(4, 11).setItemName("muttonRaw");
+    public static Item CookedMutton = (new ItemFood(154, 6, true)).setTexturePosition(4, 12).setItemName("muttonCooked");
+    public static Item RawRabbit = (new ItemFood(155, 3, true)).setTexturePosition(5, 11).setItemName("rabbitRaw");
+    public static Item CookedRabbit = (new ItemFood(156, 5, true)).setTexturePosition(5, 12).setItemName("rabbitCooked");
+    public static Item RabbitFoot = (new Item(157)).setTexturePosition(5, 14).setItemName("rabbitFoot");
+    public static Item RabbitHide = (new Item(158)).setTexturePosition(6, 14).setItemName("rabbitHide");
     public static Item RecordThirteen = (new ItemRecord(2000, "13")).setTexturePosition(0, 15).setItemName("record");
     public static Item RecordCat = (new ItemRecord(2001, "cat")).setTexturePosition(1, 15).setItemName("record");
     public static Item RecordBlocks = (new ItemRecord(2002, "blocks")).setTexturePosition(2, 15).setItemName("record");
@@ -168,6 +184,7 @@ public class Item
     protected bool handheld;
     protected bool hasSubtypes;
     private Item craftingReturnItem;
+    private string? potionEffect;
     private string translationKey;
 
     protected Item(int id)
@@ -338,6 +355,22 @@ public class Item
     public bool hasContainerItem()
     {
         return craftingReturnItem != null;
+    }
+
+    protected Item setPotionEffect(string effect)
+    {
+        potionEffect = effect;
+        return this;
+    }
+
+    public virtual string? getPotionEffect()
+    {
+        return potionEffect;
+    }
+
+    public virtual bool isPotionIngredient()
+    {
+        return potionEffect != null;
     }
 
     public string getStatName()

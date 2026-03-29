@@ -330,6 +330,61 @@ public class WorldRenderer : IWorldEventListener
 
     public void renderSky(float var1)
     {
+        if (_game.world.Dimension.Id == 1)
+        {
+            GLManager.GL.Disable(GLEnum.Fog);
+            GLManager.GL.Disable(GLEnum.AlphaTest);
+            GLManager.GL.Enable(GLEnum.Blend);
+            GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+            Lighting.turnOff();
+            renderEngine.BindTexture(renderEngine.GetTextureId("/misc/tunnel.png"));
+            Tessellator tessellator = Tessellator.instance;
+            GLManager.GL.DepthMask(false);
+            GLManager.GL.PushMatrix();
+
+            for (int face = 0; face < 6; ++face)
+            {
+                GLManager.GL.PushMatrix();
+                if (face == 1)
+                {
+                    GLManager.GL.Rotate(90.0F, 1.0F, 0.0F, 0.0F);
+                }
+                else if (face == 2)
+                {
+                    GLManager.GL.Rotate(-90.0F, 1.0F, 0.0F, 0.0F);
+                }
+                else if (face == 3)
+                {
+                    GLManager.GL.Rotate(180.0F, 1.0F, 0.0F, 0.0F);
+                }
+                else if (face == 4)
+                {
+                    GLManager.GL.Rotate(90.0F, 0.0F, 0.0F, 1.0F);
+                }
+                else if (face == 5)
+                {
+                    GLManager.GL.Rotate(-90.0F, 0.0F, 0.0F, 1.0F);
+                }
+
+                tessellator.startDrawingQuads();
+                tessellator.setColorRGBA_F(0.25F, 0.20F, 0.28F, 1.0F);
+                const float size = 100.0F;
+                tessellator.addVertexWithUV(-size, -size, -size, 0.0D, 0.0D);
+                tessellator.addVertexWithUV(-size, -size, size, 0.0D, 16.0D);
+                tessellator.addVertexWithUV(size, -size, size, 16.0D, 16.0D);
+                tessellator.addVertexWithUV(size, -size, -size, 16.0D, 0.0D);
+                tessellator.draw();
+                GLManager.GL.PopMatrix();
+            }
+
+            GLManager.GL.PopMatrix();
+            GLManager.GL.DepthMask(true);
+            GLManager.GL.Enable(GLEnum.AlphaTest);
+            GLManager.GL.Enable(GLEnum.Fog);
+            GLManager.GL.Disable(GLEnum.Blend);
+            return;
+        }
+
         if (!_game.world.Dimension.IsNether)
         {
             GLManager.GL.Disable(GLEnum.Texture2D);
@@ -447,7 +502,7 @@ public class WorldRenderer : IWorldEventListener
     public void renderClouds(float var1)
     {
         Profiler.Start("renderClouds");
-        if (!_game.world.Dimension.IsNether)
+        if (!_game.world.Dimension.IsNether && _game.world.Dimension.Id != 1)
         {
             renderCloudsFancy(var1);
         }

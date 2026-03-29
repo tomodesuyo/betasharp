@@ -6,6 +6,7 @@ using BetaSharp.Client.Input;
 using BetaSharp.Entities;
 using BetaSharp.Inventorys;
 using BetaSharp.NBT;
+using BetaSharp.Potions;
 using BetaSharp.Stats;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
@@ -91,13 +92,14 @@ public class ClientPlayerEntity : EntityPlayer
                 Game.sndManager.PlaySoundFX("portal.trigger", 1.0F, random.NextFloat() * 0.4F + 0.8F);
             }
 
-            changeDimensionCooldown += capabilities.IsCreativeMode ? 1.0F : 0.0125F;
+            changeDimensionCooldown += instantDimensionChange || capabilities.IsCreativeMode ? 1.0F : 0.0125F;
             if (changeDimensionCooldown >= 1.0F)
             {
                 changeDimensionCooldown = 1.0F;
             }
 
             inTeleportationState = false;
+            instantDimensionChange = false;
         }
         else
         {
@@ -109,6 +111,16 @@ public class ClientPlayerEntity : EntityPlayer
             if (changeDimensionCooldown < 0.0F)
             {
                 changeDimensionCooldown = 0.0F;
+            }
+        }
+
+        if (hasPotionEffect(Potion.Confusion))
+        {
+            PotionEffect confusion = getActivePotionEffect(Potion.Confusion)!;
+            float distortion = confusion.Duration < 20 ? 0.6F * confusion.Duration / 20.0F : 0.6F;
+            if (distortion > changeDimensionCooldown)
+            {
+                changeDimensionCooldown = distortion;
             }
         }
 
@@ -144,7 +156,7 @@ public class ClientPlayerEntity : EntityPlayer
         bool wasMovingForward = movementInput.moveForward >= SprintThreshold;
         movementInput.updatePlayerMoveState(this);
         noClip = capabilities.IsSpectatorMode;
-        bool canSprint = capabilities.IsCreativeMode || capabilities.IsSpectatorMode;
+        bool canSprint = capabilities.IsCreativeMode && !capabilities.IsSpectatorMode;
 
         if (!canSprint || wasSneaking || !wasMovingForward || movementInput.moveForward < SprintThreshold)
         {
@@ -327,6 +339,16 @@ public class ClientPlayerEntity : EntityPlayer
     public override void openDispenserScreen(BlockEntityDispenser dispenser)
     {
         Game.displayGuiScreen(new GuiDispenser(inventory, dispenser));
+    }
+
+    public override void openBrewingStandScreen(BlockEntityBrewingStand brewingStand)
+    {
+        Game.displayGuiScreen(new GuiBrewingStand(inventory, brewingStand));
+    }
+
+    public override void openMerchantScreen(string title)
+    {
+        Game.displayGuiScreen(new GuiMerchant(inventory, title));
     }
 
     public override void sendPickup(Entity entity, int count)

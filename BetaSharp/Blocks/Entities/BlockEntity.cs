@@ -27,6 +27,7 @@ public abstract class BlockEntity
     public static readonly BlockEntityType Note = Register(() => new BlockEntityNote(), "Music");
     public static readonly BlockEntityType Piston = Register(() => new BlockEntityPiston(), "Piston");
     public static readonly BlockEntityType EndPortal = Register(() => new BlockEntityEndPortal(), "Airportal");
+    public static readonly BlockEntityType BrewingStand = Register(() => new BlockEntityBrewingStand(), "Cauldron");
 
     private static BlockEntityType Register<T>(Func<T> factory, string id) where T : BlockEntity
     {

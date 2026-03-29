@@ -8,6 +8,7 @@ using BetaSharp.Network.Packets;
 using BetaSharp.Network.Packets.C2SPlay;
 using BetaSharp.Network.Packets.Play;
 using BetaSharp.Network.Packets.S2CPlay;
+using BetaSharp.Screens;
 using BetaSharp.Screens.Slots;
 using BetaSharp.Server.Command;
 using BetaSharp.Server.Commands;
@@ -655,6 +656,18 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
                 player.onContentsUpdate(player.currentScreenHandler, var3);
             }
         }
+    }
+
+    public override void onSelectMerchantTrade(SelectMerchantTradeC2SPacket packet)
+    {
+        if (player.currentScreenHandler is not MerchantScreenHandler merchantScreenHandler
+            || merchantScreenHandler.SyncId != packet.syncId)
+        {
+            return;
+        }
+
+        merchantScreenHandler.SelectRecipe(packet.recipeIndex);
+        merchantScreenHandler.SendOffersTo(player);
     }
 
     public override void onScreenHandlerAcknowledgement(ScreenHandlerAcknowledgementPacket packet)

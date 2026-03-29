@@ -1,4 +1,5 @@
 using BetaSharp.Entities;
+using BetaSharp.Util.Hit;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
 
@@ -27,46 +28,22 @@ internal class BlockStairs : Block
 
     public override void addIntersectingBoundingBox(IBlockReader world, EntityManager entities, int x, int y, int z, Box box, List<Box> boxes)
     {
-        int meta = world.GetBlockMeta(x, y, z);
-        int direction = meta & 3;
-        float minY = 0.0F;
-        float maxY = 0.5F;
-        float stepMinY = 0.5F;
-        float stepMaxY = 1.0F;
+        List<Box> stairBoxes = [];
+        StairsShapeHelper.GetSubBoxes(world, x, y, z, stairBoxes);
 
-        if ((meta & 4) != 0)
+        for (int i = 0; i < stairBoxes.Count; ++i)
         {
-            minY = 0.5F;
-            maxY = 1.0F;
-            stepMinY = 0.0F;
-            stepMaxY = 0.5F;
-        }
-
-        setBoundingBox(0.0F, minY, 0.0F, 1.0F, maxY, 1.0F);
-        base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-
-        if (direction == 0)
-        {
-            setBoundingBox(0.5F, stepMinY, 0.0F, 1.0F, stepMaxY, 1.0F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-        }
-        else if (direction == 1)
-        {
-            setBoundingBox(0.0F, stepMinY, 0.0F, 0.5F, stepMaxY, 1.0F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-        }
-        else if (direction == 2)
-        {
-            setBoundingBox(0.0F, stepMinY, 0.5F, 1.0F, stepMaxY, 1.0F);
-            base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
-        }
-        else if (direction == 3)
-        {
-            setBoundingBox(0.0F, stepMinY, 0.0F, 1.0F, stepMaxY, 0.5F);
+            Box stairBox = stairBoxes[i];
+            setBoundingBox((float)stairBox.MinX, (float)stairBox.MinY, (float)stairBox.MinZ, (float)stairBox.MaxX, (float)stairBox.MaxY, (float)stairBox.MaxZ);
             base.addIntersectingBoundingBox(world, entities, x, y, z, box, boxes);
         }
 
         setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public override HitResult raycast(IBlockReader world, EntityManager entities, int x, int y, int z, Vec3D startPos, Vec3D endPos)
+    {
+        return StairsShapeHelper.Raycast(world, x, y, z, startPos, endPos);
     }
 
     public override void randomDisplayTick(OnTickEvent @event) => _baseBlock.randomDisplayTick(@event);

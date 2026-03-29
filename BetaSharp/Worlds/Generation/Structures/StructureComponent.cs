@@ -156,85 +156,82 @@ public abstract class StructureComponent
                 if (Facing == 3) return meta + 3 & 3;
             }
         }
-        else if (blockId == Block.CobblestoneStairs.id || blockId == Block.WoodenStairs.id)
-        {
-            if (Facing == 0)
-            {
-                if (meta == 2) return 3;
-                if (meta == 3) return 2;
-            }
-            else if (Facing == 1)
-            {
-                if (meta == 0) return 2;
-                if (meta == 1) return 3;
-                if (meta == 2) return 0;
-                if (meta == 3) return 1;
-            }
-            else if (Facing == 3)
-            {
-                if (meta == 0) return 2;
-                if (meta == 1) return 3;
-                if (meta == 2) return 1;
-                if (meta == 3) return 0;
-            }
-        }
-        else if (blockId == Block.Ladder.id)
-        {
-            if (Facing == 0)
-            {
-                if (meta == 2) return 3;
-                if (meta == 3) return 2;
-            }
-            else if (Facing == 1)
-            {
-                if (meta == 2) return 4;
-                if (meta == 3) return 5;
-                if (meta == 4) return 2;
-                if (meta == 5) return 3;
-            }
-            else if (Facing == 3)
-            {
-                if (meta == 2) return 5;
-                if (meta == 3) return 4;
-                if (meta == 4) return 2;
-                if (meta == 5) return 3;
-            }
-        }
-        else if (blockId == Block.Button.id)
-        {
-            if (Facing == 0)
-            {
-                if (meta == 3) return 4;
-                if (meta == 4) return 3;
-            }
-            else if (Facing == 1)
-            {
-                if (meta == 3) return 1;
-                if (meta == 4) return 2;
-                if (meta == 2) return 3;
-                if (meta == 1) return 4;
-            }
-            else if (Facing == 3)
-            {
-                if (meta == 3) return 2;
-                if (meta == 4) return 1;
-                if (meta == 2) return 3;
-                if (meta == 1) return 4;
-            }
-        }
-        else if (Facing == 0)
-        {
-            if (meta == 0) return 2;
-            if (meta == 2) return 0;
-        }
         else
         {
-            if (Facing == 1) return meta + 1 & 3;
-            if (Facing == 3) return meta + 3 & 3;
+            if (blockId == Block.CobblestoneStairs.id || blockId == Block.WoodenStairs.id || blockId == Block.StoneBrickStairs.id || blockId == Block.NetherBrickStairs.id || blockId == Block.SandstoneStairs.id)
+            {
+                if (Facing == 0)
+                {
+                    if (meta == 2) return 3;
+                    if (meta == 3) return 2;
+                }
+                else if (Facing == 1)
+                {
+                    if (meta == 0) return 2;
+                    if (meta == 1) return 3;
+                    if (meta == 2) return 0;
+                    if (meta == 3) return 1;
+                }
+                else if (Facing == 3)
+                {
+                    if (meta == 0) return 2;
+                    if (meta == 1) return 3;
+                    if (meta == 2) return 1;
+                    if (meta == 3) return 0;
+                }
+            }
+            else if (blockId == Block.Ladder.id)
+            {
+                if (Facing == 0)
+                {
+                    if (meta == 2) return 3;
+                    if (meta == 3) return 2;
+                }
+                else if (Facing == 1)
+                {
+                    if (meta == 2) return 4;
+                    if (meta == 3) return 5;
+                    if (meta == 4) return 2;
+                    if (meta == 5) return 3;
+                }
+                else if (Facing == 3)
+                {
+                    if (meta == 2) return 5;
+                    if (meta == 3) return 4;
+                    if (meta == 4) return 2;
+                    if (meta == 5) return 3;
+                }
+            }
+            else if (blockId == Block.Button.id)
+            {
+                if (Facing == 0)
+                {
+                    if (meta == 3) return 4;
+                    if (meta == 4) return 3;
+                }
+                else if (Facing == 1)
+                {
+                    if (meta == 3) return 1;
+                    if (meta == 4) return 2;
+                    if (meta == 2) return 3;
+                    if (meta == 1) return 4;
+                }
+                else if (Facing == 3)
+                {
+                    if (meta == 3) return 2;
+                    if (meta == 4) return 1;
+                    if (meta == 2) return 3;
+                    if (meta == 1) return 4;
+                }
+            }
         }
 
         return meta;
     }
+
+    protected virtual int GetStructureBlockId(int blockId, int meta) => blockId;
+
+    protected virtual int GetStructureBlockMeta(int blockId, int meta) => meta;
 
     protected void PlaceBlockAtCurrentPosition(IWorldContext world, int blockId, int meta, int x, int y, int z, StructureBoundingBox bounds)
     {
@@ -243,8 +240,45 @@ public abstract class StructureComponent
         int worldZ = GetZWithOffset(x, z);
         if (bounds.Contains(worldX, worldY, worldZ))
         {
-            world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY, worldZ, blockId, GetMetadataWithOffset(blockId, meta), false);
+            int placedBlockId = GetStructureBlockId(blockId, meta);
+            int placedMeta = GetStructureBlockMeta(blockId, meta);
+            if (placedBlockId == Block.Torch.id && placedMeta == 0)
+            {
+                placedMeta = ResolveStructureTorchMetadata(world.Reader, worldX, worldY, worldZ);
+            }
+
+            world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY, worldZ, placedBlockId, placedMeta, false);
         }
+    }
+
+    private static int ResolveStructureTorchMetadata(IBlockReader reader, int x, int y, int z)
+    {
+        if (reader.ShouldSuffocate(x - 1, y, z))
+        {
+            return 1;
+        }
+
+        if (reader.ShouldSuffocate(x + 1, y, z))
+        {
+            return 2;
+        }
+
+        if (reader.ShouldSuffocate(x, y, z - 1))
+        {
+            return 3;
+        }
+
+        if (reader.ShouldSuffocate(x, y, z + 1))
+        {
+            return 4;
+        }
+
+        if (reader.ShouldSuffocate(x, y - 1, z) || reader.GetBlockId(x, y - 1, z) == Block.Fence.id)
+        {
+            return 5;
+        }
+
+        return 5;
     }
 
     protected int GetBlockIdAtCurrentPosition(IWorldContext world, int x, int y, int z, StructureBoundingBox bounds)
@@ -284,6 +318,27 @@ public abstract class StructureComponent
                     {
                         PlaceBlockAtCurrentPosition(world, y != minY && y != maxY && x != minX && x != maxX && z != minZ && z != maxZ ? insideBlockId : boundaryBlockId, 0, x, y, z, bounds);
                     }
+                }
+            }
+        }
+    }
+
+    protected void FillWithRandomizedBlocks(IWorldContext world, StructureBoundingBox bounds, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, bool existingOnly, JavaRandom random, StructurePieceBlockSelector selector)
+    {
+        for (int y = minY; y <= maxY; ++y)
+        {
+            for (int x = minX; x <= maxX; ++x)
+            {
+                for (int z = minZ; z <= maxZ; ++z)
+                {
+                    if (existingOnly && GetBlockIdAtCurrentPosition(world, x, y, z, bounds) == 0)
+                    {
+                        continue;
+                    }
+
+                    bool wall = y == minY || y == maxY || x == minX || x == maxX || z == minZ || z == maxZ;
+                    selector.SelectBlocks(random, x, y, z, wall);
+                    PlaceBlockAtCurrentPosition(world, selector.SelectedBlockId, selector.SelectedBlockMeta, x, y, z, bounds);
                 }
             }
         }
@@ -352,7 +407,7 @@ public abstract class StructureComponent
 
         while ((world.Reader.IsAir(worldX, worldY, worldZ) || world.Reader.GetMaterial(worldX, worldY, worldZ).IsFluid) && worldY > 1)
         {
-            world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY, worldZ, blockId, meta, false);
+            world.Writer.SetBlockWithoutNotifyingNeighbors(worldX, worldY, worldZ, GetStructureBlockId(blockId, meta), GetStructureBlockMeta(blockId, meta), false);
             --worldY;
         }
     }

@@ -13,6 +13,7 @@ using BetaSharp.Worlds.Core.Systems;
 using BetaSharp.Worlds.Dimensions;
 using BetaSharp.Worlds.Mechanics;
 using BetaSharp.Worlds.Storage;
+using BetaSharp.Worlds.Villages;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 
@@ -89,6 +90,7 @@ public abstract class World : IWorldContext
 
         BlockHost = new ChunkHost(chunkSource);
         Reader = new WorldReader(this, Dimension);
+        Pathing.SetWorld(Reader);
         Writer = new WorldWriter(BlockHost, Reader);
         Writer.OnBlockChanged += BlockUpdate;
 
@@ -102,6 +104,8 @@ public abstract class World : IWorldContext
         TickScheduler = new WorldTickScheduler(this);
         Environment = new EnvironmentManager(this);
         Entities = new EntityManager(this);
+        Villages = new VillageCollection(this);
+        _villageSiege = new VillageSiege(this);
 
         Entities.OnBlockUpdateRequired += (x, y, z) => Broadcaster.BlockUpdateEvent(x, y, z);
 
@@ -137,6 +141,7 @@ public abstract class World : IWorldContext
 
     public EntityManager Entities { get; }
     public EnvironmentManager Environment { get; }
+    public VillageCollection Villages { get; }
 
     public List<IWorldEventListener> EventListeners { get; } = [];
     public LightingEngine Lighting { get; }
@@ -147,6 +152,7 @@ public abstract class World : IWorldContext
     public long Seed => Properties.RandomSeed;
     public WorldTickScheduler TickScheduler { get; }
     public int Difficulty { get; private set; }
+    private readonly VillageSiege _villageSiege;
 
     public PersistentStateManager StateManager { get; protected init; }
 
@@ -520,6 +526,8 @@ public abstract class World : IWorldContext
     {
         TickScheduler.Tick();
         Environment.UpdateWeatherCycles();
+        Villages.Tick();
+        _villageSiege.Tick();
 
         long nextWorldTime;
 

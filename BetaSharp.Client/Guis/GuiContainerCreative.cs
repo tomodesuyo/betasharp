@@ -236,13 +236,7 @@ public class GuiContainerCreative : GuiContainer
             }
             else
             {
-                InventorySlots.onSlotClick(slot.id, button, false, Game.player);
-                ItemStack? slotStack = InventorySlots.GetSlot(slot.id).getStack();
-                if (Game.playerController is PlayerControllerMP playerControllerMp)
-                {
-                    int creativeSlot = slot.id - InventorySlots.Slots.Count + 45;
-                    playerControllerMp.SendCreativeSlotAction(slotStack, creativeSlot);
-                }
+                HandleHotbarSlotClick(slot, button, playerInventory);
             }
 
             return;
@@ -396,6 +390,19 @@ public class GuiContainerCreative : GuiContainer
     {
         ItemStack? cursorStack = playerInventory.getCursorStack();
         ItemStack? slotStack = slot.getStack();
+        if (button == 2)
+        {
+            if (slotStack == null)
+            {
+                return;
+            }
+
+            ItemStack clonedStack = slotStack.copy();
+            clonedStack.count = clonedStack.getMaxCount();
+            playerInventory.setItemStack(clonedStack);
+            return;
+        }
+
         if (cursorStack != null && slotStack != null && cursorStack.isItemEqual(slotStack))
         {
             if (button == 0)
@@ -464,6 +471,19 @@ public class GuiContainerCreative : GuiContainer
             return;
         }
 
+        ItemStack?[] before = CaptureInventorySnapshot(playerInventory);
+        int clickMode = button == 2
+            ? ScreenHandlerClickMode.Clone
+            : isShiftDown
+                ? ScreenHandlerClickMode.QuickMove
+                : ScreenHandlerClickMode.Pickup;
+        InventorySlots.onSlotClick(slot.id, button, clickMode, Game.player);
+        SyncCreativeInventoryToServer(before, playerInventory);
+    }
+
+    private void HandleHotbarSlotClick(Slot slot, int button, InventoryPlayer playerInventory)
+    {
+        bool isShiftDown = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
         ItemStack?[] before = CaptureInventorySnapshot(playerInventory);
         int clickMode = button == 2
             ? ScreenHandlerClickMode.Clone

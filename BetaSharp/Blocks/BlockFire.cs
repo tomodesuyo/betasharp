@@ -25,6 +25,8 @@ internal class BlockFire : Block
         registerFlammableBlock(Block.TNT.id, 15, 100);
         registerFlammableBlock(Block.Grass.id, 60, 100);
         registerFlammableBlock(Block.Wool.id, 30, 60);
+        registerFlammableBlock(Block.Vine.id, 15, 100);
+        registerFlammableBlock(Block.Hay.id, 60, 20);
     }
 
     private void registerFlammableBlock(int block, int burnChange, int spreadChance)
@@ -58,17 +60,21 @@ internal class BlockFire : Block
         return 0;
     }
 
-    public override int getTickRate()
-    {
-        return 40;
-    }
+    public override int getTickRate() => 30;
 
     public override void onTick(OnTickEvent @event)
     {
-        if (!@event.World.Rules.GetBool(DefaultRules.DoFireTick))    return;
-        
+        if (!@event.World.Rules.GetBool(DefaultRules.DoFireTick))
+        {
+            return;
+        }
 
         bool isOnNetherrack = @event.World.Reader.GetBlockId(@event.X, @event.Y - 1, @event.Z) == Netherrack.id;
+        if (@event.World.Dimension.Id == 1 && @event.World.Reader.GetBlockId(@event.X, @event.Y - 1, @event.Z) == Bedrock.id)
+        {
+            isOnNetherrack = true;
+        }
+
         if (!canPlaceAt(new CanPlaceAtContext(@event.World, 0, @event.X, @event.Y, @event.Z)))
         {
             @event.World.Writer.SetBlock(@event.X, @event.Y, @event.Z, 0);
@@ -88,7 +94,7 @@ internal class BlockFire : Block
                 @event.World.Writer.SetBlockMetaWithoutNotifyingNeighbors(@event.X, @event.Y, @event.Z, fireAge + @event.World.Random.NextInt(3) / 2);
             }
 
-            @event.World.TickScheduler.ScheduleBlockUpdate(@event.X, @event.Y, @event.Z, id, getTickRate());
+            @event.World.TickScheduler.ScheduleBlockUpdate(@event.X, @event.Y, @event.Z, id, getTickRate() + @event.World.Random.NextInt(10));
             if (!isOnNetherrack && !areBlocksAroundFlammable(@event.World.Reader, @event.X, @event.Y, @event.Z))
             {
                 if (!@event.World.Reader.ShouldSuffocate(@event.X, @event.Y - 1, @event.Z) || fireAge > 3)

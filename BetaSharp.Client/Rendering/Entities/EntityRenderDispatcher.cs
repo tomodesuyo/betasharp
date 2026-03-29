@@ -42,13 +42,19 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityMooshroom), new MooshroomEntityRenderer(new ModelCow(), 0.7F));
         RegisterRenderer(typeof(EntityWolf), new WolfEntityRenderer(new ModelWolf(), 0.5F));
         RegisterRenderer(typeof(EntityChicken), new ChickenEntityRenderer(new ModelChicken(), 0.3F));
+        RegisterRenderer(typeof(EntityRabbit), new LivingEntityRenderer(new ModelRabbit(), 0.3F));
+        RegisterRenderer(typeof(EntityHorse), new HorseEntityRenderer());
         RegisterRenderer(typeof(EntityCreeper), new CreeperEntityRenderer());
         RegisterRenderer(typeof(EntitySkeleton), new UndeadEntityRenderer(new ModelSkeleton(), 0.5F));
+        RegisterRenderer(typeof(EntityWitherSkeleton), new WitherSkeletonEntityRenderer());
         RegisterRenderer(typeof(EntityZombie), new UndeadEntityRenderer(new ModelZombie(), 0.5F));
         RegisterRenderer(typeof(EntitySlime), new SlimeEntityRenderer(new ModelSlime(16), new ModelSlime(0), 0.25F));
+        RegisterRenderer(typeof(EntityMagmaCube), new MagmaCubeEntityRenderer());
+        RegisterRenderer(typeof(EntityWither), new WitherEntityRenderer());
         RegisterRenderer(typeof(EntityPlayer), new PlayerEntityRenderer());
         RegisterRenderer(typeof(EntityGiantZombie), new GiantEntityRenderer(new ModelZombie(), 0.5F, 6.0F));
         RegisterRenderer(typeof(EntityGhast), new GhastEntityRenderer());
+        RegisterRenderer(typeof(EntityBlaze), new LivingEntityRenderer(new ModelBlaze(), 0.5F));
         RegisterRenderer(typeof(EntitySquid), new SquidEntityRenderer(new ModelSquid(), 0.7F));
         RegisterRenderer(typeof(EntityLiving), new LivingEntityRenderer(new ModelBiped(), 0.5F));
         RegisterRenderer(typeof(Entity), new BoxEntityRenderer());
@@ -58,8 +64,10 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityEgg), new ProjectileEntityRenderer(Item.Egg.getTextureId(0)));
         RegisterRenderer(typeof(EntityEnderPearl), new ProjectileEntityRenderer(Item.EnderPearl.getTextureId(0)));
         RegisterRenderer(typeof(EntityEnderEye), new ProjectileEntityRenderer(Item.EyeOfEnder.getTextureId(0)));
+        RegisterRenderer(typeof(EntityPotion), new ProjectileEntityRenderer(Item.Potion.getTextureId(0)));
         RegisterRenderer(typeof(EntityExpBottle), new ProjectileEntityRenderer(Item.ExpBottle.getTextureId(0)));
         RegisterRenderer(typeof(EntityFireball), new FireballEntityRenderer());
+        RegisterRenderer(typeof(EntitySmallFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntityItem), new ItemRenderer());
         RegisterRenderer(typeof(EntityTNTPrimed), new TntEntityRenderer());
         RegisterRenderer(typeof(EntityFallingSand), new FallingBlockEntityRenderer());
@@ -69,7 +77,10 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityLightningBolt), new LightningEntityRenderer());
         RegisterRenderer(typeof(EntityVillager), new VillagerEntityRenderer());
         RegisterRenderer(typeof(EntityEnderman), new EndermanEntityRenderer());
-        RegisterRenderer(typeof(EntitySilverfish), new LivingEntityRenderer(new ModelSpider(), 0.3F));
+        RegisterRenderer(typeof(EntitySilverfish), new SilverfishEntityRenderer());
+        RegisterRenderer(typeof(EntityIronGolem), new IronGolemEntityRenderer());
+        RegisterRenderer(typeof(EntityEnderCrystal), new EnderCrystalEntityRenderer());
+        RegisterRenderer(typeof(EntityDragon), new DragonEntityRenderer());
 
         foreach (var render in entityRenderMap.Values)
         {

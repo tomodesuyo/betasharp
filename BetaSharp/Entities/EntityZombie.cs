@@ -47,4 +47,9 @@ public class EntityZombie : EntityMonster
     {
         return Item.Feather.id;
     }
+
+    public override bool isUndead()
+    {
+        return true;
+    }
 }

@@ -8,6 +8,8 @@ namespace BetaSharp.Blocks;
 
 internal class BlockEndPortal : BlockWithEntity
 {
+    public static bool BossDefeated { get; set; }
+
     public BlockEndPortal(int id, Material material) : base(id, 171, material)
     {
         setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F / 16.0F, 1.0F);
@@ -34,13 +36,27 @@ internal class BlockEndPortal : BlockWithEntity
 
     public override void updateBoundingBox(IBlockReader blockReader, EntityManager? entities, int x, int y, int z) => setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F / 16.0F, 1.0F);
 
+    public override void onPlaced(OnPlacedEvent @event)
+    {
+        base.onPlaced(@event);
+        if (!BossDefeated && @event.World.Dimension.Id != 0)
+        {
+            @event.World.Writer.SetBlockWithoutCallingOnPlaced(@event.X, @event.Y, @event.Z, 0, 0);
+        }
+    }
+
     public override void onEntityCollision(OnEntityCollisionEvent @event)
     {
         if (@event.Entity.vehicle == null && @event.Entity.passenger == null)
         {
             if (@event.Entity is EntityPlayer player)
             {
-                player.QueueDimensionChange(player.dimensionId == 1 ? 0 : 1);
+                if (player.dimensionId == 1)
+                {
+                    player.ShowEndCreditsOnReturn = true;
+                }
+
+                player.QueueDimensionChange(player.dimensionId == 1 ? 0 : 1, instant: true);
             }
             else
             {

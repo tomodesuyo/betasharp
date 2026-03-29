@@ -151,10 +151,20 @@ public class InventoryPlayer : IInventory
     {
         for (int slotIndex = 0; slotIndex < main.Length; ++slotIndex)
         {
-            if (main[slotIndex] != null)
+            ItemStack? stack = main[slotIndex];
+            if (stack == null)
             {
-                main[slotIndex].inventoryTick(player.world, player, slotIndex, selectedSlot == slotIndex);
+                continue;
             }
+
+            if (stack.count <= 0 || !stack.HasRegisteredItem())
+            {
+                main[slotIndex] = null;
+                dirty = true;
+                continue;
+            }
+
+            stack.inventoryTick(player.world, player, slotIndex, selectedSlot == slotIndex);
         }
 
     }

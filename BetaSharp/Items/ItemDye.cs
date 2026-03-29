@@ -68,20 +68,33 @@ internal class ItemDye : Item
         if (itemStack.getDamage() == 15)
         {
             int blockId = world.Reader.GetBlockId(x, y, z);
+            if (blockId == Block.Wheat.id || blockId == Block.Carrot.id || blockId == Block.Potato.id)
+            {
+                if (!world.IsRemote)
+                {
+                    ((BlockCrops)Block.Blocks[blockId]).applyFullGrowth(world, x, y, z);
+                    itemStack.ConsumeItem(entityPlayer);
+                }
+
+                return true;
+            }
+
+            if (blockId == Block.Cocoa.id)
+            {
+                if (!world.IsRemote)
+                {
+                    ((BlockCocoa)Block.Cocoa).ApplyBonemeal(world, x, y, z);
+                    itemStack.ConsumeItem(entityPlayer);
+                }
+
+                return true;
+            }
+
             if (blockId == Block.Sapling.id)
             {
                 if (!world.IsRemote)
                 {
                     ((BlockSapling)Block.Sapling).generate(world, x, y, z);
-                    itemStack.ConsumeItem(entityPlayer);
-                }
-                return true;
-            }
-            if (blockId == Block.Wheat.id)
-            {
-                if (!world.IsRemote)
-                {
-                    ((BlockCrops)Block.Wheat).applyFullGrowth(world, x, y, z);
                     itemStack.ConsumeItem(entityPlayer);
                 }
                 return true;
@@ -127,6 +140,63 @@ internal class ItemDye : Item
                         }
                     }
                 }
+                return true;
+            }
+        }
+
+        if (itemStack.getDamage() == 3)
+        {
+            int blockId = world.Reader.GetBlockId(x, y, z);
+            int blockMeta = world.Reader.GetBlockMeta(x, y, z);
+            if (blockId == Block.Log.id && (blockMeta & 3) == 3)
+            {
+                if (meta is 0 or 1)
+                {
+                    return false;
+                }
+
+                if (meta == 2)
+                {
+                    --z;
+                }
+                else if (meta == 3)
+                {
+                    ++z;
+                }
+                else if (meta == 4)
+                {
+                    --x;
+                }
+                else if (meta == 5)
+                {
+                    ++x;
+                }
+
+                if (!world.Reader.IsAir(x, y, z))
+                {
+                    return false;
+                }
+
+                int cocoaMeta = meta switch
+                {
+                    2 => 0,
+                    3 => 2,
+                    4 => 3,
+                    5 => 1,
+                    _ => -1
+                };
+
+                if (cocoaMeta < 0)
+                {
+                    return false;
+                }
+
+                if (!world.IsRemote)
+                {
+                    world.Writer.SetBlockWithoutCallingOnPlaced(x, y, z, Block.Cocoa.id, cocoaMeta);
+                    itemStack.ConsumeItem(entityPlayer);
+                }
+
                 return true;
             }
         }

@@ -8,15 +8,15 @@ public static class StructureVillagePieces
     {
         List<StructureVillagePieceWeight> pieces =
         [
-            new(typeof(ComponentVillageHouse4Garden), 4, random.NextInt(3 + terrainType) + 2 + terrainType),
-            new(typeof(ComponentVillageChurch), 20, random.NextInt(2 + terrainType)),
-            new(typeof(ComponentVillageHall), 15, random.NextInt(3 + terrainType) + terrainType),
-            new(typeof(ComponentVillageHouse1), 20, random.NextInt(3) + terrainType),
-            new(typeof(ComponentVillageWoodHut), 3, random.NextInt(4 + terrainType * 3) + 2 + terrainType),
-            new(typeof(ComponentVillageField), 3, random.NextInt(4 + terrainType) + 1 + terrainType),
-            new(typeof(ComponentVillageField2), 3, random.NextInt(3 + terrainType * 2) + 2 + terrainType),
-            new(typeof(ComponentVillageHouse2), 15, random.NextInt(2 + terrainType)),
-            new(typeof(ComponentVillageHouse3), 8, random.NextInt(3 + terrainType * 2) + terrainType),
+            new(typeof(ComponentVillageHouse4Garden), 4, NextIntInclusive(random, 2 + terrainType, 4 + terrainType * 2)),
+            new(typeof(ComponentVillageChurch), 20, NextIntInclusive(random, terrainType, 1 + terrainType)),
+            new(typeof(ComponentVillageHouse1), 20, NextIntInclusive(random, terrainType, 2 + terrainType)),
+            new(typeof(ComponentVillageWoodHut), 3, NextIntInclusive(random, 2 + terrainType, 5 + terrainType * 3)),
+            new(typeof(ComponentVillageHall), 15, NextIntInclusive(random, terrainType, 2 + terrainType)),
+            new(typeof(ComponentVillageField), 3, NextIntInclusive(random, 1 + terrainType, 4 + terrainType)),
+            new(typeof(ComponentVillageField2), 3, NextIntInclusive(random, 2 + terrainType, 4 + terrainType * 2)),
+            new(typeof(ComponentVillageHouse2), 15, NextIntInclusive(random, 0, 1 + terrainType)),
+            new(typeof(ComponentVillageHouse3), 8, NextIntInclusive(random, terrainType, 3 + terrainType * 2)),
         ];
 
         pieces.RemoveAll(piece => piece.VillagePiecesLimit == 0);
@@ -123,6 +123,7 @@ public static class StructureVillagePieces
                     break;
                 }
 
+                component.SetStartPiece(startPiece);
                 pieceWeight.VillagePiecesSpawned++;
                 startPiece.CurrentPieceWeight = pieceWeight;
                 if (!pieceWeight.CanSpawnMoreVillagePieces())
@@ -135,7 +136,14 @@ public static class StructureVillagePieces
         }
 
         StructureBoundingBox? torchBounds = ComponentVillageTorch.FindValidPlacement(components, random, x, y, z, facing);
-        return torchBounds == null ? null : new ComponentVillageTorch(componentType, random, torchBounds, facing);
+        if (torchBounds == null)
+        {
+            return null;
+        }
+
+        ComponentVillageTorch torch = new(componentType, random, torchBounds, facing);
+        torch.SetStartPiece(startPiece);
+        return torch;
     }
 
     private static StructureComponent? GetNextVillageStructureComponent(ComponentVillageStartPiece startPiece, List<StructureComponent> components, JavaRandom random, int x, int y, int z, int facing, int componentType)
@@ -207,4 +215,9 @@ public static class StructureVillagePieces
 
     public static StructureComponent? GetNextStructureComponentVillagePath(ComponentVillageStartPiece startPiece, List<StructureComponent> components, JavaRandom random, int x, int y, int z, int facing, int componentType)
         => GetNextComponentVillagePath(startPiece, components, random, x, y, z, facing, componentType);
+
+    private static int NextIntInclusive(JavaRandom random, int min, int max)
+    {
+        return random.NextInt(max - min + 1) + min;
+    }
 }

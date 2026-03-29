@@ -7,6 +7,7 @@ namespace BetaSharp.Client.Rendering.Entities.Models;
 public class ModelPart
 {
     private readonly List<Quad[]> _boxes = [];
+    private readonly List<ModelPart> _children = [];
     private int textureOffsetX;
     private int textureOffsetY;
     private int textureWidth = 64;
@@ -93,6 +94,11 @@ public class ModelPart
         rotationPointZ = var3;
     }
 
+    public void AddChild(ModelPart child)
+    {
+        _children.Add(child);
+    }
+
     public ModelPart setTextureSize(int width, int height)
     {
         textureWidth = width;
@@ -109,127 +115,89 @@ public class ModelPart
 
     public void render(float var1)
     {
-        if (!hidden)
+        if (hidden || !visible)
         {
-            if (visible)
-            {
-                if (!compiled)
-                {
-                    compileDisplayList(var1);
-                }
+            return;
+        }
 
-                if (rotateAngleX == 0.0F && rotateAngleY == 0.0F && rotateAngleZ == 0.0F)
-                {
-                    if (rotationPointX == 0.0F && rotationPointY == 0.0F && rotationPointZ == 0.0F)
-                    {
-                        GLManager.GL.CallList(displayList);
-                    }
-                    else
-                    {
-                        GLManager.GL.Translate(rotationPointX * var1, rotationPointY * var1, rotationPointZ * var1);
-                        GLManager.GL.CallList(displayList);
-                        GLManager.GL.Translate(-rotationPointX * var1, -rotationPointY * var1, -rotationPointZ * var1);
-                    }
-                }
-                else
-                {
-                    GLManager.GL.PushMatrix();
-                    GLManager.GL.Translate(rotationPointX * var1, rotationPointY * var1, rotationPointZ * var1);
-                    if (rotateAngleZ != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleZ * (180.0F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
-                    }
+        if (!compiled)
+        {
+            compileDisplayList(var1);
+        }
 
-                    if (rotateAngleY != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleY * (180.0F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
-                    }
+        bool hasTransform = rotationPointX != 0.0F || rotationPointY != 0.0F || rotationPointZ != 0.0F || rotateAngleX != 0.0F || rotateAngleY != 0.0F || rotateAngleZ != 0.0F;
+        if (hasTransform)
+        {
+            GLManager.GL.PushMatrix();
+            ApplyTransforms(var1);
+        }
 
-                    if (rotateAngleX != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleX * (180.0F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
-                    }
+        GLManager.GL.CallList(displayList);
+        for (int i = 0; i < _children.Count; ++i)
+        {
+            _children[i].render(var1);
+        }
 
-                    GLManager.GL.CallList(displayList);
-                    GLManager.GL.PopMatrix();
-                }
-
-            }
+        if (hasTransform)
+        {
+            GLManager.GL.PopMatrix();
         }
     }
 
     public void renderWithRotation(float var1)
     {
-        if (!hidden)
+        if (hidden || !visible)
         {
-            if (visible)
-            {
-                if (!compiled)
-                {
-                    compileDisplayList(var1);
-                }
-
-                GLManager.GL.PushMatrix();
-                GLManager.GL.Translate(rotationPointX * var1, rotationPointY * var1, rotationPointZ * var1);
-                if (rotateAngleY != 0.0F)
-                {
-                    GLManager.GL.Rotate(rotateAngleY * (180.0F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
-                }
-
-                if (rotateAngleX != 0.0F)
-                {
-                    GLManager.GL.Rotate(rotateAngleX * (180.0F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
-                }
-
-                if (rotateAngleZ != 0.0F)
-                {
-                    GLManager.GL.Rotate(rotateAngleZ * (180.0F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
-                }
-
-                GLManager.GL.CallList(displayList);
-                GLManager.GL.PopMatrix();
-            }
+            return;
         }
+
+        if (!compiled)
+        {
+            compileDisplayList(var1);
+        }
+
+        GLManager.GL.PushMatrix();
+        ApplyTransforms(var1);
+        GLManager.GL.CallList(displayList);
+        for (int i = 0; i < _children.Count; ++i)
+        {
+            _children[i].render(var1);
+        }
+
+        GLManager.GL.PopMatrix();
     }
 
     public void transform(float var1)
     {
-        if (!hidden)
+        if (hidden || !visible)
         {
-            if (visible)
-            {
-                if (!compiled)
-                {
-                    compileDisplayList(var1);
-                }
+            return;
+        }
 
-                if (rotateAngleX == 0.0F && rotateAngleY == 0.0F && rotateAngleZ == 0.0F)
-                {
-                    if (rotationPointX != 0.0F || rotationPointY != 0.0F || rotationPointZ != 0.0F)
-                    {
-                        GLManager.GL.Translate(rotationPointX * var1, rotationPointY * var1, rotationPointZ * var1);
-                    }
-                }
-                else
-                {
-                    GLManager.GL.Translate(rotationPointX * var1, rotationPointY * var1, rotationPointZ * var1);
-                    if (rotateAngleZ != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleZ * (180.0F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
-                    }
+        if (!compiled)
+        {
+            compileDisplayList(var1);
+        }
 
-                    if (rotateAngleY != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleY * (180.0F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
-                    }
+        ApplyTransforms(var1);
+    }
 
-                    if (rotateAngleX != 0.0F)
-                    {
-                        GLManager.GL.Rotate(rotateAngleX * (180.0F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
-                    }
-                }
+    private void ApplyTransforms(float scale)
+    {
+        GLManager.GL.Translate(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
+        if (rotateAngleZ != 0.0F)
+        {
+            GLManager.GL.Rotate(rotateAngleZ * (180.0F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
+        }
 
-            }
+        if (rotateAngleY != 0.0F)
+        {
+            GLManager.GL.Rotate(rotateAngleY * (180.0F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
+        }
+
+        if (rotateAngleX != 0.0F)
+        {
+            GLManager.GL.Rotate(rotateAngleX * (180.0F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
         }
     }
 

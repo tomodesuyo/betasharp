@@ -144,6 +144,7 @@ public class GuiIngame : Gui
         int health = _game.player.health;
         int lastHealth = _game.player.lastHealth;
         _rand.SetSeed(_updateCounter * 312871);
+        RenderBossHealth(scaledWidth, font);
         int armorValue;
         int i;
         int j;
@@ -593,6 +594,50 @@ public class GuiIngame : Gui
         GLManager.GL.Enable(GLEnum.DepthTest);
         GLManager.GL.Enable(GLEnum.AlphaTest);
         GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private void RenderBossHealth(int scaledWidth, TextRenderer font)
+    {
+        IBossDisplayData? boss = null;
+        double closestDistanceSq = double.MaxValue;
+        for (int i = 0; i < _game.world.Entities.Entities.Count; ++i)
+        {
+            if (_game.world.Entities.Entities[i] is not EntityLiving living || living.dead || living is not IBossDisplayData candidate)
+            {
+                continue;
+            }
+
+            double dx = living.x - _game.player.x;
+            double dy = living.y - _game.player.y;
+            double dz = living.z - _game.player.z;
+            double distanceSq = dx * dx + dy * dy + dz * dz;
+            if (distanceSq < closestDistanceSq)
+            {
+                closestDistanceSq = distanceSq;
+                boss = candidate;
+            }
+        }
+
+        if (boss == null || boss.MaxBossHealth <= 0)
+        {
+            return;
+        }
+
+        _game.textureManager.BindTexture(_game.textureManager.GetTextureId("/gui/icons.png"));
+        const int barWidth = 182;
+        int x = scaledWidth / 2 - barWidth / 2;
+        const int y = 12;
+        int filled = (int)(boss.BossHealth / (float)boss.MaxBossHealth * (barWidth + 1));
+        DrawTexturedModalRect(x, y, 0, 74, barWidth, 5);
+        DrawTexturedModalRect(x, y, 0, 74, barWidth, 5);
+        if (filled > 0)
+        {
+            DrawTexturedModalRect(x, y, 0, 79, filled, 5);
+        }
+
+        string label = boss.BossName;
+        font.DrawStringWithShadow(label, scaledWidth / 2 - font.GetStringWidth(label) / 2, y - 10, Color.FromRgb(0xFF00FF));
+        _game.textureManager.BindTexture(_game.textureManager.GetTextureId("/gui/icons.png"));
     }
 
     private void RenderInventorySlot(int slotIndex, int x, int y, float partialTicks)

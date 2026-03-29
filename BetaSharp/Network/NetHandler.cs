@@ -226,6 +226,16 @@ public abstract class NetHandler
         handle(var1);
     }
 
+    public virtual void onMerchantOffers(MerchantOffersS2CPacket packet)
+    {
+        handle(packet);
+    }
+
+    public virtual void onSelectMerchantTrade(SelectMerchantTradeC2SPacket packet)
+    {
+        handle(packet);
+    }
+
     public virtual void onPaintingEntitySpawn(PaintingEntitySpawnS2CPacket var1)
     {
         handle(var1);
