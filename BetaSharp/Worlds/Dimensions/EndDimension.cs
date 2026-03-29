@@ -1,3 +1,4 @@
+using BetaSharp.Blocks;
 using BetaSharp.Worlds.Chunks;
 using BetaSharp.Worlds.Gen.Chunks;
 using BetaSharp.Worlds.Generation.Biomes;
@@ -11,7 +12,8 @@ internal sealed class EndDimension : Dimension
     public override void InitBiomeSource()
     {
         Id = 1;
-        BiomeSource = new FixedBiomeSource(Biome.Sky, 0.5D, 0.0D);
+        HasCeiling = true;
+        BiomeSource = new FixedBiomeSource(Biome.End, 0.5D, 0.0D);
     }
 
     public override bool HasWorldSpawn => false;
@@ -20,7 +22,20 @@ internal sealed class EndDimension : Dimension
 
     public override float GetTimeOfDay(long time, float tickDelta) => 0.0F;
 
-    public override Vector3D<double> GetFogColor(float celestialAngle, float partialTicks) => new(0.09D, 0.0D, 0.09D);
+    public override Vector3D<double> GetFogColor(float celestialAngle, float partialTicks)
+    {
+        const int fogColor = 8421536;
+        return new Vector3D<double>(
+            ((fogColor >> 16) & 255) / 255.0D * 0.15D,
+            ((fogColor >> 8) & 255) / 255.0D * 0.15D,
+            (fogColor & 255) / 255.0D * 0.15D);
+    }
+
+    public override bool IsValidSpawnPoint(int x, int z)
+    {
+        int blockId = World.GetSpawnBlockId(x, z);
+        return blockId != 0 && Block.Blocks[blockId] != null && Block.Blocks[blockId].material.BlocksMovement;
+    }
 
     public override float CloudHeight => 8.0F;
 }

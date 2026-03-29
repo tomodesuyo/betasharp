@@ -1,4 +1,5 @@
 using BetaSharp.Util.Maths;
+using BetaSharp.Worlds;
 using BetaSharp.Worlds.Generation.Biomes;
 
 namespace BetaSharp.Worlds.Biomes.Source;
@@ -116,16 +117,19 @@ internal abstract class LegacyGenLayer
 
     protected LegacyGenLayer(long seed)
     {
-        _baseSeed = seed;
-        _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
-        _baseSeed += seed;
-        _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
-        _baseSeed += seed;
-        _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
-        _baseSeed += seed;
+        unchecked
+        {
+            _baseSeed = seed;
+            _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
+            _baseSeed += seed;
+            _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
+            _baseSeed += seed;
+            _baseSeed *= _baseSeed * 6364136223846793005L + 1442695040888963407L;
+            _baseSeed += seed;
+        }
     }
 
-    public static LegacyGenLayer[] Build(long seed)
+    public static LegacyGenLayer[] Build(long seed, WorldType? terrainType = null)
     {
         LegacyGenLayer layer = new LegacyLayerIsland(1L);
         layer = new LegacyGenLayerZoomFuzzy(2000L, layer);
@@ -147,11 +151,9 @@ internal abstract class LegacyGenLayer
         LegacyGenLayer smoothRiver = new LegacyGenLayerSmooth(1000L, river);
 
         LegacyGenLayer biomeBase = LegacyGenLayerZoom.Apply(1000L, layer, 0);
-        LegacyGenLayer villageLandscape = new LegacyGenLayerVillageLandscape(200L, biomeBase);
-        LegacyGenLayer biomeLayer = LegacyGenLayerZoom.Apply(1000L, villageLandscape, 2);
+        LegacyGenLayer biomeGen = new LegacyGenLayerBiome(200L, biomeBase, terrainType ?? WorldType.Default);
+        LegacyGenLayer biomeLayer = LegacyGenLayerZoom.Apply(1000L, biomeGen, 2);
         biomeLayer = new LegacyGenLayerHills(1000L, biomeLayer);
-        LegacyGenLayer temperature = new LegacyGenLayerTemperature(biomeLayer);
-        LegacyGenLayer downfall = new LegacyGenLayerDownfall(biomeLayer);
 
         for (int i = 0; i < biomeSize; ++i)
         {
@@ -166,49 +168,46 @@ internal abstract class LegacyGenLayer
                 biomeLayer = new LegacyGenLayerShore(1000L, biomeLayer);
                 biomeLayer = new LegacyGenLayerSwampRivers(1000L, biomeLayer);
             }
-
-            LegacyGenLayer smoothTemperature = new LegacyGenLayerSmoothZoom(1000L + i, temperature);
-            temperature = new LegacyGenLayerTemperatureMix(smoothTemperature, biomeLayer, i);
-            LegacyGenLayer smoothDownfall = new LegacyGenLayerSmoothZoom(1000L + i, downfall);
-            downfall = new LegacyGenLayerDownfallMix(smoothDownfall, biomeLayer, i);
         }
 
         LegacyGenLayer smoothBiome = new LegacyGenLayerSmooth(1000L, biomeLayer);
         LegacyGenLayer riverMix = new LegacyGenLayerRiverMix(100L, smoothBiome, smoothRiver);
-        LegacyGenLayer smoothTemperatureFinal = LegacyGenLayerSmoothZoom.Apply(1000L, temperature, 2);
-        LegacyGenLayer smoothDownfallFinal = LegacyGenLayerSmoothZoom.Apply(1000L, downfall, 2);
         LegacyGenLayer voronoi = new LegacyGenLayerZoomVoronoi(10L, riverMix);
 
         riverMix.InitWorldGenSeed(seed);
-        smoothTemperatureFinal.InitWorldGenSeed(seed);
-        smoothDownfallFinal.InitWorldGenSeed(seed);
         voronoi.InitWorldGenSeed(seed);
-        return [riverMix, voronoi, smoothTemperatureFinal, smoothDownfallFinal];
+        return [riverMix, voronoi];
     }
 
     public virtual void InitWorldGenSeed(long seed)
     {
-        _worldGenSeed = seed;
-        Parent?.InitWorldGenSeed(seed);
-        _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
-        _worldGenSeed += _baseSeed;
-        _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
-        _worldGenSeed += _baseSeed;
-        _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
-        _worldGenSeed += _baseSeed;
+        unchecked
+        {
+            _worldGenSeed = seed;
+            Parent?.InitWorldGenSeed(seed);
+            _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
+            _worldGenSeed += _baseSeed;
+            _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
+            _worldGenSeed += _baseSeed;
+            _worldGenSeed *= _worldGenSeed * 6364136223846793005L + 1442695040888963407L;
+            _worldGenSeed += _baseSeed;
+        }
     }
 
     protected void InitChunkSeed(long x, long z)
     {
-        _chunkSeed = _worldGenSeed;
-        _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
-        _chunkSeed += x;
-        _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
-        _chunkSeed += z;
-        _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
-        _chunkSeed += x;
-        _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
-        _chunkSeed += z;
+        unchecked
+        {
+            _chunkSeed = _worldGenSeed;
+            _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
+            _chunkSeed += x;
+            _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
+            _chunkSeed += z;
+            _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
+            _chunkSeed += x;
+            _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
+            _chunkSeed += z;
+        }
     }
 
     protected int NextInt(int bound)
@@ -219,8 +218,11 @@ internal abstract class LegacyGenLayer
             value += bound;
         }
 
-        _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
-        _chunkSeed += _worldGenSeed;
+        unchecked
+        {
+            _chunkSeed *= _chunkSeed * 6364136223846793005L + 1442695040888963407L;
+            _chunkSeed += _worldGenSeed;
+        }
         return value;
     }
 
@@ -275,13 +277,59 @@ internal sealed class LegacyGenLayerIsland(long seed, LegacyGenLayer parent) : L
 
                 if (center != 0 || northwest == 0 && northeast == 0 && southwest == 0 && southeast == 0)
                 {
-                    values[dx + dz * width] = center != 1 || northwest == 1 && northeast == 1 && southwest == 1 && southeast == 1
-                        ? center
-                        : 1 - NextInt(5) / 4;
+                    if (center > 0 && (northwest == 0 || northeast == 0 || southwest == 0 || southeast == 0))
+                    {
+                        if (NextInt(5) == 0)
+                        {
+                            values[dx + dz * width] = center == LegacyBiomeIds.IcePlains
+                                ? LegacyBiomeIds.FrozenOcean
+                                : LegacyBiomeIds.Ocean;
+                        }
+                        else
+                        {
+                            values[dx + dz * width] = center;
+                        }
+                    }
+                    else
+                    {
+                        values[dx + dz * width] = center;
+                    }
                 }
                 else
                 {
-                    values[dx + dz * width] = NextInt(3) / 2;
+                    int candidateCount = 1;
+                    int candidateBiome = 1;
+
+                    if (northwest != 0 && NextInt(candidateCount++) == 0)
+                    {
+                        candidateBiome = northwest;
+                    }
+
+                    if (northeast != 0 && NextInt(candidateCount++) == 0)
+                    {
+                        candidateBiome = northeast;
+                    }
+
+                    if (southwest != 0 && NextInt(candidateCount++) == 0)
+                    {
+                        candidateBiome = southwest;
+                    }
+
+                    if (southeast != 0 && NextInt(candidateCount++) == 0)
+                    {
+                        candidateBiome = southeast;
+                    }
+
+                    if (NextInt(3) == 0)
+                    {
+                        values[dx + dz * width] = candidateBiome;
+                    }
+                    else
+                    {
+                        values[dx + dz * width] = candidateBiome == LegacyBiomeIds.IcePlains
+                            ? LegacyBiomeIds.FrozenOcean
+                            : LegacyBiomeIds.Ocean;
+                    }
                 }
             }
         }
@@ -481,18 +529,28 @@ internal sealed class LegacyGenLayerSmooth(long seed, LegacyGenLayer parent) : L
     }
 }
 
-internal sealed class LegacyGenLayerVillageLandscape(long seed, LegacyGenLayer parent) : LegacyGenLayer(seed)
+internal sealed class LegacyGenLayerBiome(long seed, LegacyGenLayer parent, WorldType terrainType) : LegacyGenLayer(seed)
 {
-    private static readonly int[] s_allowedBiomes =
-    [
-        LegacyBiomeIds.Desert,
-        LegacyBiomeIds.Forest,
-        LegacyBiomeIds.ExtremeHills,
-        LegacyBiomeIds.Swampland,
-        LegacyBiomeIds.Plains,
-        LegacyBiomeIds.Taiga,
-        LegacyBiomeIds.Jungle,
-    ];
+    private readonly int[] _allowedBiomes = terrainType.Name.Equals("default_1_1", StringComparison.OrdinalIgnoreCase)
+        ?
+        [
+            LegacyBiomeIds.Desert,
+            LegacyBiomeIds.Forest,
+            LegacyBiomeIds.ExtremeHills,
+            LegacyBiomeIds.Swampland,
+            LegacyBiomeIds.Plains,
+            LegacyBiomeIds.Taiga,
+        ]
+        :
+        [
+            LegacyBiomeIds.Desert,
+            LegacyBiomeIds.Forest,
+            LegacyBiomeIds.ExtremeHills,
+            LegacyBiomeIds.Swampland,
+            LegacyBiomeIds.Plains,
+            LegacyBiomeIds.Taiga,
+            LegacyBiomeIds.Jungle,
+        ];
 
     public override int[] GetValues(int x, int z, int width, int depth)
     {
@@ -510,7 +568,7 @@ internal sealed class LegacyGenLayerVillageLandscape(long seed, LegacyGenLayer p
                 {
                     LegacyBiomeIds.Ocean => LegacyBiomeIds.Ocean,
                     LegacyBiomeIds.MushroomIsland => LegacyBiomeIds.MushroomIsland,
-                    1 => s_allowedBiomes[NextInt(s_allowedBiomes.Length)],
+                    1 => _allowedBiomes[NextInt(_allowedBiomes.Length)],
                     _ => LegacyBiomeIds.IcePlains,
                 };
             }

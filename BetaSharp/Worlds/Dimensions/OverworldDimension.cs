@@ -51,7 +51,7 @@ internal class OverworldDimension : Dimension
             return blockId != 0 && Block.Blocks[blockId] != null && Block.Blocks[blockId].material.BlocksMovement;
         }
 
-        return base.IsValidSpawnPoint(x, z);
+        return World.GetSpawnBlockId(x, z) == Block.GrassBlock.id;
     }
 
     public override float GetTimeOfDay(long time, float partialTicks)

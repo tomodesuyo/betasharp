@@ -481,6 +481,7 @@ public class CreativeScreenHandler : ScreenHandler
         AddMetadataVariants(Block.Log, 4);
         AddMetadataVariants(Block.Sapling, 4);
         AddMetadataVariants(Block.Leaves, 4);
+        AddMetadataVariants(Block.StoneBrick, 4);
         AddMetadataVariants(Item.Dye, 16, 1);
     }
 

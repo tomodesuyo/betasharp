@@ -212,17 +212,40 @@ public abstract class World : IWorldContext
             int x = 0;
             int z = 0;
             int y = 64;
+            JavaRandom spawnRandom = new(Seed);
+            IReadOnlyList<Generation.Biomes.Biome> spawnBiomes = Dimension.BiomeSource.GetBiomesToSpawnIn();
 
-            const int maxAttempts = 512;
-            int attempts = 0;
-
-            while (!Dimension.IsValidSpawnPoint(x, z) && attempts++ < maxAttempts)
+            if (Dimension.HasWorldSpawn)
             {
-                x += Random.NextInt(64) - Random.NextInt(64);
-                z += Random.NextInt(64) - Random.NextInt(64);
+                int[] searchRadii = [256, 512, 1024, 2048];
+                Vec3i? biomeSpawn = null;
+                for (int i = 0; i < searchRadii.Length && biomeSpawn == null; ++i)
+                {
+                    biomeSpawn = Dimension.BiomeSource.FindBiomePosition(0, 0, searchRadii[i], spawnBiomes.ToList(), spawnRandom);
+                }
+
+                if (biomeSpawn != null)
+                {
+                    x = biomeSpawn.Value.X;
+                    z = biomeSpawn.Value.Z;
+                }
             }
 
-            if (!Dimension.IsValidSpawnPoint(x, z))
+            const int maxAttempts = 1000;
+            int attempts = 0;
+
+            while (attempts++ < maxAttempts)
+            {
+                if (Dimension.IsValidSpawnPoint(x, z) && spawnBiomes.Contains(Dimension.BiomeSource.GetBiome(x, z)))
+                {
+                    break;
+                }
+
+                x += spawnRandom.NextInt(64) - spawnRandom.NextInt(64);
+                z += spawnRandom.NextInt(64) - spawnRandom.NextInt(64);
+            }
+
+            if (!Dimension.IsValidSpawnPoint(x, z) || !spawnBiomes.Contains(Dimension.BiomeSource.GetBiome(x, z)))
             {
                 x = 0;
                 z = 0;

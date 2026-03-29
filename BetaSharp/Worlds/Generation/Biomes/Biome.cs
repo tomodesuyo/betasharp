@@ -36,6 +36,7 @@ public class Biome
     public static readonly Biome ExtremeHillsEdge = Register(20, "extreme_hills_edge", new Biome().SetColor(7501978).SetName("Extreme Hills Edge").SetHeight(0.2F, 0.8F).SetClimate(0.2F, 0.3F));
     public static readonly Biome Jungle = Register(21, "jungle", new BiomeGenJungle().SetColor(5470985).SetName("Jungle").SetFoliageColor(5470985).SetClimate(1.2F, 0.9F).SetHeight(0.2F, 0.4F));
     public static readonly Biome JungleHills = Register(22, "jungle_hills", new BiomeGenJungle().SetColor(2900485).SetName("JungleHills").SetFoliageColor(5470985).SetClimate(1.2F, 0.9F).SetHeight(1.8F, 0.2F));
+    public static readonly Biome End = Register(23, "end", new BiomeGenEnd().SetColor(0x8080FF).SetName("The End").DisableRain().SetClimate(0.5F, 0.0F).SetHeight(0.1F, 0.2F));
     public static readonly Biome Rainforest = Register(30, "rainforest", new BiomeGenRainforest().SetColor(9419456).SetName("Rainforest").SetFoliageColor(2092120));
     public static readonly Biome SeasonalForest = Register(31, "seasonal_forest", new Biome().SetColor(10215459).SetName("Seasonal Forest"));
     public static readonly Biome Savanna = Register(32, "savanna", new BiomeGenDesert().SetColor(14278691).SetName("Savanna"));
@@ -67,7 +68,7 @@ public class Biome
     public int SandPerChunk { get; private set; } = 3;
     public int GravelPerChunk { get; private set; } = 1;
     public int ClayPerChunk { get; private set; } = 1;
-    internal BiomeDecorator Decorator { get; } = new();
+    internal BiomeDecorator Decorator { get; private set; } = new();
     protected WeightedRandomSelector<SpawnListEntry> MonsterList { get; } = new();
     protected WeightedRandomSelector<SpawnListEntry> CreatureList { get; } = new();
     protected WeightedRandomSelector<SpawnListEntry> WaterCreatureList { get; } = new();
@@ -141,6 +142,12 @@ public class Biome
         Decorator.GravelPerChunk = gravelPerChunk;
         Decorator.ClayPerChunk = clayPerChunk;
         Decorator.WaterLiliesPerChunk = waterLiliesPerChunk;
+        return this;
+    }
+
+    private protected Biome SetBiomeDecorator(BiomeDecorator decorator)
+    {
+        Decorator = decorator;
         return this;
     }
 

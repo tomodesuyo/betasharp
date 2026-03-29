@@ -84,6 +84,14 @@ internal class RegionWorldStorage : IWorldStorage, IPlayerStorage
             return new RegionChunkStorage(netherDir.FullName);
         }
 
+        if (dimension is EndDimension)
+        {
+            var endDir = new DirectoryInfo(Path.Combine(_saveDirectory.FullName, "DIM1"));
+            if (!endDir.Exists) endDir.Create();
+
+            return new RegionChunkStorage(endDir.FullName);
+        }
+
         return new RegionChunkStorage(_saveDirectory.FullName);
     }
 

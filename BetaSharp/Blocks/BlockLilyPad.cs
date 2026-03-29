@@ -30,7 +30,7 @@ internal class BlockLilyPad : Block
 
     public override bool canPlaceAt(CanPlaceAtContext context)
     {
-        return base.canPlaceAt(context) && CanStay(context.World, context.X, context.Y, context.Z);
+        return CanStay(context.World, context.X, context.Y, context.Z);
     }
 
     public override void neighborUpdate(OnTickEvent @event)

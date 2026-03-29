@@ -6,10 +6,9 @@ namespace BetaSharp.Client.Rendering.Entities.Models;
 
 public class ModelPart
 {
-    private PositionTextureVertex[] corners;
-    private Quad[] faces;
-    private readonly int textureOffsetX;
-    private readonly int textureOffsetY;
+    private readonly List<Quad[]> _boxes = [];
+    private int textureOffsetX;
+    private int textureOffsetY;
     private int textureWidth = 64;
     private int textureHeight = 32;
     public float rotationPointX;
@@ -37,8 +36,8 @@ public class ModelPart
 
     public void addBox(float var1, float var2, float var3, int var4, int var5, int var6, float var7)
     {
-        corners = new PositionTextureVertex[8];
-        faces = new Quad[6];
+        PositionTextureVertex[] corners = new PositionTextureVertex[8];
+        Quad[] faces = new Quad[6];
         float var8 = var1 + var4;
         float var9 = var2 + var5;
         float var10 = var3 + var6;
@@ -82,7 +81,9 @@ public class ModelPart
                 faces[var19].flipFace();
             }
         }
-
+        
+        _boxes.Add(faces);
+        compiled = false;
     }
 
     public void setRotationPoint(float var1, float var2, float var3)
@@ -96,6 +97,13 @@ public class ModelPart
     {
         textureWidth = width;
         textureHeight = height;
+        return this;
+    }
+
+    public ModelPart setTextureOffset(int x, int y)
+    {
+        textureOffsetX = x;
+        textureOffsetY = y;
         return this;
     }
 
@@ -231,9 +239,13 @@ public class ModelPart
         GLManager.GL.NewList(displayList, GLEnum.Compile);
         Tessellator var2 = Tessellator.instance;
 
-        for (int var3 = 0; var3 < faces.Length; ++var3)
+        for (int boxIndex = 0; boxIndex < _boxes.Count; ++boxIndex)
         {
-            faces[var3].draw(var2, var1);
+            Quad[] faces = _boxes[boxIndex];
+            for (int var3 = 0; var3 < faces.Length; ++var3)
+            {
+                faces[var3].draw(var2, var1);
+            }
         }
 
         GLManager.GL.EndList();

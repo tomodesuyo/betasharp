@@ -21,6 +21,14 @@ internal sealed class ComponentStrongholdPortalRoom : StructureComponent
         return bounds.MinY > 10 && FindIntersecting(components, bounds) == null ? new ComponentStrongholdPortalRoom(componentType, bounds, facing) : null;
     }
 
+    public override void BuildComponent(StructureComponent component, List<StructureComponent> components, JavaRandom random)
+    {
+        if (component is ComponentStrongholdStairs2 startPiece)
+        {
+            startPiece.PortalRoom = this;
+        }
+    }
+
     public override bool AddComponentParts(IWorldContext world, JavaRandom random, StructureBoundingBox bounds)
     {
         if (IsLiquidInStructureBoundingBox(world, bounds))
@@ -30,7 +38,15 @@ internal sealed class ComponentStrongholdPortalRoom : StructureComponent
 
         FillWithBlocks(world, bounds, 0, 0, 0, 10, 7, 15, Block.StoneBrick.id, 0, false);
         FillWithBlocks(world, bounds, 1, 1, 1, 9, 6, 14, 0, 0, false);
-        FillWithBlocks(world, bounds, 4, 1, 0, 6, 3, 0, Block.IronBars.id, 0, false);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 1, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 2, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 4, 3, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, 0, 0, 5, 1, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, 0, 0, 5, 2, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 5, 3, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 1, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 2, 0, bounds);
+        PlaceBlockAtCurrentPosition(world, Block.IronBars.id, 0, 6, 3, 0, bounds);
 
         int ceilingY = 6;
         FillWithBlocks(world, bounds, 1, ceilingY, 1, 1, ceilingY, 14, Block.StoneBrick.id, 0, false);

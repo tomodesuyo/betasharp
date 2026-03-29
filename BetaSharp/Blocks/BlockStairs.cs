@@ -81,9 +81,9 @@ internal class BlockStairs : Block
 
     public override int getRenderLayer() => _baseBlock.getRenderLayer();
 
-    public override int getDroppedItemId(int blockMeta) => _baseBlock.getDroppedItemId(blockMeta);
+    public override int getDroppedItemId(int blockMeta) => id;
 
-    public override int getDroppedItemCount() => _baseBlock.getDroppedItemCount();
+    public override int getDroppedItemCount() => 1;
 
     public override int getTexture(int side, int meta) => _baseBlock.getTexture(side, 0);
 

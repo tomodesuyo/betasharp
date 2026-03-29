@@ -43,7 +43,7 @@ internal class BiomeDecorator
     public int GravelPerChunk { get; set; } = 1;
     public int ClayPerChunk { get; set; } = 1;
 
-    public void Decorate(IWorldContext world, JavaRandom random, Biome biome, int blockX, int blockZ)
+    public virtual void Decorate(IWorldContext world, JavaRandom random, Biome biome, int blockX, int blockZ)
     {
         GenerateOres(world, random, blockX, blockZ);
 
@@ -214,7 +214,7 @@ internal class BiomeDecorator
         }
     }
 
-    private void GenerateOres(IWorldContext world, JavaRandom random, int blockX, int blockZ)
+    protected virtual void GenerateOres(IWorldContext world, JavaRandom random, int blockX, int blockZ)
     {
         for (int i = 0; i < 8; ++i)
         {

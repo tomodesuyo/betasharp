@@ -16,17 +16,6 @@ internal sealed class ItemLilyPad : Item
 
     public override bool useOnBlock(ItemStack itemStack, EntityPlayer entityPlayer, IWorldContext world, int x, int y, int z, int meta)
     {
-        if (world.Reader.GetMaterial(x, y, z) == Material.Water && world.Reader.GetBlockMeta(x, y, z) == 0 && world.Reader.IsAir(x, y + 1, z))
-        {
-            world.Writer.SetBlock(x, y + 1, z, Block.LilyPad.id);
-            if (!entityPlayer.capabilities.IsCreativeMode)
-            {
-                --itemStack.count;
-            }
-
-            return true;
-        }
-
         return false;
     }
 
@@ -46,9 +35,8 @@ internal sealed class ItemLilyPad : Item
             return itemStack;
         }
 
-        if (world.Reader.GetMaterial(x, y, z) == Material.Water && world.Reader.GetBlockMeta(x, y, z) == 0 && world.Reader.IsAir(x, y + 1, z))
+        if (world.Reader.GetMaterial(x, y, z) == Material.Water && world.Reader.GetBlockMeta(x, y, z) == 0 && world.Reader.IsAir(x, y + 1, z) && world.Writer.SetBlock(x, y + 1, z, Block.LilyPad.id))
         {
-            world.Writer.SetBlock(x, y + 1, z, Block.LilyPad.id);
             if (!entityPlayer.capabilities.IsCreativeMode)
             {
                 --itemStack.count;

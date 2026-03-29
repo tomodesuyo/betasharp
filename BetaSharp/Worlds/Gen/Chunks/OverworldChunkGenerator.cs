@@ -127,11 +127,11 @@ internal class OverworldChunkGenerator : IChunkSource
         BuildTerrain(chunkX, chunkZ, blocks, _generationBiomes);
         _biomes = _biomeSource.GetBiomesInArea(_biomes, chunkX * 16, chunkZ * 16, 16, 16);
         BuildSurfaces(chunkX, chunkZ, blocks, _biomes);
+        _caveCarver.carve(this, _level, chunkX, chunkZ, blocks);
+        _ravineCarver.carve(this, _level, chunkX, chunkZ, blocks);
         _mineshaftGenerator.Generate(this, _level, chunkX, chunkZ, blocks);
         _villageGenerator.Generate(this, _level, chunkX, chunkZ, blocks);
         _strongholdGenerator.Generate(this, _level, chunkX, chunkZ, blocks);
-        _caveCarver.carve(this, _level, chunkX, chunkZ, blocks);
-        _ravineCarver.carve(this, _level, chunkX, chunkZ, blocks);
         chunk.PopulateHeightMap();
         return chunk;
     }

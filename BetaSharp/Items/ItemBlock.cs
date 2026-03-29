@@ -76,7 +76,7 @@ internal class ItemBlock : Item
         if (collisionBox is { } box)
         {
             List<Entity> entitiesInBox = world.Entities.CollectEntitiesOfType<Entity>(box);
-            bool hasBlockingEntity = entitiesInBox.Any(entity => entity.preventEntitySpawning);
+            bool hasBlockingEntity = entitiesInBox.Any(entity => entity != entityPlayer && entity.preventEntitySpawning);
             if (hasBlockingEntity)
             {
                 return false;

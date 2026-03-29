@@ -15,13 +15,13 @@ public class BiomeSource
         Biome.Taiga,
         Biome.TaigaHills,
         Biome.ForestHills,
+        Biome.Jungle,
+        Biome.JungleHills,
     ];
 
-    private LegacyGenLayer _biomeLayer = null!;
-    private LegacyGenLayer _voronoiLayer = null!;
-    private LegacyGenLayer _temperatureLayer = null!;
-    private LegacyGenLayer _downfallLayer = null!;
-    private LegacyBiomeCache _cache = null!;
+    private LegacyGenLayer _genBiomes = null!;
+    private LegacyGenLayer _biomeIndexLayer = null!;
+    private LegacyBiomeCache _biomeCache = null!;
     public double[] TemperatureMap;
     public double[] DownfallMap;
     public Biome[] Biomes;
@@ -34,12 +34,10 @@ public class BiomeSource
 
     public void Restore(IWorldContext world)
     {
-        LegacyGenLayer[] layers = LegacyGenLayer.Build(world.Seed);
-        _biomeLayer = layers[0];
-        _voronoiLayer = layers[1];
-        _temperatureLayer = layers[2];
-        _downfallLayer = layers[3];
-        _cache = new LegacyBiomeCache(this);
+        LegacyGenLayer[] layers = LegacyGenLayer.Build(world.Seed, world.Properties.TerrainType);
+        _genBiomes = layers[0];
+        _biomeIndexLayer = layers[1];
+        _biomeCache = new LegacyBiomeCache(this);
     }
 
     public virtual Biome GetBiome(ChunkPos chunkPos)
@@ -47,11 +45,11 @@ public class BiomeSource
         return GetBiome(chunkPos.X << 4, chunkPos.Z << 4);
     }
 
-    public virtual Biome GetBiome(int x, int z) => _cache.GetBiome(x, z);
+    public virtual Biome GetBiome(int x, int z) => _biomeCache.GetBiome(x, z);
 
-    public virtual double GetTemperature(int x, int z) => _cache.GetTemperature(x, z);
+    public virtual double GetTemperature(int x, int z) => _biomeCache.GetTemperature(x, z);
     public virtual double GetTemperature(int x, int y, int z) => GetTemperature(x, z);
-    public virtual double GetDownfall(int x, int z) => _cache.GetDownfall(x, z);
+    public virtual double GetDownfall(int x, int z) => _biomeCache.GetDownfall(x, z);
 
     public virtual IReadOnlyList<Biome> GetBiomesToSpawnIn() => s_biomesToSpawnIn;
 
@@ -70,10 +68,10 @@ public class BiomeSource
             map = new double[size];
         }
 
-        int[] raw = _temperatureLayer.GetValues(x, z, width, depth);
+        int[] raw = _biomeIndexLayer.GetValues(x, z, width, depth);
         for (int i = 0; i < size; ++i)
         {
-            map[i] = Math.Min(raw[i] / 65536.0D, 1.0D);
+            map[i] = Math.Min(ResolveLegacyBiome(raw[i]).Temperature, 1.0D);
         }
 
         return map;
@@ -88,10 +86,10 @@ public class BiomeSource
         }
 
         LegacyIntCache.Reset();
-        int[] raw = _downfallLayer.GetValues(x, z, width, depth);
+        int[] raw = _biomeIndexLayer.GetValues(x, z, width, depth);
         for (int i = 0; i < size; ++i)
         {
-            map[i] = Math.Min(raw[i] / 65536.0D, 1.0D);
+            map[i] = Math.Min(ResolveLegacyBiome(raw[i]).Downfall, 1.0D);
         }
 
         return map;
@@ -106,7 +104,7 @@ public class BiomeSource
             biomes = new Biome[size];
         }
 
-        int[] raw = _biomeLayer.GetValues(x, z, width, depth);
+        int[] raw = _genBiomes.GetValues(x, z, width, depth);
         for (int i = 0; i < size; ++i)
         {
             biomes[i] = ResolveLegacyBiome(raw[i]);
@@ -131,14 +129,14 @@ public class BiomeSource
 
         if (useCache && width == 16 && depth == 16 && (x & 15) == 0 && (z & 15) == 0)
         {
-            Biome[] cached = _cache.GetBiomes(x, z);
+            Biome[] cached = _biomeCache.GetBiomes(x, z);
             Array.Copy(cached, 0, biomes, 0, size);
             TemperatureMap = GetTemperatures(TemperatureMap, x, z, width, depth);
             DownfallMap = GetDownfall(DownfallMap, x, z, width, depth);
             return biomes;
         }
 
-        int[] raw = _voronoiLayer.GetValues(x, z, width, depth);
+        int[] raw = _biomeIndexLayer.GetValues(x, z, width, depth);
         for (int i = 0; i < size; ++i)
         {
             biomes[i] = ResolveLegacyBiome(raw[i]);
@@ -149,7 +147,7 @@ public class BiomeSource
         return biomes;
     }
 
-    public void CleanupCache() => _cache.Cleanup();
+    public void CleanupCache() => _biomeCache.Cleanup();
 
     public virtual bool AreBiomesViable(int x, int z, int radius, ICollection<Biome> allowed)
     {
@@ -160,7 +158,7 @@ public class BiomeSource
         int width = maxX - minX + 1;
         int depth = maxZ - minZ + 1;
         LegacyIntCache.Reset();
-        int[] raw = _biomeLayer.GetValues(minX, minZ, width, depth);
+        int[] raw = _genBiomes.GetValues(minX, minZ, width, depth);
 
         for (int i = 0; i < width * depth; ++i)
         {
@@ -182,7 +180,7 @@ public class BiomeSource
         int width = maxX - minX + 1;
         int depth = maxZ - minZ + 1;
         LegacyIntCache.Reset();
-        int[] raw = _biomeLayer.GetValues(minX, minZ, width, depth);
+        int[] raw = _genBiomes.GetValues(minX, minZ, width, depth);
         Vec3i? result = null;
         int found = 0;
 
@@ -200,7 +198,6 @@ public class BiomeSource
 
         return result;
     }
-
     internal static Biome ResolveLegacyBiome(int id)
     {
         return id switch

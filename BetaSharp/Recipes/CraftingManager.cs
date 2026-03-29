@@ -49,7 +49,10 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Item.Sign, 1), ["###", "###", " X ", '#', Block.Planks, 'X', Item.Stick]);
         AddRecipe(new ItemStack(Item.Cake, 1), ["AAA", "BEB", "CCC", 'A', Item.MilkBucket, 'B', Item.Sugar, 'C', Item.Wheat, 'E', Item.Egg]);
         AddRecipe(new ItemStack(Item.Sugar, 1), ["#", '#', Item.SugarCane]);
-        AddRecipe(new ItemStack(Block.Planks, 4), ["#", '#', Block.Log]);
+        AddRecipe(new ItemStack(Block.Planks, 4, 0), ["#", '#', new ItemStack(Block.Log, 1, 0)]);
+        AddRecipe(new ItemStack(Block.Planks, 4, 1), ["#", '#', new ItemStack(Block.Log, 1, 1)]);
+        AddRecipe(new ItemStack(Block.Planks, 4, 2), ["#", '#', new ItemStack(Block.Log, 1, 2)]);
+        AddRecipe(new ItemStack(Block.Planks, 4, 3), ["#", '#', new ItemStack(Block.Log, 1, 3)]);
         AddRecipe(new ItemStack(Item.Stick, 4), ["#", "#", '#', Block.Planks]);
         AddRecipe(new ItemStack(Block.Torch, 4), ["X", "#", 'X', Item.Coal, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.Torch, 4), ["X", "#", 'X', new ItemStack(Item.Coal, 1, 1), '#', Item.Stick]);
