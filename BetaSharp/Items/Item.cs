@@ -160,12 +160,12 @@ public class Item
     public static Item BakedPotato = (new ItemFood(137, 6, false)).setTexturePosition(6, 7).setItemName("potatoBaked");
     public static Item PoisonousPotato = (new ItemFood(138, 2, false)).SetPotionEffect(BetaSharp.Potions.Potion.Poison.Id, 5, 0, 0.6F).setTexturePosition(6, 8).setItemName("potatoPoisonous");
     public static Item GoldenCarrot = (new ItemFood(140, 6, false)).setTexturePosition(6, 9).setItemName("carrotGolden");
-    public static Item RawMutton = (new ItemFood(153, 2, true)).setTexturePosition(4, 11).setItemName("muttonRaw");
-    public static Item CookedMutton = (new ItemFood(154, 6, true)).setTexturePosition(4, 12).setItemName("muttonCooked");
+    public static Item RawMutton = (new ItemFood(167, 2, true)).setTexturePosition(4, 11).setItemName("muttonRaw");
+    public static Item CookedMutton = (new ItemFood(168, 6, true)).setTexturePosition(4, 12).setItemName("muttonCooked");
     public static Item RawRabbit = (new ItemFood(155, 3, true)).setTexturePosition(5, 11).setItemName("rabbitRaw");
     public static Item CookedRabbit = (new ItemFood(156, 5, true)).setTexturePosition(5, 12).setItemName("rabbitCooked");
-    public static Item RabbitFoot = (new Item(157)).setTexturePosition(5, 14).setItemName("rabbitFoot");
-    public static Item RabbitHide = (new Item(158)).setTexturePosition(6, 14).setItemName("rabbitHide");
+    public static Item RabbitFoot = (new Item(158)).setTexturePosition(5, 14).setItemName("rabbitFoot");
+    public static Item RabbitHide = (new Item(159)).setTexturePosition(6, 14).setItemName("rabbitHide");
     public static Item RecordThirteen = (new ItemRecord(2000, "13")).setTexturePosition(0, 15).setItemName("record");
     public static Item RecordCat = (new ItemRecord(2001, "cat")).setTexturePosition(1, 15).setItemName("record");
     public static Item RecordBlocks = (new ItemRecord(2002, "blocks")).setTexturePosition(2, 15).setItemName("record");
@@ -177,6 +177,7 @@ public class Item
     public static Item RecordStrad = (new ItemRecord(2008, "strad")).setTexturePosition(8, 15).setItemName("record");
     public static Item RecordWard = (new ItemRecord(2009, "ward")).setTexturePosition(9, 15).setItemName("record");
     public static Item RecordEleven = (new ItemRecord(2010, "11")).setTexturePosition(10, 15).setItemName("record");
+    public static Item RecordWait = (new ItemRecord(2011, "wait")).setTexturePosition(11, 15).setItemName("record");
     public readonly int id;
     public int maxCount = 64;
     private int maxDamage;
