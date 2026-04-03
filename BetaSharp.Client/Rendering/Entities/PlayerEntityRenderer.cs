@@ -1,4 +1,6 @@
+using System;
 using BetaSharp.Blocks;
+using BetaSharp.Blocks.Entities;
 using BetaSharp.Client.Entities;
 using BetaSharp.Client.Guis;
 using BetaSharp.Client.Rendering.Blocks;
@@ -169,7 +171,15 @@ public class PlayerEntityRenderer : LivingEntityRenderer
         }
 
         ItemStack var3 = var1.inventory.armorItemInSlot(3);
-        if (var3 != null && var3.getItem().id < 256)
+        if (var3 != null && var3.itemId == Item.Skull.id)
+        {
+            GLManager.GL.PushMatrix();
+            modelBipedMain.bipedHead.transform(1.0F / 16.0F);
+            GLManager.GL.Scale(1.1875F, -1.1875F, -1.1875F);
+            SkullRenderHelper.RenderSkull(loadTexture, Math.Clamp(var3.getDamage(), BlockEntitySkull.Skeleton, BlockEntitySkull.Creeper), 180.0F);
+            GLManager.GL.PopMatrix();
+        }
+        else if (var3 != null && var3.getItem().id < 256)
         {
             GLManager.GL.PushMatrix();
             modelBipedMain.bipedHead.transform(1.0F / 16.0F);

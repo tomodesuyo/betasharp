@@ -1,6 +1,6 @@
 using BetaSharp.Items;
-using BetaSharp.Util;
 using BetaSharp.Util.Maths;
+using BetaSharp.Util;
 using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp.Entities;
@@ -12,6 +12,7 @@ public sealed class EntityWither : EntityBlaze, IBossDisplayData
     private readonly SyncedProperty<int> _rightHeadTargetId;
     private readonly float[] _headYaw = new float[2];
     private readonly float[] _headPitch = new float[2];
+    private readonly int[] _sideHeadCooldowns = new int[2];
 
     public override EntityType Type => EntityRegistry.Wither;
     public int BossHealth => world.IsRemote ? _syncedHealth.Value : health;
@@ -46,9 +47,8 @@ public sealed class EntityWither : EntityBlaze, IBossDisplayData
         else
         {
             _syncedHealth.Value = health;
-            int targetId = playerToAttack is { dead: false } ? playerToAttack.id : 0;
-            _leftHeadTargetId.Value = targetId;
-            _rightHeadTargetId.Value = targetId;
+            UpdateSideHeadTargets();
+            TickSideHeadAttacks();
         }
 
         UpdateSideHead(0, _leftHeadTargetId.Value);
@@ -60,6 +60,11 @@ public sealed class EntityWither : EntityBlaze, IBossDisplayData
         hearts = 0;
         damageForDisplay = 0;
         bool damaged = base.damage(entity, amount);
+        if (playerToAttack is EntityLiving living && living.isUndead())
+        {
+            playerToAttack = null;
+        }
+
         hearts = 0;
         damageForDisplay = 0;
         return damaged;
@@ -82,6 +87,139 @@ public sealed class EntityWither : EntityBlaze, IBossDisplayData
     public override bool canSpawn()
     {
         return false;
+    }
+
+    protected override void attackEntity(Entity entity, float distance)
+    {
+        if (attackTime <= 0 && distance < 2.0F && entity.boundingBox.MaxY > boundingBox.MinY && entity.boundingBox.MinY < boundingBox.MaxY)
+        {
+            attackTime = 20;
+            entity.damage(this, attackStrength);
+            return;
+        }
+
+        if (distance > 64.0F)
+        {
+            return;
+        }
+
+        if (attackTime <= 0)
+        {
+            LaunchWitherSkull(0, entity, false);
+            attackTime = 40;
+        }
+
+        double deltaX = entity.x - x;
+        double deltaZ = entity.z - z;
+        bodyYaw = yaw = (float)(Math.Atan2(deltaZ, deltaX) * 180.0D / Math.PI) - 90.0F;
+        hasAttacked = true;
+    }
+
+    private void UpdateSideHeadTargets()
+    {
+        _leftHeadTargetId.Value = ResolveSideHeadTarget(_leftHeadTargetId.Value, _rightHeadTargetId.Value);
+        _rightHeadTargetId.Value = ResolveSideHeadTarget(_rightHeadTargetId.Value, _leftHeadTargetId.Value);
+    }
+
+    private void TickSideHeadAttacks()
+    {
+        for (int headIndex = 0; headIndex < _sideHeadCooldowns.Length; ++headIndex)
+        {
+            if (_sideHeadCooldowns[headIndex] > 0)
+            {
+                --_sideHeadCooldowns[headIndex];
+            }
+
+            int targetId = headIndex == 0 ? _leftHeadTargetId.Value : _rightHeadTargetId.Value;
+            Entity? target = targetId > 0 ? world.Entities.GetEntityByID(targetId) : null;
+            if (!IsValidHeadTarget(target))
+            {
+                continue;
+            }
+
+            if (_sideHeadCooldowns[headIndex] <= 0 && canSee(target!) && getSquaredDistance(target!) <= 900.0D)
+            {
+                LaunchWitherSkull(headIndex + 1, target!, false);
+                _sideHeadCooldowns[headIndex] = 20 + random.NextInt(20);
+            }
+        }
+    }
+
+    private int ResolveSideHeadTarget(int currentTargetId, int otherHeadTargetId)
+    {
+        Entity? currentTarget = currentTargetId > 0 ? world.Entities.GetEntityByID(currentTargetId) : null;
+        if (IsValidHeadTarget(currentTarget))
+        {
+            return currentTargetId;
+        }
+
+        if (playerToAttack != null && IsValidHeadTarget(playerToAttack) && playerToAttack.id != otherHeadTargetId)
+        {
+            return playerToAttack.id;
+        }
+
+        EntityLiving? nearbyTarget = FindNearbyHeadTarget(otherHeadTargetId);
+        return nearbyTarget?.id ?? 0;
+    }
+
+    private EntityLiving? FindNearbyHeadTarget(int excludedTargetId)
+    {
+        List<EntityLiving> candidates = world.Entities.CollectEntitiesOfType<EntityLiving>(new Box(x - 20.0D, y - 8.0D, z - 20.0D, x + 20.0D, y + 8.0D, z + 20.0D));
+        for (int attempts = 0; attempts < candidates.Count; ++attempts)
+        {
+            EntityLiving candidate = candidates[random.NextInt(candidates.Count)];
+            if (candidate.id == excludedTargetId || !IsValidHeadTarget(candidate))
+            {
+                continue;
+            }
+
+            return candidate;
+        }
+
+        return null;
+    }
+
+    private bool IsValidHeadTarget(Entity? target)
+    {
+        if (target == null || target == this || target.dead)
+        {
+            return false;
+        }
+
+        if (target is EntityPlayer player && player.IsIgnoredByMonsters)
+        {
+            return false;
+        }
+
+        if (target is EntityLiving living && living.isUndead())
+        {
+            return false;
+        }
+
+        return getSquaredDistance(target) <= 900.0D;
+    }
+
+    private void LaunchWitherSkull(int headIndex, Entity target, bool invulnerable)
+    {
+        double targetY = target.y + target.getEyeHeight() * (target is EntityLiving ? 0.5D : 1.0D);
+        LaunchWitherSkull(headIndex, target.x, targetY, target.z, invulnerable);
+    }
+
+    private void LaunchWitherSkull(int headIndex, double targetX, double targetY, double targetZ, bool invulnerable)
+    {
+        double headX = GetHeadX(headIndex);
+        double headY = GetHeadY(headIndex);
+        double headZ = GetHeadZ(headIndex);
+        EntityWitherSkull witherSkull = new(world, this, targetX - headX, targetY - headY, targetZ - headZ)
+        {
+            x = headX,
+            y = headY,
+            z = headZ
+        };
+        witherSkull.setPosition(headX, headY, headZ);
+        witherSkull.SetInvulnerable(invulnerable);
+        world.SpawnEntity(witherSkull);
+        world.Broadcaster.PlaySoundAtEntity(this, "random.bow", 0.8F, 0.8F + random.NextFloat() * 0.2F);
     }
 
     private void UpdateSideHead(int headIndex, int targetId)

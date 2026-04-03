@@ -24,6 +24,7 @@ public abstract class BlockEntity
     public static readonly BlockEntityType Dispenser = Register(() => new BlockEntityDispenser(), "Trap");
     public static readonly BlockEntityType Sign = Register(() => new BlockEntitySign(), "Sign");
     public static readonly BlockEntityType MobSpawner = Register(() => new BlockEntityMobSpawner(), "MobSpawner");
+    public static readonly BlockEntityType Skull = Register(() => new BlockEntitySkull(), "Skull");
     public static readonly BlockEntityType Note = Register(() => new BlockEntityNote(), "Music");
     public static readonly BlockEntityType Piston = Register(() => new BlockEntityPiston(), "Piston");
     public static readonly BlockEntityType EndPortal = Register(() => new BlockEntityEndPortal(), "Airportal");

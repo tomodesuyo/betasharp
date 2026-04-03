@@ -148,6 +148,7 @@ internal sealed class ItemMonsterPlacer : Item
             return false;
         }
 
+        living.PostSpawn();
         living.playLivingSound();
 
         if (!entityPlayer.capabilities.IsCreativeMode)

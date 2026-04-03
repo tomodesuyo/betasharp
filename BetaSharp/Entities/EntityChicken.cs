@@ -97,4 +97,15 @@ public class EntityChicken : EntityAnimal
     {
         return Item.Feather.id;
     }
+
+    protected override void dropFewItems()
+    {
+        int featherCount = random.NextInt(3);
+        for (int i = 0; i < featherCount; ++i)
+        {
+            dropItem(Item.Feather.id, 1);
+        }
+
+        dropItem(fireTicks > 0 ? Item.CookedChicken.id : Item.RawChicken.id, 1);
+    }
 }

@@ -4,14 +4,12 @@ using BetaSharp.Worlds.Core.Systems;
 
 namespace BetaSharp.Blocks;
 
-internal sealed class BlockSlime : Block
+internal sealed class BlockSlime : BlockBreakable
 {
-    public BlockSlime(int id, int textureId) : base(id, textureId, Material.Clay)
+    public BlockSlime(int id, int textureId) : base(id, textureId, Material.Clay, false)
     {
         slipperiness = 0.8F;
     }
-
-    public override bool isOpaque() => false;
 
     public override int getRenderLayer() => 1;
 

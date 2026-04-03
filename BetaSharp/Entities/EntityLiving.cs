@@ -65,6 +65,7 @@ public abstract class EntityLiving : Entity
     protected int lookTimer;
     private readonly Dictionary<int, PotionEffect> _activePotionEffects = new();
     private int _potionDamageSpill;
+    private int _absorptionHealth;
 
     public EntityLiving(IWorldContext world) : base(world)
     {
@@ -387,6 +388,7 @@ public abstract class EntityLiving : Entity
             else
             {
                 amount = ApplyPotionDamageReduction(amount);
+                amount = ApplyAbsorption(amount);
                 if (amount <= 0)
                 {
                     return false;
@@ -747,6 +749,11 @@ public abstract class EntityLiving : Entity
 
             nbt.SetTag("ActiveEffects", effects);
         }
+
+        if (_absorptionHealth > 0)
+        {
+            nbt.SetInteger("AbsorptionAmount", _absorptionHealth);
+        }
     }
 
     public override void readNbt(NBTTagCompound nbt)
@@ -773,6 +780,8 @@ public abstract class EntityLiving : Entity
                 _activePotionEffects[id] = new PotionEffect(id, duration, amplifier);
             }
         }
+
+        _absorptionHealth = nbt.HasKey("AbsorptionAmount") ? nbt.GetInteger("AbsorptionAmount") : 0;
     }
 
     public override bool isAlive()
@@ -1279,14 +1288,20 @@ public abstract class EntityLiving : Entity
 
     protected virtual void onNewPotionEffect(PotionEffect effect)
     {
+        UpdatePotionEffectState(effect);
     }
 
     protected virtual void onChangedPotionEffect(PotionEffect effect)
     {
+        UpdatePotionEffectState(effect);
     }
 
     protected virtual void onFinishedPotionEffect(PotionEffect effect)
     {
+        if (effect.PotionId == Potion.Absorption.Id)
+        {
+            _absorptionHealth = 0;
+        }
     }
 
     protected float GetSpeedModifier()
@@ -1331,6 +1346,26 @@ public abstract class EntityLiving : Entity
             PotionEffect effect = _activePotionEffects[expired[i]];
             _activePotionEffects.Remove(expired[i]);
             onFinishedPotionEffect(effect);
+        }
+    }
+
+    private int ApplyAbsorption(int amount)
+    {
+        if (amount <= 0 || _absorptionHealth <= 0)
+        {
+            return amount;
+        }
+
+        int absorbed = Math.Min(_absorptionHealth, amount);
+        _absorptionHealth -= absorbed;
+        return amount - absorbed;
+    }
+
+    private void UpdatePotionEffectState(PotionEffect effect)
+    {
+        if (effect.PotionId == Potion.Absorption.Id)
+        {
+            _absorptionHealth = Math.Max(_absorptionHealth, 4 * (effect.Amplifier + 1));
         }
     }
 }

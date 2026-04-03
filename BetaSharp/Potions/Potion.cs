@@ -25,6 +25,8 @@ public class Potion
     public static readonly Potion Hunger = new Potion(17, true, 5797459).SetPotionName("potion.hunger");
     public static readonly Potion Weakness = new Potion(18, true, 4738376).SetPotionName("potion.weakness");
     public static readonly Potion Poison = new Potion(19, true, 5149489).SetPotionName("potion.poison").SetEffectiveness(0.25D);
+    public static readonly Potion Wither = new Potion(20, true, 3484199).SetPotionName("potion.wither").SetEffectiveness(0.25D);
+    public static readonly Potion Absorption = new Potion(21, false, 2445989).SetPotionName("potion.absorption");
 
     public int Id { get; }
     public bool IsBadEffect { get; }
@@ -57,6 +59,10 @@ public class Potion
             {
                 entity.damage(null, 1);
             }
+        }
+        else if (Id == Wither.Id)
+        {
+            entity.damage(null, 1);
         }
         else if ((Id != Heal.Id || entity.isUndead()) && (Id != Harm.Id || !entity.isUndead()))
         {
@@ -92,9 +98,9 @@ public class Potion
 
     public virtual bool IsReady(int duration, int amplifier)
     {
-        if (Id == Regeneration.Id || Id == Poison.Id)
+        if (Id == Regeneration.Id || Id == Poison.Id || Id == Wither.Id)
         {
-            int interval = 25 >> amplifier;
+            int interval = Id == Wither.Id ? 40 >> amplifier : 25 >> amplifier;
             return interval <= 0 || duration % interval == 0;
         }
 

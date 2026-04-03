@@ -68,6 +68,7 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityExpBottle), new ProjectileEntityRenderer(Item.ExpBottle.getTextureId(0)));
         RegisterRenderer(typeof(EntityFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntitySmallFireball), new FireballEntityRenderer());
+        RegisterRenderer(typeof(EntityWitherSkull), new WitherSkullEntityRenderer());
         RegisterRenderer(typeof(EntityItem), new ItemRenderer());
         RegisterRenderer(typeof(EntityTNTPrimed), new TntEntityRenderer());
         RegisterRenderer(typeof(EntityFallingSand), new FallingBlockEntityRenderer());

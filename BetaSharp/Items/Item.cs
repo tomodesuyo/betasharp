@@ -89,7 +89,7 @@ public class Item
     public static Item RawPorkchop = (new ItemFood(63, 3, true)).setTexturePosition(7, 5).setItemName("porkchopRaw");
     public static Item CookedPorkchop = (new ItemFood(64, 8, true)).setTexturePosition(8, 5).setItemName("porkchopCooked");
     public static Item Painting = (new ItemPainting(65)).setTexturePosition(10, 1).setItemName("painting");
-    public static Item GoldenApple = (new ItemFood(66, 42, false)).SetPotionEffect(BetaSharp.Potions.Potion.Regeneration.Id, 5, 0, 1.0F).setTexturePosition(11, 0).setItemName("appleGold");
+    public static Item GoldenApple = (new ItemAppleGold(66, 42, false)).setTexturePosition(11, 0).setItemName("appleGold");
     public static Item Sign = (new ItemSign(67)).setTexturePosition(10, 2).setItemName("sign");
     public static Item WoodenDoor = (new ItemDoor(68, Material.Wood)).setTexturePosition(11, 2).setItemName("doorWood");
     public static Item Bucket = (new ItemBucket(69, 0)).setTexturePosition(10, 4).setItemName("bucket");
@@ -139,7 +139,7 @@ public class Item
     public static Item BlazeRod = (new Item(113)).setTexturePosition(12, 6).setItemName("blazeRod");
     public static Item GhastTear = (new Item(114)).setTexturePosition(11, 7).setItemName("ghastTear").setPotionEffect(PotionHelper.GhastTearEffect);
     public static Item GoldNugget = (new Item(115)).setTexturePosition(12, 7).setItemName("goldNugget");
-    public static Item NetherWart = (new ItemSeeds(116, Block.NetherWart.id)).setTexturePosition(13, 7).setItemName("netherStalkSeeds").setPotionEffect("+4");
+    public static Item NetherWart = (new ItemSeeds(116, Block.NetherWart.id, Block.Soulsand.id)).setTexturePosition(13, 7).setItemName("netherStalkSeeds").setPotionEffect("+4");
     public static Item Potion = (new ItemPotion(117)).setTexturePosition(13, 8).setItemName("potion");
     public static Item GlassBottle = (new ItemGlassBottle(118)).setTexturePosition(12, 8).setItemName("glassBottle");
     public static Item SpiderEye = (new ItemFood(119, 2, false)).SetPotionEffect(BetaSharp.Potions.Potion.Poison.Id, 5, 0, 1.0F).setTexturePosition(11, 8).setItemName("spiderEye").setPotionEffect(PotionHelper.SpiderEyeEffect);
@@ -153,19 +153,28 @@ public class Item
     public static Item MonsterPlacer = (new ItemMonsterPlacer(127)).setTexturePosition(9, 9).setItemName("monsterPlacer");
     public static Item ExpBottle = (new ItemExpBottle(128)).setTexturePosition(11, 10).setItemName("expBottle");
     public static Item FireCharge = (new ItemFireball(129)).setTexturePosition(14, 2).setItemName("fireball");
+    public static Item WritableBook = (new Item(130)).setMaxCount(1).setTexturePosition(11, 11).setItemName("writingBook");
     public static Item Emerald = (new Item(132)).setTexturePosition(10, 11).setItemName("emerald");
-    public static Item NetherStar = (new Item(143)).setTexturePosition(9, 11).setItemName("netherStar");
+    public static Item NetherStar = (new Item(143)).setTexturePosition(9, 11).setItemName("netherStar").SetFoil();
+    public static Item NetherQuartz = (new Item(150)).setTexturePosition(12, 12).setItemName("netherquartz");
     public static Item Carrot = (new ItemSeedFood(135, 4, Block.Carrot.id, Block.Farmland.id)).setTexturePosition(8, 7).setItemName("carrots");
     public static Item Potato = (new ItemSeedFood(136, 1, Block.Potato.id, Block.Farmland.id)).setTexturePosition(7, 7).setItemName("potato");
     public static Item BakedPotato = (new ItemFood(137, 6, false)).setTexturePosition(6, 7).setItemName("potatoBaked");
     public static Item PoisonousPotato = (new ItemFood(138, 2, false)).SetPotionEffect(BetaSharp.Potions.Potion.Poison.Id, 5, 0, 0.6F).setTexturePosition(6, 8).setItemName("potatoPoisonous");
     public static Item GoldenCarrot = (new ItemFood(140, 6, false)).setTexturePosition(6, 9).setItemName("carrotGolden");
+    public static Item Skull = (new ItemSkull(141)).setTexturePosition(1, 14).setItemName("skull");
     public static Item RawMutton = (new ItemFood(167, 2, true)).setTexturePosition(4, 11).setItemName("muttonRaw");
     public static Item CookedMutton = (new ItemFood(168, 6, true)).setTexturePosition(4, 12).setItemName("muttonCooked");
     public static Item RawRabbit = (new ItemFood(155, 3, true)).setTexturePosition(5, 11).setItemName("rabbitRaw");
     public static Item CookedRabbit = (new ItemFood(156, 5, true)).setTexturePosition(5, 12).setItemName("rabbitCooked");
     public static Item RabbitFoot = (new Item(158)).setTexturePosition(5, 14).setItemName("rabbitFoot");
     public static Item RabbitHide = (new Item(159)).setTexturePosition(6, 14).setItemName("rabbitHide");
+    public static Item IronHorseArmor = (new Item(161)).setTexturePosition(2, 9).setItemName("horsearmormetal");
+    public static Item GoldenHorseArmor = (new Item(162)).setTexturePosition(4, 9).setItemName("horsearmorgold");
+    public static Item DiamondHorseArmor = (new Item(163)).setTexturePosition(3, 9).setItemName("horsearmordiamond");
+    public static Item Lead = (new Item(164)).setTexturePosition(4, 10).setItemName("leash");
+    public static Item NameTag = (new Item(165)).setTexturePosition(3, 10).setItemName("nameTag");
+    public static Item NetherBrickItem = (new Item(149)).setTexturePosition(5, 10).setItemName("netherbrick");
     public static Item RecordThirteen = (new ItemRecord(2000, "13")).setTexturePosition(0, 15).setItemName("record");
     public static Item RecordCat = (new ItemRecord(2001, "cat")).setTexturePosition(1, 15).setItemName("record");
     public static Item RecordBlocks = (new ItemRecord(2002, "blocks")).setTexturePosition(2, 15).setItemName("record");
@@ -178,6 +187,7 @@ public class Item
     public static Item RecordWard = (new ItemRecord(2009, "ward")).setTexturePosition(9, 15).setItemName("record");
     public static Item RecordEleven = (new ItemRecord(2010, "11")).setTexturePosition(10, 15).setItemName("record");
     public static Item RecordWait = (new ItemRecord(2011, "wait")).setTexturePosition(11, 15).setItemName("record");
+    public static Item PumpkinPie = (new ItemFood(144, 8, false)).setTexturePosition(8, 9).setItemName("pumpkinPie");
     public readonly int id;
     public int maxCount = 64;
     private int maxDamage;
@@ -185,6 +195,7 @@ public class Item
     protected bool handheld;
     protected bool hasSubtypes;
     private Item craftingReturnItem;
+    private bool _hasFoil;
     private string? potionEffect;
     private string translationKey;
 
@@ -410,5 +421,16 @@ public class Item
     public virtual bool isNetworkSynced()
     {
         return false;
+    }
+
+    public virtual bool hasEffect(ItemStack stack)
+    {
+        return _hasFoil;
+    }
+
+    public Item SetFoil()
+    {
+        _hasFoil = true;
+        return this;
     }
 }

@@ -62,6 +62,21 @@ public class EntityPig : EntityAnimal
         return fireTicks > 0 ? Item.CookedPorkchop.id : Item.RawPorkchop.id;
     }
 
+    protected override void dropFewItems()
+    {
+        int porkCount = random.NextInt(3) + 1;
+        int porkItemId = fireTicks > 0 ? Item.CookedPorkchop.id : Item.RawPorkchop.id;
+        for (int i = 0; i < porkCount; ++i)
+        {
+            dropItem(porkItemId, 1);
+        }
+
+        if (Saddled.Value)
+        {
+            dropItem(Item.Saddle.id, 1);
+        }
+    }
+
     public override void onStruckByLightning(EntityLightningBolt bolt)
     {
         if (!world.IsRemote)

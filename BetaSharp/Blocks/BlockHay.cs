@@ -4,8 +4,8 @@ namespace BetaSharp.Blocks;
 
 internal sealed class BlockHay : Block
 {
-    private const int SideTexture = 189;
-    private const int EndTexture = 190;
+    private const int SideTexture = 250;
+    private const int EndTexture = 253;
 
     public BlockHay(int id) : base(id, Material.SolidOrganic)
     {

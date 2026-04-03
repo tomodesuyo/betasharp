@@ -81,7 +81,7 @@ public class Block
     public static readonly Block MossyCobblestone = new Block(48, 36, Material.Stone).setHardness(2.0F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("stoneMoss");
     public static readonly Block Obsidian = new BlockObsidian(49, 37).setHardness(10.0F).setResistance(2000.0F).setSoundGroup(SoundStoneFootstep).setBlockName("obsidian");
     public static readonly Block Torch = new BlockTorch(50, 80).setHardness(0.0F).setLuminance(15.0F / 16.0F).setSoundGroup(SoundWoodFootstep).setBlockName("torch").IgnoreMetaUpdates();
-    public static readonly Block Fire = (BlockFire)new BlockFire(51, 31).setHardness(0.0F).setLuminance(1.0F).setSoundGroup(SoundWoodFootstep).setBlockName("fire").disableStats().IgnoreMetaUpdates();
+    public static readonly Block Fire = (BlockFire)new BlockFire(51, 238).setHardness(0.0F).setLuminance(1.0F).setSoundGroup(SoundWoodFootstep).setBlockName("fire").disableStats().IgnoreMetaUpdates();
     public static readonly Block Spawner = new BlockMobSpawner(52, 65).setHardness(5.0F).setSoundGroup(SoundMetalFootstep).setBlockName("mobSpawner").disableStats();
     public static readonly Block WoodenStairs = new BlockStairs(53, Planks).setBlockName("stairsWood").IgnoreMetaUpdates();
     public static readonly Block Chest = new BlockChest(54).setHardness(2.5F).setSoundGroup(SoundWoodFootstep).setBlockName("chest").IgnoreMetaUpdates();
@@ -165,10 +165,15 @@ public class Block
     public static readonly Block SandstoneStairs = new BlockStairs(128, Sandstone).setBlockName("stairsSandStone").IgnoreMetaUpdates();
     public static readonly Block EmeraldOre = new BlockOre(129, 171).setHardness(3.0F).setResistance(5.0F).setSoundGroup(SoundStoneFootstep).setBlockName("oreEmerald");
     public static readonly Block EmeraldBlock = new BlockOreStorage(133, 218).setHardness(5.0F).setResistance(10.0F).setSoundGroup(SoundMetalFootstep).setBlockName("blockEmerald");
+    public static readonly Block Wall = new BlockWall(139).setHardness(2.0F).setResistance(10.0F).setSoundGroup(SoundStoneFootstep).setBlockName("cobbleWall");
     public static readonly Block Carrot = new BlockCarrot(141, 200).setHardness(0.0F).setSoundGroup(SoundGrassFootstep).setBlockName("carrots").disableStats().IgnoreMetaUpdates();
     public static readonly Block Potato = new BlockPotato(142, 200).setHardness(0.0F).setSoundGroup(SoundGrassFootstep).setBlockName("potatoes").disableStats().IgnoreMetaUpdates();
+    public static readonly Block Skull = new BlockSkull(144).setSoundGroup(SoundStoneFootstep).setBlockName("skull");
     public static readonly Block RedstoneBlock = new BlockRedstoneBlock(152, 219).setHardness(5.0F).setResistance(10.0F).setSoundGroup(SoundMetalFootstep).setBlockName("blockRedstone");
-    public static readonly Block SlimeBlock = new BlockSlime(165, 221).setHardness(0.0F).setSoundGroup(SoundClothFootstep).setBlockName("slime");
+    public static readonly Block NetherQuartzOre = new BlockOre(153, 191).setHardness(3.0F).setResistance(5.0F).setSoundGroup(SoundStoneFootstep).setBlockName("netherquartz");
+    public static readonly Block NetherQuartzBlock = new BlockQuartz(155).setHardness(0.8F).setResistance(4.0F).setSoundGroup(SoundStoneFootstep).setBlockName("quartzBlock");
+    public static readonly Block QuartzStairs = new BlockStairs(156, NetherQuartzBlock).setBlockName("stairsQuartz").IgnoreMetaUpdates();
+    public static readonly Block SlimeBlock = new BlockSlime(165, 220).setHardness(0.0F).setSoundGroup(SoundClothFootstep).setBlockName("slime");
     public static readonly Block Hay = new BlockHay(170).setHardness(0.5F).setSoundGroup(SoundGrassFootstep).setBlockName("hayBlock").IgnoreMetaUpdates();
     public static readonly Block Carpet = new BlockCarpet(171).setHardness(0.1F).setSoundGroup(SoundClothFootstep).setBlockName("carpet").IgnoreMetaUpdates();
     public readonly int id;
@@ -591,6 +596,9 @@ public class Block
         Item.ITEMS[Planks.id] = new ItemMetadata(Planks.id - 256, Planks).setItemName("wood");
         Item.ITEMS[StoneBrick.id] = new ItemMetadata(StoneBrick.id - 256, StoneBrick).setItemName("stonebricksmooth");
         Item.ITEMS[Sandstone.id] = new ItemMetadata(Sandstone.id - 256, Sandstone).setItemName("sandStone");
+        Item.ITEMS[Silverfish.id] = new ItemMetadata(Silverfish.id - 256, Silverfish).setItemName("monsterStoneEgg");
+        Item.ITEMS[NetherQuartzBlock.id] = new ItemMetadata(NetherQuartzBlock.id - 256, NetherQuartzBlock).setItemName("quartzBlock");
+        Item.ITEMS[Wall.id] = new ItemWall(Wall.id - 256).setItemName("cobbleWall");
         Item.ITEMS[Slab.id] = new ItemSlab(Slab.id - 256).setItemName("stoneSlab");
         Item.ITEMS[Sapling.id] = new ItemSapling(Sapling.id - 256).setItemName("sapling");
         Item.ITEMS[Leaves.id] = new ItemLeaves(Leaves.id - 256).setItemName("leaves");

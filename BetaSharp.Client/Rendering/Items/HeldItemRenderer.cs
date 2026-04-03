@@ -138,6 +138,11 @@ public class HeldItemRenderer
             }
 
             var3.draw();
+            if (item.getItem().hasEffect(item))
+            {
+                RenderFoilOnHeldItem(var13);
+            }
+
             GLManager.GL.Disable(GLEnum.RescaleNormal);
         }
 
@@ -448,6 +453,32 @@ public class HeldItemRenderer
 
         GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
         GLManager.GL.Disable(GLEnum.Blend);
+    }
+
+    private void RenderFoilOnHeldItem(float thickness)
+    {
+        long time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        _game.textureManager.BindTexture(_game.textureManager.GetTextureId("/misc/glint.png"));
+        GLManager.GL.Disable(GLEnum.Lighting);
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.One);
+        GLManager.GL.Color4(0.55F, 0.35F, 0.95F, 0.35F);
+        DrawHeldItemFoilQuad(0.001F, (time % 3000L) / 3000.0F, (time % 2000L) / 2000.0F);
+        DrawHeldItemFoilQuad(-(thickness + 0.001F), 1.0F - (time % 4873L) / 4873.0F, (time % 3500L) / 3500.0F);
+        GLManager.GL.Disable(GLEnum.Blend);
+        GLManager.GL.Enable(GLEnum.Lighting);
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void DrawHeldItemFoilQuad(float z, float uOffset, float vOffset)
+    {
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertexWithUV(0.0D, 0.0D, z, uOffset + 0.5F, vOffset + 0.5F);
+        tessellator.addVertexWithUV(1.0D, 0.0D, z, uOffset, vOffset + 0.5F);
+        tessellator.addVertexWithUV(1.0D, 1.0D, z, uOffset, vOffset);
+        tessellator.addVertexWithUV(0.0D, 1.0D, z, uOffset + 0.5F, vOffset);
+        tessellator.draw();
     }
 
     public void updateEquippedItem()

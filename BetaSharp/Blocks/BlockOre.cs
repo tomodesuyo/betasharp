@@ -15,6 +15,7 @@ internal class BlockOre : Block
             : id == DiamondOre.id ? Item.Diamond.id
             : id == LapisOre.id ? Item.Dye.id
             : id == EmeraldOre.id ? Item.Emerald.id
+            : id == NetherQuartzOre.id ? Item.NetherQuartz.id
             : id;
     }
 

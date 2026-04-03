@@ -349,6 +349,15 @@ internal class EntityTrackerEntry
 
                 return packet;
             }
+            else if (currentTrackedEntity is EntityWitherSkull witherSkull)
+            {
+                var packet = EntitySpawnS2CPacket.Get(witherSkull, 66, witherSkull.owner != null ? witherSkull.owner.id : currentTrackedEntity.id);
+                packet.velocityX = (int)(witherSkull.powerX * 8000.0);
+                packet.velocityY = (int)(witherSkull.powerY * 8000.0);
+                packet.velocityZ = (int)(witherSkull.powerZ * 8000.0);
+
+                return packet;
+            }
             else if (currentTrackedEntity is EntityFireball fireball)
             {
                 var packet = EntitySpawnS2CPacket.Get(fireball, 63, fireball.owner != null ? fireball.owner.id : currentTrackedEntity.id);

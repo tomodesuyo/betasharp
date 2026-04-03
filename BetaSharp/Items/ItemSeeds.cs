@@ -8,11 +8,18 @@ namespace BetaSharp.Items;
 internal class ItemSeeds : Item
 {
 
-    private int blockId;
+    private readonly int blockId;
+    private readonly int soilBlockId;
 
-    public ItemSeeds(int id, int blockId) : base(id)
+    public ItemSeeds(int id, int blockId)
+        : this(id, blockId, Block.Farmland.id)
+    {
+    }
+
+    public ItemSeeds(int id, int blockId, int soilBlockId) : base(id)
     {
         this.blockId = blockId;
+        this.soilBlockId = soilBlockId;
     }
 
     public override bool useOnBlock(ItemStack itemStack, EntityPlayer entityPlayer, IWorldContext world, int x, int y, int z, int meta)
@@ -24,7 +31,7 @@ internal class ItemSeeds : Item
         else
         {
             int blockId = world.Reader.GetBlockId(x, y, z);
-            if (blockId == Block.Farmland.id && world.Reader.IsAir(x, y + 1, z))
+            if (blockId == soilBlockId && world.Reader.IsAir(x, y + 1, z))
             {
                 world.Writer.SetBlock(x, y + 1, z, this.blockId);
                 itemStack.ConsumeItem(entityPlayer);

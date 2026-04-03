@@ -156,14 +156,10 @@ public class ClientPlayerEntity : EntityPlayer
         bool wasMovingForward = movementInput.moveForward >= SprintThreshold;
         movementInput.updatePlayerMoveState(this);
         noClip = capabilities.IsSpectatorMode;
-        bool canSprint = capabilities.IsCreativeMode && !capabilities.IsSpectatorMode;
+        bool canSprint = capabilities.IsCreativeMode || capabilities.IsSpectatorMode;
+        bool canDoubleTapSprint = (onGround || capabilities.isFlying) && !wasSneaking;
 
-        if (!canSprint || wasSneaking || !wasMovingForward || movementInput.moveForward < SprintThreshold)
-        {
-            sprintToggleTimer = 0;
-        }
-
-        if (onGround && !wasSneaking && !wasMovingForward && movementInput.moveForward >= SprintThreshold && !isSprinting() && canSprint)
+        if (canDoubleTapSprint && !wasMovingForward && movementInput.moveForward >= SprintThreshold && !isSprinting() && canSprint)
         {
             if (sprintToggleTimer <= 0 && !movementInput.sprint)
             {

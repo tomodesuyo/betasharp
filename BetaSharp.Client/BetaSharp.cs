@@ -3,6 +3,7 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using BetaSharp.Blocks;
+using BetaSharp.Blocks.Entities;
 using BetaSharp.Client.Achievements;
 using BetaSharp.Client.Diagnostics;
 using BetaSharp.Client.DynamicTexture;
@@ -1291,6 +1292,31 @@ public partial class BetaSharp
     {
         if (objectMouseOver.Type != HitResultType.MISS)
         {
+            if (objectMouseOver.Type == HitResultType.ENTITY)
+            {
+                if (!playerController.isInCreativeMode() || objectMouseOver.Entity is not EntityLiving || objectMouseOver.Entity is EntityPlayer)
+                {
+                    return;
+                }
+
+                int entityId = EntityRegistry.GetRawId(objectMouseOver.Entity);
+                if (entityId <= 0)
+                {
+                    return;
+                }
+
+                int selectedSlot = player.inventory.selectedSlot;
+                ItemStack pickedEgg = new(Item.MonsterPlacer, 1, entityId);
+                player.inventory.main[selectedSlot] = pickedEgg;
+
+                if (playerController is PlayerControllerMP playerControllerMp)
+                {
+                    playerControllerMp.SendCreativeSlotAction(pickedEgg, 36 + selectedSlot);
+                }
+
+                return;
+            }
+
             int blockId = world.Reader.GetBlockId(objectMouseOver.BlockX, objectMouseOver.BlockY, objectMouseOver.BlockZ);
             int blockMeta = world.Reader.GetBlockMeta(objectMouseOver.BlockX, objectMouseOver.BlockY, objectMouseOver.BlockZ);
             if (blockId == Block.GrassBlock.id)
@@ -1313,7 +1339,18 @@ public partial class BetaSharp
             if (playerController.isInCreativeMode())
             {
                 int selectedSlot = player.inventory.selectedSlot;
-                ItemStack pickedStack = new(blockId, 1, blockMeta);
+                ItemStack pickedStack;
+                if (blockId == Block.Skull.id)
+                {
+                    int skullType = world.Entities.GetBlockEntity<BlockEntitySkull>(objectMouseOver.BlockX, objectMouseOver.BlockY, objectMouseOver.BlockZ)?.GetSkullType()
+                        ?? BlockEntitySkull.Skeleton;
+                    pickedStack = new ItemStack(Item.Skull, 1, skullType);
+                }
+                else
+                {
+                    pickedStack = new ItemStack(blockId, 1, blockMeta);
+                }
+
                 player.inventory.main[selectedSlot] = pickedStack;
 
                 if (playerController is PlayerControllerMP playerControllerMp)
@@ -1321,6 +1358,12 @@ public partial class BetaSharp
                     playerControllerMp.SendCreativeSlotAction(pickedStack, 36 + selectedSlot);
                 }
 
+                return;
+            }
+
+            if (blockId == Block.Skull.id)
+            {
+                player.inventory.setCurrentItem(Item.Skull.id, false);
                 return;
             }
 
@@ -1518,46 +1561,49 @@ public partial class BetaSharp
                     isControllerMode = false;
                     Mouse.setCursorVisible(true);
 
-                    bool zoomHeld = currentScreen == null && inGameHasFocus && Keyboard.isKeyDown(options.KeyBindZoom.keyCode);
-                    if (zoomHeld)
+                    if (currentScreen == null)
                     {
-                        int mouseWheelDirection = mouseWheelDelta > 0 ? 1 : -1;
-                        if (mouseWheelDirection > 0)
+                        bool zoomHeld = inGameHasFocus && Keyboard.isKeyDown(options.KeyBindZoom.keyCode);
+                        if (zoomHeld)
                         {
-                            options.ZoomScale *= 1.08F;
+                            int mouseWheelDirection = mouseWheelDelta > 0 ? 1 : -1;
+                            if (mouseWheelDirection > 0)
+                            {
+                                options.ZoomScale *= 1.08F;
+                            }
+                            else
+                            {
+                                options.ZoomScale /= 1.08F;
+                            }
+
+                            options.ZoomScale = System.Math.Clamp(options.ZoomScale, 1.25F, 20.0F);
                         }
                         else
                         {
-                            options.ZoomScale /= 1.08F;
-                        }
-
-                        options.ZoomScale = System.Math.Clamp(options.ZoomScale, 1.25F, 20.0F);
-                }
-                    else
-                    {
-                        int mouseWheelDirection = mouseWheelDelta < 0 ? -1 : 1;
-                        if (player.capabilities.IsSpectatorMode)
-                        {
-                            player.AdjustSpectatorFlySpeed(mouseWheelDirection);
-                        }
-                        else
-                        {
-                            player.inventory.changeCurrentItem(mouseWheelDelta);
-                        }
-
-                        if (options.InvertScrolling)
-                        {
-                            if (mouseWheelDelta > 0)
+                            int mouseWheelDirection = mouseWheelDelta < 0 ? -1 : 1;
+                            if (player.capabilities.IsSpectatorMode)
                             {
-                                mouseWheelDelta = 1;
+                                player.AdjustSpectatorFlySpeed(mouseWheelDirection);
+                            }
+                            else
+                            {
+                                player.inventory.changeCurrentItem(mouseWheelDelta);
                             }
 
-                            if (mouseWheelDelta < 0)
+                            if (options.InvertScrolling)
                             {
-                                mouseWheelDelta = -1;
-                            }
+                                if (mouseWheelDelta > 0)
+                                {
+                                    mouseWheelDelta = 1;
+                                }
 
-                            options.AmountScrolled += (float)mouseWheelDelta * 0.25F;
+                                if (mouseWheelDelta < 0)
+                                {
+                                    mouseWheelDelta = -1;
+                                }
+
+                                options.AmountScrolled += (float)mouseWheelDelta * 0.25F;
+                            }
                         }
                     }
                 }

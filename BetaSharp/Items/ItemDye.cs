@@ -90,6 +90,17 @@ internal class ItemDye : Item
                 return true;
             }
 
+            if (blockId == Block.NetherWart.id)
+            {
+                if (!world.IsRemote)
+                {
+                    ((BlockNetherStalk)Block.NetherWart).ApplyBonemeal(world, x, y, z);
+                    itemStack.ConsumeItem(entityPlayer);
+                }
+
+                return true;
+            }
+
             if (blockId == Block.Sapling.id)
             {
                 if (!world.IsRemote)

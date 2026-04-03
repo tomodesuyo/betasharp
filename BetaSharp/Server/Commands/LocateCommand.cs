@@ -7,7 +7,7 @@ namespace BetaSharp.Server.Commands;
 
 public class LocateCommand : ICommand
 {
-    public string Usage => "locate structure <village|stronghold|mineshaft>";
+    public string Usage => "locate structure <village|stronghold|mineshaft|fortress>";
     public string Description => "Finds the nearest generated structure";
     public string[] Names => ["locate"];
     public byte PermissionLevel => 0;
@@ -16,7 +16,7 @@ public class LocateCommand : ICommand
     {
         if (c.Args.Length == 0)
         {
-            c.Output.SendMessage("Usage: locate structure <village|stronghold|mineshaft>");
+            c.Output.SendMessage("Usage: locate structure <village|stronghold|mineshaft|fortress>");
             return;
         }
 
@@ -27,7 +27,7 @@ public class LocateCommand : ICommand
         }
         else if (c.Args.Length == 1 && c.Args[0].Equals("structure", StringComparison.OrdinalIgnoreCase))
         {
-            c.Output.SendMessage("Usage: locate structure <village|stronghold|mineshaft>");
+            c.Output.SendMessage("Usage: locate structure <village|stronghold|mineshaft|fortress>");
             return;
         }
         else
@@ -72,6 +72,9 @@ public class LocateCommand : ICommand
             "stronghold" => "Stronghold",
             "mineshaft" => "Mineshaft",
             "shaft" => "Mineshaft",
+            "fortress" => "Fortress",
+            "netherfortress" => "Fortress",
+            "nether_fortress" => "Fortress",
             _ => null,
         };
     }

@@ -138,6 +138,11 @@ public class ItemRenderer : EntityRenderer
                     GLManager.GL.PopMatrix();
                 }
             }
+
+            if (var10.getItem().hasEffect(var10))
+            {
+                RenderFoilBillboard(var1.getBrightnessAtEyes(var9));
+            }
         }
 
         GLManager.GL.Disable(GLEnum.RescaleNormal);
@@ -245,6 +250,10 @@ public class ItemRenderer : EntityRenderer
                 GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
             }
 
+            if (var3.getItem().hasEffect(var3))
+            {
+                RenderFoilIntoGUI(var2, var4, var5);
+            }
         }
     }
 
@@ -276,5 +285,65 @@ public class ItemRenderer : EntityRenderer
     public override void render(Entity target, double x, double y, double z, float yaw, float tickDelta)
     {
         doRenderItem((EntityItem)target, x, y, z, yaw, tickDelta);
+    }
+
+    private static void RenderFoilIntoGUI(TextureManager textureManager, int x, int y)
+    {
+        long time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        textureManager.BindTexture(textureManager.GetTextureId("/misc/glint.png"));
+        GLManager.GL.Disable(GLEnum.Lighting);
+        GLManager.GL.Disable(GLEnum.DepthTest);
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.One);
+        GLManager.GL.Color4(0.55F, 0.35F, 0.95F, 0.45F);
+        RenderFoilQuad(x, y, (time % 3000L) / 3000.0F, (time % 2000L) / 2000.0F);
+        RenderFoilQuad(x, y, 1.0F - (time % 4873L) / 4873.0F, (time % 3500L) / 3500.0F);
+        GLManager.GL.Disable(GLEnum.Blend);
+        GLManager.GL.Enable(GLEnum.DepthTest);
+        GLManager.GL.Enable(GLEnum.Lighting);
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void RenderFoilQuad(int x, int y, float uOffset, float vOffset)
+    {
+        float u0 = uOffset;
+        float u1 = uOffset + 0.5F;
+        float v0 = vOffset;
+        float v1 = vOffset + 0.5F;
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertexWithUV(x + 0, y + 16, 0.0D, u0, v1);
+        tessellator.addVertexWithUV(x + 16, y + 16, 0.0D, u1, v1);
+        tessellator.addVertexWithUV(x + 16, y + 0, 0.0D, u1, v0);
+        tessellator.addVertexWithUV(x + 0, y + 0, 0.0D, u0, v0);
+        tessellator.draw();
+    }
+
+    private void RenderFoilBillboard(float brightness)
+    {
+        long time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        loadTexture("/misc/glint.png");
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.One);
+        GLManager.GL.Color4(0.55F * brightness, 0.35F * brightness, 0.95F * brightness, 0.35F);
+        DrawBillboardFoil((time % 3000L) / 3000.0F, (time % 2000L) / 2000.0F);
+        DrawBillboardFoil(1.0F - (time % 4873L) / 4873.0F, (time % 3500L) / 3500.0F);
+        GLManager.GL.Disable(GLEnum.Blend);
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private void DrawBillboardFoil(float uOffset, float vOffset)
+    {
+        Tessellator tessellator = Tessellator.instance;
+        GLManager.GL.PushMatrix();
+        GLManager.GL.Rotate(180.0F - Dispatcher.playerViewY, 0.0F, 1.0F, 0.0F);
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(0.0F, 1.0F, 0.0F);
+        tessellator.addVertexWithUV(-0.5D, -0.25D, 0.001D, uOffset, vOffset + 0.5F);
+        tessellator.addVertexWithUV(0.5D, -0.25D, 0.001D, uOffset + 0.5F, vOffset + 0.5F);
+        tessellator.addVertexWithUV(0.5D, 0.75D, 0.001D, uOffset + 0.5F, vOffset);
+        tessellator.addVertexWithUV(-0.5D, 0.75D, 0.001D, uOffset, vOffset);
+        tessellator.draw();
+        GLManager.GL.PopMatrix();
     }
 }

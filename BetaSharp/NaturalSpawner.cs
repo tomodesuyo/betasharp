@@ -4,6 +4,7 @@ using BetaSharp.PathFinding;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core;
 using BetaSharp.Worlds.Core.Systems;
+using BetaSharp.Worlds.Gen.Chunks;
 using BetaSharp.Worlds.Generation.Biomes;
 
 namespace BetaSharp;
@@ -112,7 +113,14 @@ internal static class NaturalSpawner
                 foreach (var chunk in ChunksForSpawning)
                 {
                     Biome biome = world.Dimension.BiomeSource.GetBiome(chunk);
-                    var spawnSelector = biome.GetSpawnableList(creatureKind);
+                    WeightedRandomSelector<SpawnListEntry> spawnSelector = biome.GetSpawnableList(creatureKind);
+                    if (creatureKind == CreatureKind.Monster
+                        && world.ChunkHost.ChunkSource is NetherChunkGenerator netherChunkGenerator
+                        && netherChunkGenerator.TryGetMonsterSpawnList(chunk.X * 16 + 8, 64, chunk.Z * 16 + 8, out WeightedRandomSelector<SpawnListEntry> fortressSelector))
+                    {
+                        spawnSelector = fortressSelector;
+                    }
+
                     if (spawnSelector.Empty) break;
                     SpawnListEntry toSpawn = spawnSelector.GetNext(world.Random);
 
@@ -134,6 +142,14 @@ internal static class NaturalSpawner
                             x += world.Random.NextInt(SpawnCloseness) - world.Random.NextInt(SpawnCloseness);
                             y += world.Random.NextInt(1) - world.Random.NextInt(1);
                             z += world.Random.NextInt(SpawnCloseness) - world.Random.NextInt(SpawnCloseness);
+
+                            if (creatureKind == CreatureKind.Monster
+                                && world.ChunkHost.ChunkSource is NetherChunkGenerator netherGenerator
+                                && netherGenerator.TryGetMonsterSpawnList(x, y, z, out WeightedRandomSelector<SpawnListEntry> fortressSelectorAtPos))
+                            {
+                                toSpawn = fortressSelectorAtPos.GetNext(world.Random);
+                            }
+
                             if (creatureKind.CanSpawnAtLocation(world.Reader, x, y, z))
                             {
                                 Vec3D entityPos = new Vec3D(x + 0.5D, y, z + 0.5D);

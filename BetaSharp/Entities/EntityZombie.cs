@@ -45,7 +45,7 @@ public class EntityZombie : EntityMonster
 
     protected override int getDropItemId()
     {
-        return Item.Feather.id;
+        return Item.RottenFlesh.id;
     }
 
     public override bool isUndead()

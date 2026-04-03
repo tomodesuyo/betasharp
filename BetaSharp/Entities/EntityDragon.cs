@@ -659,10 +659,10 @@ public sealed class EntityDragon : EntityDragonBase, IBossDisplayData
         world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY, centerZ, Block.Bedrock.id, 0, false);
         world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 1, centerZ, Block.Bedrock.id, 0, false);
         world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 2, centerZ, Block.Bedrock.id, 0, false);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX - 1, portalY + 2, centerZ, Block.Torch.id, 0, false);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX + 1, portalY + 2, centerZ, Block.Torch.id, 0, false);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 2, centerZ - 1, Block.Torch.id, 0, false);
-        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 2, centerZ + 1, Block.Torch.id, 0, false);
+        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX - 1, portalY + 2, centerZ, Block.Torch.id, 1, false);
+        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX + 1, portalY + 2, centerZ, Block.Torch.id, 2, false);
+        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 2, centerZ - 1, Block.Torch.id, 4, false);
+        world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 2, centerZ + 1, Block.Torch.id, 3, false);
         world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 3, centerZ, Block.Bedrock.id, 0, false);
         world.Writer.SetBlockWithoutNotifyingNeighbors(centerX, portalY + 4, centerZ, Block.DragonEgg.id, 0, false);
         BlockEndPortal.BossDefeated = false;

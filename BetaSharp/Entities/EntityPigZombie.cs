@@ -103,7 +103,22 @@ internal class EntityPigZombie : EntityZombie
 
     protected override int getDropItemId()
     {
-        return Item.CookedPorkchop.id;
+        return Item.RottenFlesh.id;
+    }
+
+    protected override void dropFewItems()
+    {
+        int rottenFleshCount = random.NextInt(2);
+        for (int i = 0; i < rottenFleshCount; ++i)
+        {
+            dropItem(Item.RottenFlesh.id, 1);
+        }
+
+        int goldNuggetCount = random.NextInt(2);
+        for (int i = 0; i < goldNuggetCount; ++i)
+        {
+            dropItem(Item.GoldNugget.id, 1);
+        }
     }
 
     public override ItemStack getHeldItem()

@@ -31,6 +31,8 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.Fence, 2), ["###", "###", '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.NetherFence, 6), ["###", "###", '#', Block.NetherBrick]);
         AddRecipe(new ItemStack(Block.FenceGate, 1), ["#W#", "#W#", '#', Item.Stick, 'W', Block.Planks]);
+        AddRecipe(new ItemStack(Block.Wall, 6, 0), ["###", "###", '#', Block.Cobblestone]);
+        AddRecipe(new ItemStack(Block.Wall, 6, 1), ["###", "###", '#', Block.MossyCobblestone]);
         AddRecipe(new ItemStack(Block.Jukebox, 1), ["###", "#X#", "###", '#', Block.Planks, 'X', Item.Diamond]);
         AddRecipe(new ItemStack(Block.Noteblock, 1), ["###", "#X#", "###", '#', Block.Planks, 'X', Item.Redstone]);
         AddRecipe(new ItemStack(Block.Bookshelf, 1), ["###", "XXX", "###", '#', Block.Planks, 'X', Item.Book]);
@@ -97,9 +99,14 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.StickyPiston, 1), ["S", "P", 'S', Item.Slimeball, 'P', Block.Piston]);
         AddRecipe(new ItemStack(Item.Bed, 1), ["###", "XXX", '#', Block.Wool, 'X', Block.Planks]);
         AddRecipe(new ItemStack(Block.EnchantmentTable, 1), [" B ", "D#D", "###", '#', Block.Obsidian, 'B', Item.Book, 'D', Item.Diamond]);
+        AddRecipe(new ItemStack(Block.NetherQuartzBlock, 1), ["##", "##", '#', Item.NetherQuartz]);
+        AddRecipe(new ItemStack(Block.NetherQuartzBlock, 2, 2), ["#", "#", '#', Block.NetherQuartzBlock]);
+        AddRecipe(new ItemStack(Block.QuartzStairs, 4), ["#  ", "## ", "###", '#', Block.NetherQuartzBlock]);
+        AddRecipe(new ItemStack(Item.PumpkinPie, 1), ["ABC", 'A', Block.Pumpkin, 'B', Item.Sugar, 'C', Item.Egg]);
         AddShapelessRecipe(new ItemStack(Item.EyeOfEnder, 1), Item.EnderPearl, Item.BlazePowder);
         AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, Item.Coal);
         AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, new ItemStack(Item.Coal, 1, 1));
+        AddRecipe(new ItemStack(Item.GoldenApple, 1, 1), ["###", "#X#", "###", '#', Block.GoldBlock, 'X', Item.Apple]);
         Recipes.Sort(new RecipeSorter());
         _logger.LogInformation($"{Recipes.Count} recipes");
     }

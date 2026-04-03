@@ -38,6 +38,22 @@ public class EntityCow : EntityAnimal
         return Item.Leather.id;
     }
 
+    protected override void dropFewItems()
+    {
+        int leatherCount = random.NextInt(3);
+        for (int i = 0; i < leatherCount; ++i)
+        {
+            dropItem(Item.Leather.id, 1);
+        }
+
+        int beefCount = random.NextInt(3) + 1;
+        int beefItemId = fireTicks > 0 ? Item.CookedBeef.id : Item.RawBeef.id;
+        for (int i = 0; i < beefCount; ++i)
+        {
+            dropItem(beefItemId, 1);
+        }
+    }
+
     public override bool interact(EntityPlayer player)
     {
         ItemStack heldBucket = player.inventory.getSelectedItem();

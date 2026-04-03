@@ -31,6 +31,7 @@ internal class SmeltingRecipeManager
         AddSmelting(Item.Clay.id, new ItemStack(Item.Brick));
         AddSmelting(Block.Cactus.id, new ItemStack(Item.Dye, 1, 2));
         AddSmelting(Block.Log.id, new ItemStack(Item.Coal, 1, 1));
+        AddSmelting(Block.Netherrack.id, new ItemStack(Item.NetherBrickItem));
         AddSmelting(Block.CoalOre.id, new ItemStack(Item.Coal));
         AddSmelting(Block.RedstoneOre.id, new ItemStack(Item.Redstone));
         AddSmelting(Block.LapisOre.id, new ItemStack(Item.Dye, 1, 4));

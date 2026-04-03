@@ -47,6 +47,7 @@ public sealed class ModelHorse : ModelBase
 
     private bool _showSaddle;
     private bool _showReins;
+    public bool ShowHarness { get; set; } = true;
 
     public ModelHorse()
     {
@@ -208,7 +209,7 @@ public sealed class ModelHorse : ModelBase
     {
         setRotationAngles(limbAngle, limbDistance, age, yaw, pitch, scale);
 
-        if (_showSaddle)
+        if (ShowHarness && _showSaddle)
         {
             _faceRopes.render(scale);
             _saddleBottom.render(scale);

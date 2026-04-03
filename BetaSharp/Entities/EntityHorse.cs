@@ -23,6 +23,7 @@ public sealed class EntityHorse : EntityAnimal
     public readonly SyncedProperty<bool> Saddled;
     public readonly SyncedProperty<byte> HorseType;
     public readonly SyncedProperty<int> Variant;
+    public readonly SyncedProperty<byte> ArmorType;
 
     public EntityHorse(IWorldContext world) : base(world)
     {
@@ -34,6 +35,7 @@ public sealed class EntityHorse : EntityAnimal
         Saddled = DataSynchronizer.MakeProperty(16, false);
         HorseType = DataSynchronizer.MakeProperty<byte>(17, GetRandomHorseType(world));
         Variant = DataSynchronizer.MakeProperty<int>(18, GetRandomHorseVariant(HorseType.Value));
+        ArmorType = DataSynchronizer.MakeProperty<byte>(19, 0);
     }
 
     public override bool interact(EntityPlayer player)
@@ -58,6 +60,27 @@ public sealed class EntityHorse : EntityAnimal
             if (heldItem.count <= 0)
             {
                 player.clearStackInHand();
+            }
+
+            return true;
+        }
+
+        if (heldItem != null && CanWearArmor() && TryGetHorseArmorType(heldItem.itemId, out byte armorType) && ArmorType.Value != armorType)
+        {
+            if (!world.IsRemote)
+            {
+                int previousArmorItemId = GetArmorItemId();
+                ArmorType.Value = armorType;
+                heldItem.ConsumeItem(player);
+                if (heldItem.count <= 0)
+                {
+                    player.clearStackInHand();
+                }
+
+                if (previousArmorItemId != 0)
+                {
+                    dropItem(previousArmorItemId, 1);
+                }
             }
 
             return true;
@@ -94,6 +117,7 @@ public sealed class EntityHorse : EntityAnimal
         nbt.SetBoolean("Saddle", Saddled.Value);
         nbt.SetByte("Type", (sbyte)HorseType.Value);
         nbt.SetInteger("Variant", Variant.Value);
+        nbt.SetByte("ArmorType", (sbyte)ArmorType.Value);
     }
 
     public override void readNbt(NBTTagCompound nbt)
@@ -102,6 +126,7 @@ public sealed class EntityHorse : EntityAnimal
         Saddled.Value = nbt.GetBoolean("Saddle");
         HorseType.Value = (byte)nbt.GetByte("Type");
         Variant.Value = nbt.GetInteger("Variant");
+        ArmorType.Value = (byte)nbt.GetByte("ArmorType");
     }
 
     protected override string getLivingSound()
@@ -136,6 +161,52 @@ public sealed class EntityHorse : EntityAnimal
         {
             dropItem(Item.Leather.id, 1);
         }
+
+        int armorItemId = GetArmorItemId();
+        if (armorItemId != 0)
+        {
+            dropItem(armorItemId, 1);
+        }
+    }
+
+    public bool CanWearArmor()
+    {
+        return HorseType.Value != 1 && HorseType.Value != 2;
+    }
+
+    public string? GetArmorTexture()
+    {
+        return ArmorType.Value switch
+        {
+            1 => "/mob/horse/armor/horse_armor_iron.png",
+            2 => "/mob/horse/armor/horse_armor_gold.png",
+            3 => "/mob/horse/armor/horse_armor_diamond.png",
+            _ => null
+        };
+    }
+
+    public int GetArmorItemId()
+    {
+        return ArmorType.Value switch
+        {
+            1 => Item.IronHorseArmor.id,
+            2 => Item.GoldenHorseArmor.id,
+            3 => Item.DiamondHorseArmor.id,
+            _ => 0
+        };
+    }
+
+    private static bool TryGetHorseArmorType(int itemId, out byte armorType)
+    {
+        armorType = itemId switch
+        {
+            int id when id == Item.IronHorseArmor.id => 1,
+            int id when id == Item.GoldenHorseArmor.id => 2,
+            int id when id == Item.DiamondHorseArmor.id => 3,
+            _ => 0
+        };
+
+        return armorType != 0;
     }
 
     private static byte GetRandomHorseType(IWorldContext world)

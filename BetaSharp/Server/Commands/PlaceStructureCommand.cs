@@ -7,7 +7,7 @@ namespace BetaSharp.Server.Commands;
 
 public sealed class PlaceStructureCommand : ICommand
 {
-    public string Usage => "place structure <village|stronghold|mineshaft> [x] [z]";
+    public string Usage => "place structure <village|stronghold|mineshaft|fortress> [x] [z]";
     public string Description => "Generates a structure at your current chunk or the specified coordinates";
     public string[] Names => ["place"];
 
@@ -15,7 +15,7 @@ public sealed class PlaceStructureCommand : ICommand
     {
         if (c.Args.Length < 2 || !c.Args[0].Equals("structure", StringComparison.OrdinalIgnoreCase))
         {
-            c.Output.SendMessage("Usage: place structure <village|stronghold|mineshaft> [x] [z]");
+            c.Output.SendMessage("Usage: place structure <village|stronghold|mineshaft|fortress> [x] [z]");
             return;
         }
 
@@ -45,7 +45,7 @@ public sealed class PlaceStructureCommand : ICommand
         }
         else if (c.Args.Length == 3)
         {
-            c.Output.SendMessage("Usage: place structure <village|stronghold|mineshaft> [x] [z]");
+            c.Output.SendMessage("Usage: place structure <village|stronghold|mineshaft|fortress> [x] [z]");
             return;
         }
 
@@ -59,6 +59,7 @@ public sealed class PlaceStructureCommand : ICommand
             "Village" => new StructureVillageStart(world, random, chunkX, chunkZ, 0),
             "Stronghold" => new StructureStrongholdStart(world, random, chunkX, chunkZ),
             "Mineshaft" => new StructureMineshaftStart(world, random, chunkX, chunkZ),
+            "Fortress" => new StructureNetherFortressStart(world, random, chunkX, chunkZ),
             _ => throw new InvalidOperationException($"Unsupported structure id: {structureId}")
         };
 

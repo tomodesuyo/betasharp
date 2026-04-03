@@ -13,6 +13,7 @@ public class EntitySlime : EntityLiving, Monster
     public readonly SyncedProperty<byte> SlimeSize;
     public float squishAmount;
     public float prevSquishAmount;
+    private bool _wasOnGround;
     private int slimeJumpDelay;
 
     public EntitySlime(IWorldContext world) : base(world)
@@ -21,7 +22,7 @@ public class EntitySlime : EntityLiving, Monster
         SlimeSize = DataSynchronizer.MakeProperty<byte>(16, 1);
         int size = 1 << random.NextInt(3);
         standingEyeHeight = 0.0F;
-        slimeJumpDelay = random.NextInt(20) + 10;
+        slimeJumpDelay = getJumpDelay();
         setSlimeSize(size);
     }
 
@@ -53,9 +54,8 @@ public class EntitySlime : EntityLiving, Monster
     public override void tick()
     {
         prevSquishAmount = squishAmount;
-        bool wasOnGround = onGround;
         base.tick();
-        if (onGround && !wasOnGround)
+        if (onGround && !_wasOnGround)
         {
             int size = getSlimeSize();
 
@@ -65,18 +65,23 @@ public class EntitySlime : EntityLiving, Monster
                 float spread = random.NextFloat() * 0.5F + 0.5F;
                 float offsetX = MathHelper.Sin(angle) * (float)size * 0.5F * spread;
                 float offsetY = MathHelper.Cos(angle) * (float)size * 0.5F * spread;
-                world.Broadcaster.AddParticle("slime", base.x + (double)offsetX, boundingBox.MinY, z + (double)offsetY, 0.0D, 0.0D, 0.0D);
+                world.Broadcaster.AddParticle(getParticleName(), base.x + (double)offsetX, boundingBox.MinY, z + (double)offsetY, 0.0D, 0.0D, 0.0D);
             }
 
-            if (size > 2)
+            if (makesSoundOnLand())
             {
-                world.Broadcaster.PlaySoundAtEntity(this, "mob.slime", getSoundVolume(), ((random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F) / 0.8F);
+                world.Broadcaster.PlaySoundAtEntity(this, getJumpSound(), getSoundVolume(), ((random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F) / 0.8F);
             }
 
             squishAmount = -0.5F;
         }
+        else if (!onGround && _wasOnGround)
+        {
+            squishAmount = 1.0F;
+        }
 
-        squishAmount *= 0.6F;
+        _wasOnGround = onGround;
+        alterSquishAmount();
     }
 
     public override void tickLiving()
@@ -90,7 +95,7 @@ public class EntitySlime : EntityLiving, Monster
 
         if (onGround && slimeJumpDelay-- <= 0)
         {
-            slimeJumpDelay = random.NextInt(20) + 10;
+            slimeJumpDelay = getJumpDelay();
             if (player != null)
             {
                 slimeJumpDelay /= 3;
@@ -99,7 +104,7 @@ public class EntitySlime : EntityLiving, Monster
             jumping = true;
             if (getSlimeSize() > 1)
             {
-                world.Broadcaster.PlaySoundAtEntity(this, "mob.slime", getSoundVolume(), ((random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F) * 0.8F);
+                world.Broadcaster.PlaySoundAtEntity(this, getJumpSound(), getSoundVolume(), ((random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F) * 0.8F);
             }
 
             squishAmount = 1.0F;
@@ -122,11 +127,12 @@ public class EntitySlime : EntityLiving, Monster
         int size = getSlimeSize();
         if (!world.IsRemote && size > 1 && health == 0)
         {
-            for (int i = 0; i < 4; ++i)
+            int splitCount = 2 + random.NextInt(3);
+            for (int i = 0; i < splitCount; ++i)
             {
                 float offsetX = ((float)(i % 2) - 0.5F) * (float)size / 4.0F;
                 float offsetY = ((float)(i / 2) - 0.5F) * (float)size / 4.0F;
-                EntitySlime slime = new EntitySlime(world);
+                EntitySlime slime = createInstance();
                 slime.setSlimeSize(size / 2);
                 slime.setPositionAndAnglesKeepPrevAngles(x + (double)offsetX, y + 0.5D, z + (double)offsetY, random.NextFloat() * 360.0F, 0.0F);
                 world.SpawnEntity(slime);
@@ -139,7 +145,8 @@ public class EntitySlime : EntityLiving, Monster
     public override void onPlayerInteraction(EntityPlayer player)
     {
         int size = getSlimeSize();
-        if (size > 1 && canSee(player) && (double)getDistance(player) < 0.6D * (double)size && player.damage(this, size))
+        int attackStrength = getAttackStrength();
+        if (attackStrength > 0 && canSee(player) && (double)getDistance(player) < 0.6D * (double)size && player.damage(this, attackStrength))
         {
             world.Broadcaster.PlaySoundAtEntity(this, "mob.slimeattack", 1.0F, (random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F);
         }
@@ -170,5 +177,40 @@ public class EntitySlime : EntityLiving, Monster
     protected override float getSoundVolume()
     {
         return 0.6F;
+    }
+
+    protected virtual int getJumpDelay()
+    {
+        return random.NextInt(20) + 10;
+    }
+
+    protected virtual string getParticleName()
+    {
+        return "slime";
+    }
+
+    protected virtual string getJumpSound()
+    {
+        return "mob.slime";
+    }
+
+    protected virtual bool makesSoundOnLand()
+    {
+        return getSlimeSize() > 2;
+    }
+
+    protected virtual void alterSquishAmount()
+    {
+        squishAmount *= 0.6F;
+    }
+
+    protected virtual EntitySlime createInstance()
+    {
+        return new EntitySlime(world);
+    }
+
+    protected virtual int getAttackStrength()
+    {
+        return getSlimeSize();
     }
 }

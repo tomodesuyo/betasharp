@@ -51,6 +51,7 @@ public static class EntityRegistry
     public static readonly EntityType Egg = Register(world => new EntityEgg(world), "Egg", 62);
     public static readonly EntityType EnderPearl = Register(world => new EntityEnderPearl(world), "ThrownEnderpearl", 14);
     public static readonly EntityType EyeOfEnderSignal = Register(world => new EntityEnderEye(world), "EyeOfEnderSignal", 15);
+    public static readonly EntityType WitherSkull = Register(world => new EntityWitherSkull(world), "WitherSkull", 19);
     public static readonly EntityType Potion = Register(world => new EntityPotion(world), "ThrownPotion", 16);
     public static readonly EntityType ExpBottle = Register(world => new EntityExpBottle(world), "ThrownExpBottle", 17);
     public static readonly EntityType Fireball = Register(world => new EntityFireball(world), "Fireball", 63);

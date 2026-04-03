@@ -30,4 +30,5 @@ public enum BlockRendererType: int
     EndPortalFrame = 26,
     DragonEgg = 27,
     Cocoa = 28,
+    Wall = 29,
 }

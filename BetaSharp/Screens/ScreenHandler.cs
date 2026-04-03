@@ -10,6 +10,9 @@ public abstract class ScreenHandler
     protected List<ScreenHandlerListener> Listeners { get; private set; } = [];
     private short _revision;
     private HashSet<EntityPlayer> _players = new HashSet<EntityPlayer>();
+    private int _dragMode = -1;
+    private int _dragEvent;
+    private readonly HashSet<Slot> _dragSlots = [];
 
 
 
@@ -103,6 +106,102 @@ public abstract class ScreenHandler
     public virtual ItemStack? onSlotClick(int index, int button, int mode, EntityPlayer player)
     {
         ItemStack? returnStack = null;
+        InventoryPlayer playerInventory = player.inventory;
+
+        if (mode == ScreenHandlerClickMode.Drag)
+        {
+            int previousEvent = _dragEvent;
+            _dragEvent = GetDragEvent(button);
+
+            if ((previousEvent != 1 || _dragEvent != 2) && previousEvent != _dragEvent)
+            {
+                ResetDrag();
+            }
+            else if (playerInventory.getCursorStack() == null)
+            {
+                ResetDrag();
+            }
+            else if (_dragEvent == 0)
+            {
+                _dragMode = ExtractDragMode(button);
+                if (IsValidDragMode(_dragMode, player))
+                {
+                    _dragEvent = 1;
+                    _dragSlots.Clear();
+                }
+                else
+                {
+                    ResetDrag();
+                }
+            }
+            else if (_dragEvent == 1)
+            {
+                if (index >= 0 && index < Slots.Count)
+                {
+                    Slot slot = Slots[index];
+                    ItemStack cursorStack = playerInventory.getCursorStack()!;
+                    if (CanAddItemToSlot(slot, cursorStack, true)
+                        && slot.canInsert(cursorStack)
+                        && cursorStack.count > _dragSlots.Count
+                        && canDragIntoSlot(slot))
+                    {
+                        _dragSlots.Add(slot);
+                    }
+                }
+            }
+            else if (_dragEvent == 2)
+            {
+                if (_dragSlots.Count > 0)
+                {
+                    ItemStack dragStack = playerInventory.getCursorStack()!.copy();
+                    int remainingCount = playerInventory.getCursorStack()!.count;
+
+                    foreach (Slot slot in _dragSlots)
+                    {
+                        if (!CanAddItemToSlot(slot, playerInventory.getCursorStack()!, true)
+                            || !slot.canInsert(playerInventory.getCursorStack()!)
+                            || playerInventory.getCursorStack()!.count < _dragSlots.Count
+                            || !canDragIntoSlot(slot))
+                        {
+                            continue;
+                        }
+
+                        ItemStack placedStack = dragStack.copy();
+                        int existingCount = slot.hasStack() ? slot.getStack().count : 0;
+                        ComputeStackSize(_dragSlots, _dragMode, placedStack, existingCount);
+
+                        if (placedStack.count > placedStack.getMaxCount())
+                        {
+                            placedStack.count = placedStack.getMaxCount();
+                        }
+
+                        if (placedStack.count > slot.getMaxItemCount())
+                        {
+                            placedStack.count = slot.getMaxItemCount();
+                        }
+
+                        remainingCount -= placedStack.count - existingCount;
+                        slot.setStack(placedStack);
+                    }
+
+                    dragStack.count = remainingCount;
+                    playerInventory.setItemStack(dragStack.count > 0 ? dragStack : null);
+                }
+
+                ResetDrag();
+            }
+            else
+            {
+                ResetDrag();
+            }
+
+            return null;
+        }
+
+        if (_dragEvent != 0)
+        {
+            ResetDrag();
+        }
 
         if (mode == ScreenHandlerClickMode.QuickMove)
         {
@@ -130,7 +229,6 @@ public abstract class ScreenHandler
             return returnStack;
         }
 
-        InventoryPlayer playerInventory = player.inventory;
         if (mode == ScreenHandlerClickMode.Pickup && (button == 0 || button == 1))
         {
             if (index == -999)
@@ -316,6 +414,75 @@ public abstract class ScreenHandler
             }
         }
 
+        if (mode == ScreenHandlerClickMode.PickupAll && index >= 0 && index < Slots.Count)
+        {
+            Slot clickedSlot = Slots[index];
+            ItemStack? cursorStack = playerInventory.getCursorStack();
+            if (cursorStack == null || !clickedSlot.canTake(player))
+            {
+                return null;
+            }
+
+            if (!clickedSlot.hasStack() || !AreStacksCompatible(cursorStack, clickedSlot.getStack()))
+            {
+                return null;
+            }
+
+            returnStack = cursorStack.copy();
+            IInventory sourceInventory = clickedSlot.Inventory;
+            int maxCount = cursorStack.getMaxCount();
+
+            for (int pass = 0; pass < 2 && cursorStack.count < maxCount; ++pass)
+            {
+                for (int slotIndex = 0; slotIndex < Slots.Count && cursorStack.count < maxCount; ++slotIndex)
+                {
+                    Slot slot = Slots[slotIndex];
+                    if (slot.Inventory != sourceInventory || !slot.canTake(player) || !slot.hasStack())
+                    {
+                        continue;
+                    }
+
+                    ItemStack slotStack = slot.getStack();
+                    if (!AreStacksCompatible(cursorStack, slotStack))
+                    {
+                        continue;
+                    }
+
+                    bool takeWholeStack = pass == 0;
+                    if (!takeWholeStack && slotStack.count == slotStack.getMaxCount())
+                    {
+                        continue;
+                    }
+
+                    int availableSpace = maxCount - cursorStack.count;
+                    if (availableSpace <= 0)
+                    {
+                        break;
+                    }
+
+                    int amountToTake = Math.Min(availableSpace, slotStack.count);
+                    if (amountToTake <= 0)
+                    {
+                        continue;
+                    }
+
+                    ItemStack takenStack = slot.takeStack(amountToTake);
+                    if (takenStack == null)
+                    {
+                        continue;
+                    }
+
+                    cursorStack.count += takenStack.count;
+                    if (slot.getStack() != null && slot.getStack().count == 0)
+                    {
+                        slot.setStack(null);
+                    }
+
+                    slot.onTakeItem(takenStack);
+                }
+            }
+        }
+
         return returnStack;
     }
 
@@ -385,6 +552,16 @@ public abstract class ScreenHandler
     }
 
     public abstract bool canUse(EntityPlayer player);
+
+    public virtual bool canMergeSlot(ItemStack? stack, Slot slot)
+    {
+        return true;
+    }
+
+    public virtual bool canDragIntoSlot(Slot slot)
+    {
+        return true;
+    }
 
     protected void insertItem(ItemStack stack, int start, int end, bool fromLast)
     {
@@ -466,5 +643,69 @@ public abstract class ScreenHandler
                 }
             }
         }
+    }
+
+    public static int ExtractDragMode(int button)
+    {
+        return button >> 2 & 3;
+    }
+
+    public static int GetDragEvent(int button)
+    {
+        return button & 3;
+    }
+
+    public static int PackDragData(int dragEvent, int dragMode)
+    {
+        return dragEvent & 3 | (dragMode & 3) << 2;
+    }
+
+    public static bool IsValidDragMode(int dragMode, EntityPlayer player)
+    {
+        return dragMode == 0
+            || dragMode == 1
+            || dragMode == 2 && player.capabilities.IsCreativeMode;
+    }
+
+    protected void ResetDrag()
+    {
+        _dragEvent = 0;
+        _dragSlots.Clear();
+    }
+
+    public static bool CanAddItemToSlot(Slot slot, ItemStack stack, bool ignoreStackSize)
+    {
+        if (!slot.hasStack())
+        {
+            return true;
+        }
+
+        ItemStack slotStack = slot.getStack();
+        return AreStacksCompatible(stack, slotStack)
+               && slotStack.count + (ignoreStackSize ? 0 : stack.count) <= stack.getMaxCount();
+    }
+
+    public static void ComputeStackSize(ICollection<Slot> dragSlots, int dragMode, ItemStack stack, int existingCount)
+    {
+        switch (dragMode)
+        {
+            case 0:
+                stack.count = stack.count / dragSlots.Count;
+                break;
+            case 1:
+                stack.count = 1;
+                break;
+            case 2:
+                stack.count = stack.getMaxCount();
+                break;
+        }
+
+        stack.count += existingCount;
+    }
+
+    private static bool AreStacksCompatible(ItemStack a, ItemStack b)
+    {
+        return a.itemId == b.itemId
+               && (!a.getHasSubtypes() || a.getDamage() == b.getDamage());
     }
 }

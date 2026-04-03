@@ -9,7 +9,11 @@ internal sealed class BlockSponge : Block
 
     public override int getTexture(int side, int meta)
     {
-        return textureId;
+        return (meta & 3) switch
+        {
+            1 => 173,
+            _ => 48
+        };
     }
 
     protected override int getDroppedItemMeta(int blockMeta) => blockMeta & 1;

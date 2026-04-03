@@ -170,6 +170,21 @@ public class EntityGhast : EntityFlying, Monster
         return Item.Gunpowder.id;
     }
 
+    protected override void dropFewItems()
+    {
+        int tearCount = random.NextInt(2);
+        for (int i = 0; i < tearCount; ++i)
+        {
+            dropItem(Item.GhastTear.id, 1);
+        }
+
+        int gunpowderCount = random.NextInt(3);
+        for (int i = 0; i < gunpowderCount; ++i)
+        {
+            dropItem(Item.Gunpowder.id, 1);
+        }
+    }
+
     protected override float getSoundVolume()
     {
         return 10.0F;

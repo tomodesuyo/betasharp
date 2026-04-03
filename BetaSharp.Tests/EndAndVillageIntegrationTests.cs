@@ -1,12 +1,15 @@
 using BetaSharp.Blocks;
 using BetaSharp.Blocks.Entities;
 using BetaSharp;
+using BetaSharp.Creative;
 using BetaSharp.Client.Rendering.Entities.Models;
 using BetaSharp.Entities;
 using BetaSharp.Items;
 using BetaSharp.Inventorys;
+using BetaSharp.NBT;
 using BetaSharp.Potions;
 using BetaSharp.Screens;
+using BetaSharp.Screens.Slots;
 using BetaSharp.Trading;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds;
@@ -18,6 +21,7 @@ using BetaSharp.Worlds.Biomes.Source;
 using BetaSharp.Worlds.Generation.Biomes;
 using BetaSharp.Worlds.Generation.Generators.Features;
 using BetaSharp.Worlds.Generation.Structures;
+using BetaSharp.Server.Commands;
 using BetaSharp.Worlds.Storage;
 using System.Reflection;
 using System.Collections.Concurrent;
@@ -407,12 +411,32 @@ public class EndAndVillageIntegrationTests
 
         ItemStack? cookedBeef = (ItemStack?)craft.Invoke(manager, [Item.RawBeef.id]);
         ItemStack? lapisDye = (ItemStack?)craft.Invoke(manager, [Block.LapisOre.id]);
+        ItemStack? netherBrick = (ItemStack?)craft.Invoke(manager, [Block.Netherrack.id]);
 
         Assert.NotNull(cookedBeef);
         Assert.Equal(Item.CookedBeef.id, cookedBeef!.itemId);
         Assert.NotNull(lapisDye);
         Assert.Equal(Item.Dye.id, lapisDye!.itemId);
         Assert.Equal(4, lapisDye.getDamage());
+        Assert.NotNull(netherBrick);
+        Assert.Equal(Item.NetherBrickItem.id, netherBrick!.itemId);
+    }
+
+    [Fact]
+    public void CraftingManagerIncludesPumpkinPieRecipe()
+    {
+        object manager = GetCraftingManager();
+        MethodInfo findMatchingRecipe = manager.GetType().GetMethod("FindMatchingRecipe", BindingFlags.Instance | BindingFlags.Public)!;
+
+        InventoryCrafting inventory = new(new DummyScreenHandler(), 3, 3);
+        inventory.setStack(0, new ItemStack(Block.Pumpkin));
+        inventory.setStack(1, new ItemStack(Item.Sugar));
+        inventory.setStack(2, new ItemStack(Item.Egg));
+
+        ItemStack? pumpkinPie = (ItemStack?)findMatchingRecipe.Invoke(manager, [inventory]);
+
+        Assert.NotNull(pumpkinPie);
+        Assert.Equal(Item.PumpkinPie.id, pumpkinPie!.itemId);
     }
 
     [Fact]
@@ -570,6 +594,77 @@ public class EndAndVillageIntegrationTests
     }
 
     [Fact]
+    public void CreativeInventoryIncludesAllMonsterEggVariants()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        CreativeScreenHandler handler = new(player.inventory);
+        FieldInfo allStacksField = typeof(CreativeScreenHandler).GetField("_allStacks", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        List<ItemStack> allStacks = (List<ItemStack>)allStacksField.GetValue(handler)!;
+
+        List<ItemStack> monsterEggStacks = allStacks.Where(stack => stack.itemId == Block.Silverfish.id).ToList();
+
+        Assert.Equal(6, monsterEggStacks.Select(stack => stack.getDamage()).Distinct().Count());
+    }
+
+    [Fact]
+    public void CreativeInventoryUsesDedicatedSkullItem()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        CreativeScreenHandler handler = new(player.inventory);
+
+        List<ItemStack> allStacks = GetCreativeStacks(handler, "_allStacks");
+
+        Assert.Contains(allStacks, stack => stack.itemId == Item.Skull.id);
+        Assert.DoesNotContain(allStacks, stack => stack.itemId == Block.Skull.id);
+
+        handler.SetTab(CreativeInventoryTab.Decorations);
+        List<ItemStack> visibleStacks = GetCreativeStacks(handler, "_visibleStacks");
+
+        Assert.Contains(visibleStacks, stack => stack.itemId == Item.Skull.id);
+    }
+
+    [Fact]
+    public void CreativeInventoryMatchesModernFoodBrewingAndTransportationTabs()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        CreativeScreenHandler handler = new(player.inventory);
+
+        handler.SetTab(CreativeInventoryTab.Food);
+        List<ItemStack> foodStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.Contains(foodStacks, stack => stack.itemId == Item.PumpkinPie.id);
+        Assert.Contains(foodStacks, stack => stack.itemId == Item.GoldenApple.id);
+        Assert.DoesNotContain(foodStacks, stack => stack.itemId == Item.GoldenCarrot.id);
+        Assert.DoesNotContain(foodStacks, stack => stack.itemId == Block.Cake.id);
+
+        handler.SetTab(CreativeInventoryTab.Brewing);
+        List<ItemStack> brewingStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.Contains(brewingStacks, stack => stack.itemId == Item.GoldenCarrot.id);
+        Assert.Contains(brewingStacks, stack => stack.itemId == Item.RabbitFoot.id);
+        Assert.DoesNotContain(brewingStacks, stack => stack.itemId == Item.NetherWart.id);
+        Assert.DoesNotContain(brewingStacks, stack => stack.itemId == Item.SpiderEye.id);
+
+        handler.SetTab(CreativeInventoryTab.Redstone);
+        List<ItemStack> redstoneStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.DoesNotContain(redstoneStacks, stack => stack.itemId == Block.PoweredRail.id);
+
+        handler.SetTab(CreativeInventoryTab.Transportation);
+        List<ItemStack> transportationStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.Contains(transportationStacks, stack => stack.itemId == Block.PoweredRail.id);
+
+        handler.SetTab(CreativeInventoryTab.Tools);
+        List<ItemStack> toolStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.Contains(toolStacks, stack => stack.itemId == Item.Lead.id);
+        Assert.Contains(toolStacks, stack => stack.itemId == Item.NameTag.id);
+
+        handler.SetTab(CreativeInventoryTab.Misc);
+        List<ItemStack> miscStacks = GetCreativeStacks(handler, "_visibleStacks");
+        Assert.Contains(miscStacks, stack => stack.itemId == Item.WritableBook.id);
+    }
+
+    [Fact]
     public void TranslationStorageContainsSurvivalCraftingLabel()
     {
         Assert.Equal("Crafting", TranslationStorage.Instance.TranslateKey("container.crafting"));
@@ -702,10 +797,292 @@ public class EndAndVillageIntegrationTests
         Assert.Equal(0, world.Reader.GetBlockId(4, 4, 2));
     }
 
+    [Fact]
+    public void PickupAllCollectsMatchingStacksFromSameInventory()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        InventoryBasic inventory = new("pickupAll", 3);
+        inventory.setStack(0, new ItemStack(Item.Stick, 1));
+        inventory.setStack(1, new ItemStack(Item.Stick, 2));
+        inventory.setStack(2, new ItemStack(Item.Bread, 1));
+
+        DummyScreenHandler handler = new();
+        handler.AddTestSlot(new Slot(inventory, 0, 0, 0));
+        handler.AddTestSlot(new Slot(inventory, 1, 18, 0));
+        handler.AddTestSlot(new Slot(inventory, 2, 36, 0));
+
+        player.inventory.setItemStack(new ItemStack(Item.Stick, 1));
+
+        handler.onSlotClick(0, 0, ScreenHandlerClickMode.PickupAll, player);
+
+        Assert.NotNull(player.inventory.getCursorStack());
+        Assert.Equal(4, player.inventory.getCursorStack()!.count);
+        Assert.Null(inventory.getStack(0));
+        Assert.Null(inventory.getStack(1));
+        Assert.NotNull(inventory.getStack(2));
+    }
+
+    [Fact]
+    public void DragSplitDistributesCursorStackAcrossSelectedSlots()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        InventoryBasic inventory = new("dragSplit", 3);
+
+        DummyScreenHandler handler = new();
+        handler.AddTestSlot(new Slot(inventory, 0, 0, 0));
+        handler.AddTestSlot(new Slot(inventory, 1, 18, 0));
+        handler.AddTestSlot(new Slot(inventory, 2, 36, 0));
+
+        player.inventory.setItemStack(new ItemStack(Item.Stick, 6));
+
+        handler.onSlotClick(-999, ScreenHandler.PackDragData(0, 0), ScreenHandlerClickMode.Drag, player);
+        handler.onSlotClick(0, ScreenHandler.PackDragData(1, 0), ScreenHandlerClickMode.Drag, player);
+        handler.onSlotClick(1, ScreenHandler.PackDragData(1, 0), ScreenHandlerClickMode.Drag, player);
+        handler.onSlotClick(2, ScreenHandler.PackDragData(1, 0), ScreenHandlerClickMode.Drag, player);
+        handler.onSlotClick(-999, ScreenHandler.PackDragData(2, 0), ScreenHandlerClickMode.Drag, player);
+
+        Assert.Equal(2, inventory.getStack(0)!.count);
+        Assert.Equal(2, inventory.getStack(1)!.count);
+        Assert.Equal(2, inventory.getStack(2)!.count);
+        Assert.Null(player.inventory.getCursorStack());
+    }
+
+    [Fact]
+    public void CreativeBowFiresWithoutArrows()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        player.capabilities.SetGameMode(BetaSharp.Worlds.Core.Systems.GameMode.Creative);
+
+        ItemStack bow = new(Item.BOW);
+
+        Item.BOW.use(bow, world, player);
+
+        List<EntityArrow> arrows = world.Entities.CollectEntitiesOfType<EntityArrow>(new Box(-8.0D, -8.0D, -8.0D, 8.0D, 16.0D, 8.0D));
+        Assert.Single(arrows);
+        Assert.False(player.inventory.consumeInventoryItem(Item.ARROW.id));
+    }
+
+    [Fact]
+    public void NetherWartSeedsPlaceOnlyOnSoulSand()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        ItemStack netherWart = new(Item.NetherWart);
+
+        world.Writer.SetBlock(0, 4, 0, Block.Soulsand.id);
+        world.Writer.SetBlock(1, 4, 0, Block.Farmland.id);
+
+        Assert.True(Item.NetherWart.useOnBlock(netherWart, player, world, 0, 4, 0, 1));
+        Assert.Equal(Block.NetherWart.id, world.Reader.GetBlockId(0, 5, 0));
+
+        ItemStack secondNetherWart = new(Item.NetherWart);
+        Assert.False(Item.NetherWart.useOnBlock(secondNetherWart, player, world, 1, 4, 0, 1));
+        Assert.Equal(0, world.Reader.GetBlockId(1, 5, 0));
+    }
+
+    [Fact]
+    public void FullyGrownNetherWartDropsMultipleItems()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        world.Writer.SetBlock(0, 4, 0, Block.Soulsand.id);
+        world.Writer.SetBlockWithoutCallingOnPlaced(0, 5, 0, Block.NetherWart.id, 3);
+
+        Block.NetherWart.dropStacks(new OnDropEvent(world, 0, 5, 0, 3));
+
+        List<EntityItem> drops = world.Entities.CollectEntitiesOfType<EntityItem>(new Box(-4.0D, 0.0D, -4.0D, 4.0D, 16.0D, 4.0D));
+        List<EntityItem> wartDrops = drops.Where(drop => drop.stack.itemId == Item.NetherWart.id).ToList();
+
+        Assert.InRange(wartDrops.Count, 2, 4);
+    }
+
+    [Fact]
+    public void SkullBlockUsesDedicatedHeadTextures()
+    {
+        Assert.Equal(225, Block.Skull.getTexture(2, 0));
+        Assert.Equal(240, Block.Skull.getTexture(1, 0));
+    }
+
+    [Fact]
+    public void TrapdoorRemainsPlacedAfterSupportBlockIsRemoved()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        ItemStack trapdoor = new(Block.Trapdoor);
+
+        world.Writer.SetBlock(0, 4, 0, Block.Cobblestone.id);
+        Assert.True(Item.ITEMS[Block.Trapdoor.id].useOnBlock(trapdoor, player, world, 0, 4, 0, 1));
+        Assert.Equal(Block.Trapdoor.id, world.Reader.GetBlockId(0, 5, 0));
+
+        world.Writer.SetBlock(0, 4, 0, 0);
+
+        Assert.Equal(Block.Trapdoor.id, world.Reader.GetBlockId(0, 5, 0));
+    }
+
+    [Fact]
+    public void EnchantedGoldenAppleGrantsAbsorptionAndFoil()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        ItemStack apple = new(Item.GoldenApple.id, 1, 1);
+
+        Assert.True(Item.GoldenApple.hasEffect(apple));
+
+        Item.GoldenApple.use(apple, world, player);
+
+        Assert.True(player.hasPotionEffect(Potion.Absorption));
+        Assert.True(player.hasPotionEffect(Potion.Regeneration));
+        Assert.True(player.hasPotionEffect(Potion.Resistance));
+        Assert.True(player.hasPotionEffect(Potion.FireResistance));
+    }
+
+    [Fact]
+    public void SilverfishConvertsNearbyMonsterEggsBackIntoHostBlocksWhenDamaged()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        EntitySilverfish silverfish = new(world);
+        silverfish.setPositionAndAngles(0.5D, 4.0D, 0.5D, 0.0F, 0.0F);
+        Assert.True(world.SpawnEntity(silverfish));
+        world.Writer.SetBlockWithoutCallingOnPlaced(1, 4, 0, Block.Silverfish.id, 5);
+
+        Assert.True(silverfish.damage(null!, 1));
+
+        for (int i = 0; i < 20; ++i)
+        {
+            silverfish.tickLiving();
+        }
+
+        Assert.Equal(Block.StoneBrick.id, world.Reader.GetBlockId(1, 4, 0));
+        Assert.Equal(3, world.Reader.GetBlockMeta(1, 4, 0));
+
+        List<EntitySilverfish> silverfishEntities = world.Entities.CollectEntitiesOfType<EntitySilverfish>(new Box(-8.0D, 0.0D, -8.0D, 8.0D, 16.0D, 8.0D));
+        Assert.True(silverfishEntities.Count >= 2);
+    }
+
+    [Fact]
+    public void NetherFortressGeneratorPlacesNetherBrickWartAndBlazeSpawner()
+    {
+        TestWorld world = new(new NetherDimension(), 12345L);
+        MapGenNetherFortress fortress = new();
+
+        Vec3i? fortressPos = fortress.FindNearestStructure(world, 0, 64, 0);
+
+        Assert.NotNull(fortressPos);
+
+        int chunkX = fortressPos!.Value.X >> 4;
+        int chunkZ = fortressPos.Value.Z >> 4;
+        for (int x = chunkX - 8; x <= chunkX + 8; ++x)
+        {
+            for (int z = chunkZ - 8; z <= chunkZ + 8; ++z)
+            {
+                fortress.GenerateStructuresInChunk(world, new JavaRandom(world.Seed + x * 31L + z * 17L), x, z);
+            }
+        }
+
+        bool foundNetherBrick = false;
+        bool foundNetherWart = false;
+        bool foundBlazeSpawner = false;
+        bool foundChest = false;
+        for (int x = fortressPos.Value.X - 96; x <= fortressPos.Value.X + 96; ++x)
+        {
+            for (int y = fortressPos.Value.Y - 16; y <= fortressPos.Value.Y + 32; ++y)
+            {
+                for (int z = fortressPos.Value.Z - 96; z <= fortressPos.Value.Z + 96; ++z)
+                {
+                    int blockId = world.Reader.GetBlockId(x, y, z);
+                    foundNetherBrick |= blockId == Block.NetherBrick.id;
+                    foundNetherWart |= blockId == Block.NetherWart.id;
+                    foundBlazeSpawner |= blockId == Block.Spawner.id;
+                    foundChest |= blockId == Block.Chest.id;
+                }
+            }
+        }
+
+        Assert.True(foundNetherBrick);
+        Assert.True(foundNetherWart);
+        Assert.True(foundBlazeSpawner);
+        Assert.True(foundChest);
+    }
+
+    [Fact]
+    public void MonsterPlacerChangesSpawnerMobWithoutConsumingCreativeStack()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        player.SetGameMode(1);
+        world.Writer.SetBlock(0, 4, 0, Block.Spawner.id);
+        ItemStack spawnEgg = new(Item.MonsterPlacer, 1, 61);
+
+        bool used = spawnEgg.useOnBlock(player, world, 0, 4, 0, 1);
+
+        Assert.True(used);
+        Assert.Equal(1, spawnEgg.count);
+        Assert.Equal("Blaze", world.Entities.GetBlockEntity<BlockEntityMobSpawner>(0, 4, 0)!.GetSpawnedEntityId());
+    }
+
+    [Fact]
+    public void MobSpawnerPersistsOnePointEightSettings()
+    {
+        BlockEntityMobSpawner spawner = new();
+        spawner.SetSpawnedEntityId("WitherSkeleton");
+        spawner.SpawnDelay = 42;
+        spawner.MinSpawnDelay = 120;
+        spawner.MaxSpawnDelay = 480;
+        spawner.SpawnCount = 3;
+        spawner.MaxNearbyEntities = 9;
+        spawner.RequiredPlayerRange = 20;
+        spawner.SpawnRange = 6;
+
+        NBTTagCompound nbt = new();
+        spawner.writeNbt(nbt);
+
+        BlockEntityMobSpawner copy = new();
+        copy.readNbt(nbt);
+
+        Assert.Equal("WitherSkeleton", copy.GetSpawnedEntityId());
+        Assert.Equal(42, copy.SpawnDelay);
+        Assert.Equal(120, copy.MinSpawnDelay);
+        Assert.Equal(480, copy.MaxSpawnDelay);
+        Assert.Equal(3, copy.SpawnCount);
+        Assert.Equal(9, copy.MaxNearbyEntities);
+        Assert.Equal(20, copy.RequiredPlayerRange);
+        Assert.Equal(6, copy.SpawnRange);
+    }
+
+    [Fact]
+    public void LocateCommandNormalizesFortressAliases()
+    {
+        Assert.Equal("Fortress", LocateCommand.NormalizeStructureId("fortress"));
+        Assert.Equal("Fortress", LocateCommand.NormalizeStructureId("netherfortress"));
+        Assert.Equal("Fortress", LocateCommand.NormalizeStructureId("nether_fortress"));
+    }
+
+    [Fact]
+    public void SkullItemPlacesSkullBlock()
+    {
+        TestWorld world = new(new OverworldDimension(), 12345L);
+        DummyPlayer player = new(world);
+        world.Writer.SetBlockWithoutCallingOnPlaced(0, 4, 0, Block.Stone.id, 0);
+        ItemStack skull = new(Item.Skull);
+
+        bool used = skull.useOnBlock(player, world, 0, 4, 0, 1);
+
+        Assert.True(used);
+        Assert.Equal(Block.Skull.id, world.Reader.GetBlockId(0, 5, 0));
+    }
+
     private static object GetCraftingManager()
     {
         Type craftingManagerType = typeof(Item).Assembly.GetType("BetaSharp.Recipes.CraftingManager")!;
         return craftingManagerType.GetMethod("getInstance", BindingFlags.Static | BindingFlags.Public)!.Invoke(null, null)!;
+    }
+
+    private static List<ItemStack> GetCreativeStacks(CreativeScreenHandler handler, string fieldName)
+    {
+        FieldInfo field = typeof(CreativeScreenHandler).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
+        return (List<ItemStack>)field.GetValue(handler)!;
     }
 
     private static int BrewPotionDamage(int baseDamage, params Item[] ingredients)
@@ -829,6 +1206,11 @@ public class EndAndVillageIntegrationTests
 
     private sealed class DummyScreenHandler : ScreenHandler
     {
+        public void AddTestSlot(Slot slot)
+        {
+            AddSlot(slot);
+        }
+
         public override bool canUse(EntityPlayer player) => true;
     }
 
@@ -901,6 +1283,18 @@ public class EndAndVillageIntegrationTests
                         for (int y = 0; y <= 63; ++y)
                         {
                             SetBlock(chunk, localX, y, localZ, Block.EndStone.id);
+                        }
+                    }
+                    else if (world.Dimension.Id == -1)
+                    {
+                        for (int y = 0; y <= 31; ++y)
+                        {
+                            SetBlock(chunk, localX, y, localZ, Block.Netherrack.id);
+                        }
+
+                        for (int y = 124; y <= 127; ++y)
+                        {
+                            SetBlock(chunk, localX, y, localZ, Block.Bedrock.id);
                         }
                     }
                     else

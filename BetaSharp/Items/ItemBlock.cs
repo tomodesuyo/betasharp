@@ -83,7 +83,7 @@ internal class ItemBlock : Item
             }
         }
 
-        if (block.canPlaceAt(new CanPlaceAtContext(world, 0, x, y, z)))
+        if (block.canPlaceAt(new CanPlaceAtContext(world, meta, x, y, z)))
         {
             int placementMeta = getPlacementMetadata(itemStack.getDamage());
             if (world.Writer.SetBlockWithoutCallingOnPlaced(x, y, z, blockID, placementMeta))

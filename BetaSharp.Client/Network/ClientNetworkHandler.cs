@@ -194,6 +194,11 @@ public class ClientNetworkHandler : NetHandler
             packet.entityData = 0;
         }
 
+        if (packet.entityType == 66)
+        {
+            entity = new EntityWitherSkull(worldClient, x, y, z, packet.velocityX / 8000.0D, packet.velocityY / 8000.0D, packet.velocityZ / 8000.0D);
+        }
+
         if (packet.entityType == 62)
         {
             entity = new EntityEgg(worldClient, x, y, z);
@@ -278,6 +283,15 @@ public class ClientNetworkHandler : NetHandler
                     if (owner is EntityLiving)
                     {
                         ((EntityEnderPearl)entity).Thrower = (EntityLiving)owner;
+                    }
+                }
+
+                if (packet.entityType == 66)
+                {
+                    Entity? owner = getEntityByID(packet.entityData);
+                    if (owner is EntityLiving)
+                    {
+                        ((EntityWitherSkull)entity).owner = (EntityLiving)owner;
                     }
                 }
 
@@ -716,17 +730,15 @@ public class ClientNetworkHandler : NetHandler
             playerControllerMp.SetGameMode(packet.gameMode);
         }
 
-        if (packet.dimensionId != _game.player.dimensionId)
+        long worldSeed = worldClient?.Properties.RandomSeed ?? _game.world.Properties.RandomSeed;
+        terrainLoaded = false;
+        worldClient = new ClientWorld(this, worldSeed, packet.dimensionId)
         {
-            terrainLoaded = false;
-            worldClient = new ClientWorld(this, worldClient.Properties.RandomSeed, packet.dimensionId)
-            {
-                IsRemote = true
-            };
-            _game.changeWorld(worldClient);
-            _game.player.dimensionId = packet.dimensionId;
-            _game.displayGuiScreen(new GuiDownloadTerrain(this));
-        }
+            IsRemote = true
+        };
+        _game.changeWorld(worldClient);
+        _game.player.dimensionId = packet.dimensionId;
+        _game.displayGuiScreen(new GuiDownloadTerrain(this));
 
         _game.respawn(true, packet.dimensionId);
     }

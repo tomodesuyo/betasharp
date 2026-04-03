@@ -47,6 +47,11 @@ public sealed class EntityWitherSkeleton : EntitySkeleton
         {
             dropItem(Item.Bone.id, 1);
         }
+
+        if (random.NextInt(40) == 0)
+        {
+            dropItem(Item.Skull.id, 1);
+        }
     }
 
     public override ItemStack getHeldItem() => s_heldItem;

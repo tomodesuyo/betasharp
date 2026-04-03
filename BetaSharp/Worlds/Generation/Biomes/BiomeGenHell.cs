@@ -10,10 +10,8 @@ internal class BiomeGenHell : Biome
         CreatureList.Clear();
         WaterCreatureList.Clear();
 
-        MonsterList.Add(new SpawnListEntry(w => new EntityGhast(w)), 10);
-        MonsterList.Add(new SpawnListEntry(w => new EntityPigZombie(w)), 10);
-        MonsterList.Add(new SpawnListEntry(w => new EntityBlaze(w), 1, 2), 5);
-        MonsterList.Add(new SpawnListEntry(w => new EntityWitherSkeleton(w), 1, 2), 4);
-        MonsterList.Add(new SpawnListEntry(w => new EntityMagmaCube(w), 2, 4), 4);
+        MonsterList.Add(new SpawnListEntry(w => new EntityGhast(w), 4, 4), 50);
+        MonsterList.Add(new SpawnListEntry(w => new EntityPigZombie(w), 4, 4), 100);
+        MonsterList.Add(new SpawnListEntry(w => new EntityMagmaCube(w), 4, 4), 1);
     }
 }

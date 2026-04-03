@@ -36,6 +36,7 @@ public class BlockRenderer
     private static readonly EndPortalFrameRenderer s_endPortalFrame = new();
     private static readonly DragonEggRenderer s_dragonEgg = new();
     private static readonly CocoaRenderer s_cocoa = new();
+    private static readonly WallRenderer s_wall = new();
 
 
     public static bool RenderBlockByRenderType(IBlockReader world, ILightProvider lighting, Block block, BlockPos pos, Tessellator tess, int overrideTexture = -1, bool renderAllFaces = false)
@@ -94,6 +95,7 @@ public class BlockRenderer
             BlockRendererType.EndPortalFrame => s_endPortalFrame.Draw(block, pos, ref ctx),
             BlockRendererType.DragonEgg => s_dragonEgg.Draw(block, pos, ref ctx),
             BlockRendererType.Cocoa => s_cocoa.Draw(block, pos, ref ctx),
+            BlockRendererType.Wall => s_wall.Draw(block, pos, ref ctx),
             _ => false
         };
     }
@@ -259,6 +261,7 @@ public class BlockRenderer
                renderType == BlockRendererType.EndPortalFrame ||
                renderType == BlockRendererType.DragonEgg ||
                renderType == BlockRendererType.Cactus ||
+               renderType == BlockRendererType.Wall ||
                renderType == BlockRendererType.PistonBase;
     }
 }

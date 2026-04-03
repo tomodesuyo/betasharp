@@ -49,5 +49,17 @@ public abstract class StructureStart
         }
     }
 
+    protected void SetRandomHeight(JavaRandom random, int minY, int maxY)
+    {
+        int span = maxY - minY + 1 - BoundingBox.GetYSize();
+        int targetY = span > 1 ? minY + random.NextInt(span) : minY;
+        int offsetY = targetY - BoundingBox.MinY;
+        BoundingBox.Offset(0, offsetY, 0);
+        for (int i = 0; i < Components.Count; ++i)
+        {
+            Components[i].GetBoundingBox().Offset(0, offsetY, 0);
+        }
+    }
+
     public virtual bool IsSizeableStructure() => true;
 }

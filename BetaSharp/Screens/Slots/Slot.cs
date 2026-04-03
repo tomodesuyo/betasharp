@@ -11,6 +11,8 @@ public class Slot
     public int id;
     public int xDisplayPosition;
     public int yDisplayPosition;
+    public IInventory Inventory => inventory;
+    public int Index => slotIndex;
 
     public Slot(IInventory inv, int index, int x, int y)
     {

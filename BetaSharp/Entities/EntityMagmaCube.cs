@@ -28,6 +28,10 @@ public sealed class EntityMagmaCube : EntitySlime
 
     protected override int getDropItemId() => getSlimeSize() > 1 ? Item.MagmaCream.id : 0;
 
+    protected override void onLanding(float fallDistance)
+    {
+    }
+
     public override bool canSpawn()
     {
         return world.Difficulty > 0 &&
@@ -36,22 +40,28 @@ public sealed class EntityMagmaCube : EntitySlime
                !world.Reader.IsMaterialInBox(boundingBox, material => material.IsFluid);
     }
 
-    public override void markDead()
+    protected override int getJumpDelay()
     {
-        int size = getSlimeSize();
-        if (!world.IsRemote && size > 1 && health == 0)
-        {
-            for (int i = 0; i < 4; ++i)
-            {
-                float offsetX = ((i % 2) - 0.5F) * size / 4.0F;
-                float offsetY = ((i / 2) - 0.5F) * size / 4.0F;
-                EntityMagmaCube magmaCube = new(world);
-                magmaCube.setSlimeSize(size / 2);
-                magmaCube.setPositionAndAnglesKeepPrevAngles(x + offsetX, y + 0.5D, z + offsetY, random.NextFloat() * 360.0F, 0.0F);
-                world.SpawnEntity(magmaCube);
-            }
-        }
+        return base.getJumpDelay() * 4;
+    }
 
-        base.markDead();
+    protected override string getParticleName()
+    {
+        return "flame";
+    }
+
+    protected override void alterSquishAmount()
+    {
+        squishAmount *= 0.9F;
+    }
+
+    protected override EntitySlime createInstance()
+    {
+        return new EntityMagmaCube(world);
+    }
+
+    protected override int getAttackStrength()
+    {
+        return base.getAttackStrength() + 2;
     }
 }

@@ -64,17 +64,6 @@ public class GuiContainerCreative : GuiContainer
     public override void HandleMouseInput()
     {
         base.HandleMouseInput();
-        int wheel = Mouse.getEventDWheel();
-        if (wheel != 0 && _creativeScreenHandler.NeedsScrollBar())
-        {
-            int rows = _creativeScreenHandler.GetScrollableRowCount();
-            if (rows > 0)
-            {
-                _scrollPosition -= Math.Sign(wheel) / (float)rows;
-                _scrollPosition = Math.Clamp(_scrollPosition, 0.0F, 1.0F);
-                _creativeScreenHandler.ScrollTo(_scrollPosition);
-            }
-        }
     }
 
     public override void Render(int mouseX, int mouseY, float partialTicks)
@@ -226,19 +215,7 @@ public class GuiContainerCreative : GuiContainer
         Slot? slot = GetSlotAtPosition(x, y);
         if (slot != null)
         {
-            if (_creativeScreenHandler.CurrentTab == CreativeInventoryTab.Inventory)
-            {
-                HandleInventoryTabClick(slot, button, playerInventory);
-            }
-            else if (slot.id < 45)
-            {
-                HandleSelectionSlotClick(slot, button, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT), playerInventory);
-            }
-            else
-            {
-                HandleHotbarSlotClick(slot, button, playerInventory);
-            }
-
+            ClickContainerSlot(slot, button, IsShiftDown());
             return;
         }
 
@@ -276,6 +253,47 @@ public class GuiContainerCreative : GuiContainer
 
     protected override void HandleQuickMove(int x, int y)
     {
+    }
+
+    protected override void ClickContainerSlot(Slot slot, int button, bool shiftPressed)
+    {
+        InventoryPlayer playerInventory = Game.player.inventory;
+        if (_creativeScreenHandler.CurrentTab == CreativeInventoryTab.Inventory)
+        {
+            HandleInventoryTabClick(slot, button, playerInventory);
+        }
+        else if (slot.id < 45)
+        {
+            HandleSelectionSlotClick(slot, button, shiftPressed, playerInventory);
+        }
+        else
+        {
+            HandleHotbarSlotClick(slot, button, playerInventory);
+        }
+    }
+
+    protected override void HandleContainerMouseWheel(int wheel, int mouseX, int mouseY)
+    {
+        if (HandleMouseTweaksWheel(wheel, mouseX, mouseY))
+        {
+            return;
+        }
+
+        if (_creativeScreenHandler.NeedsScrollBar())
+        {
+            int rows = _creativeScreenHandler.GetScrollableRowCount();
+            if (rows > 0)
+            {
+                _scrollPosition -= Math.Sign(wheel) / (float)rows;
+                _scrollPosition = Math.Clamp(_scrollPosition, 0.0F, 1.0F);
+                _creativeScreenHandler.ScrollTo(_scrollPosition);
+            }
+        }
+    }
+
+    protected override bool IsMouseTweaksIgnored(Slot slot)
+    {
+        return _creativeScreenHandler.CurrentTab != CreativeInventoryTab.Inventory && slot.id < 45;
     }
 
     private void SetCurrentTab(CreativeInventoryTab tab)

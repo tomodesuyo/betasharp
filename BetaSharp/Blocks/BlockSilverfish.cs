@@ -9,6 +9,55 @@ internal class BlockSilverfish : Block
     {
     }
 
+    public static bool CanContainSilverfish(int blockId, int blockMeta)
+    {
+        return blockId == Block.Stone.id
+               || blockId == Block.Cobblestone.id
+               || blockId == Block.StoneBrick.id && (blockMeta & 3) <= 3;
+    }
+
+    public static int GetMonsterEggMetaForModel(int blockId, int blockMeta)
+    {
+        if (blockId == Block.Cobblestone.id)
+        {
+            return 1;
+        }
+
+        if (blockId == Block.StoneBrick.id)
+        {
+            return (blockMeta & 3) switch
+            {
+                1 => 3,
+                2 => 4,
+                3 => 5,
+                _ => 2,
+            };
+        }
+
+        return 0;
+    }
+
+    public static int GetModelBlockId(int meta)
+    {
+        return meta switch
+        {
+            1 => Block.Cobblestone.id,
+            2 or 3 or 4 or 5 => Block.StoneBrick.id,
+            _ => Block.Stone.id,
+        };
+    }
+
+    public static int GetModelBlockMeta(int meta)
+    {
+        return meta switch
+        {
+            3 => 1,
+            4 => 2,
+            5 => 3,
+            _ => 0,
+        };
+    }
+
     public override int getDroppedItemId(int blockMeta)
     {
         return 0;
@@ -16,12 +65,9 @@ internal class BlockSilverfish : Block
 
     public override int getTexture(int side, int meta)
     {
-        return meta switch
-        {
-            1 => Block.Cobblestone.getTexture(side),
-            2 => Block.StoneBrick.getTexture(side, 0),
-            _ => Block.Stone.getTexture(side, 0),
-        };
+        int modelBlockId = GetModelBlockId(meta);
+        int modelMeta = GetModelBlockMeta(meta);
+        return Block.Blocks[modelBlockId].getTexture(side, modelMeta);
     }
 
     public override int getDroppedItemCount()

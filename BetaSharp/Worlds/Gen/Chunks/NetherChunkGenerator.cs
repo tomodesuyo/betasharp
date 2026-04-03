@@ -5,12 +5,14 @@ using BetaSharp.Worlds.Chunks;
 using BetaSharp.Worlds.Core.Systems;
 using BetaSharp.Worlds.Generation.Generators.Carvers;
 using BetaSharp.Worlds.Generation.Generators.Features;
+using BetaSharp.Worlds.Generation.Structures;
 
 namespace BetaSharp.Worlds.Gen.Chunks;
 
 internal class NetherChunkGenerator : IChunkSource
 {
     private readonly Carver _cave = new NetherCaveCarver();
+    private readonly MapGenNetherFortress _fortressGenerator = new();
     private readonly OctavePerlinNoiseSampler _depthNoise;
     private readonly OctavePerlinNoiseSampler _maxLimitPerlinNoise;
     private readonly OctavePerlinNoiseSampler _minLimitPerlinNoise;
@@ -28,6 +30,7 @@ internal class NetherChunkGenerator : IChunkSource
     private GlowstoneClusterFeatureRare _featureGlowstoneRare;
     private NetherFirePatchFeature _featureNetherFire;
     private NetherLavaSpringFeature _featureNetherLavaSpring;
+    private ReplaceableOreFeature _featureNetherQuartzOre;
     private PlantPatchFeature _featureRedMushroom;
     private double[] _gravelBuffer = new double[256];
     private double[] _heightMap;
@@ -63,6 +66,7 @@ internal class NetherChunkGenerator : IChunkSource
         BuildTerrain(chunkX, chunkZ, blocks);
         BuildSurfaces(chunkX, chunkZ, blocks);
         _cave.carve(this, _world, chunkX, chunkZ, blocks);
+        _fortressGenerator.Generate(this, _world, chunkX, chunkZ, blocks);
         Chunk chunk = new(_world, blocks, chunkX, chunkZ);
         return chunk;
     }
@@ -74,6 +78,11 @@ internal class NetherChunkGenerator : IChunkSource
         BlockSand.fallInstantly = true;
         int blockX = x * 16;
         int blockZ = z * 16;
+        random.SetSeed(_world.Seed);
+        long xOffset = random.NextLong() / 2L * 2L + 1L;
+        long zOffset = random.NextLong() / 2L * 2L + 1L;
+        random.SetSeed((x * xOffset + z * zOffset) ^ _world.Seed);
+        _fortressGenerator.GenerateStructuresInChunk(_world, random, x, z);
 
         int numIterations;
         int featureX;
@@ -116,6 +125,14 @@ internal class NetherChunkGenerator : IChunkSource
             _featureGlowstoneRare.Generate(_world, random, featureY, featureZ, featureZFallback);
         }
 
+        for (featureX = 0; featureX < 16; ++featureX)
+        {
+            featureY = blockX + random.NextInt(16);
+            featureZ = random.NextInt(108) + 10;
+            featureZFallback = blockZ + random.NextInt(16);
+            _featureNetherQuartzOre.Generate(_world, random, featureY, featureZ, featureZFallback);
+        }
+
         if (random.NextInt(1) == 0)
         {
             featureX = blockX + random.NextInt(16) + 8;
@@ -140,12 +157,30 @@ internal class NetherChunkGenerator : IChunkSource
     public bool CanSave() => true;
     public string GetDebugInfo() => "HellRandomLevelSource";
 
+    public Vec3i? FindNearestStructure(string structureId, int x, int y, int z)
+    {
+        return structureId == "Fortress" ? _fortressGenerator.FindNearestStructure(_world, x, y, z) : null;
+    }
+
+    public bool TryGetMonsterSpawnList(int x, int y, int z, out WeightedRandomSelector<SpawnListEntry> spawnList)
+    {
+        if (_fortressGenerator.IsFortressMonsterSpawnArea(_world, x, y, z))
+        {
+            spawnList = _fortressGenerator.GetSpawnList();
+            return true;
+        }
+
+        spawnList = null!;
+        return false;
+    }
+
     private void InitFeatures()
     {
         _featureNetherLavaSpring = new NetherLavaSpringFeature(Block.FlowingLava.id);
         _featureNetherFire = new NetherFirePatchFeature();
         _featureGlowstoneFull = new GlowstoneClusterFeature();
         _featureGlowstoneRare = new GlowstoneClusterFeatureRare();
+        _featureNetherQuartzOre = new ReplaceableOreFeature(Block.NetherQuartzOre.id, 13, Block.Netherrack.id);
         _featureBrownMushroom = new PlantPatchFeature(Block.BrownMushroom.id);
         _featureRedMushroom = new PlantPatchFeature(Block.RedMushroom.id);
     }
