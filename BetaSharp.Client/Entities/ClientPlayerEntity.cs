@@ -19,6 +19,7 @@ public class ClientPlayerEntity : EntityPlayer
     private const float DefaultFlySpeed = 0.05F;
 
     public override EntityType Type => EntityRegistry.Player;
+    public override bool IsLocalPlayer => true;
     public MovementInput movementInput;
     protected BetaSharp Game;
     private readonly MouseFilter field_21903_bJ = new();
@@ -155,6 +156,11 @@ public class ClientPlayerEntity : EntityPlayer
         bool wasSneaking = movementInput.sneak;
         bool wasMovingForward = movementInput.moveForward >= SprintThreshold;
         movementInput.updatePlayerMoveState(this);
+        if (!wasJumping && movementInput.jump && TryStartGlidingWithElytra())
+        {
+            OnStartedGlidingWithElytra();
+        }
+
         noClip = capabilities.IsSpectatorMode;
         bool canSprint = capabilities.IsCreativeMode || capabilities.IsSpectatorMode;
         bool canDoubleTapSprint = (onGround || capabilities.isFlying) && !wasSneaking;
@@ -237,6 +243,10 @@ public class ClientPlayerEntity : EntityPlayer
             capabilities.isFlying = false;
             sendPlayerAbilities();
         }
+    }
+
+    protected virtual void OnStartedGlidingWithElytra()
+    {
     }
 
     public virtual void EnterSpectatorModeClient()

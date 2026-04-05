@@ -67,12 +67,14 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.Rail, 16), ["X X", "X#X", "X X", 'X', Item.IronIngot, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.PoweredRail, 6), ["X X", "X#X", "XRX", 'X', Item.GoldIngot, 'R', Item.Redstone, '#', Item.Stick]);
         AddRecipe(new ItemStack(Block.DetectorRail, 6), ["X X", "X#X", "XRX", 'X', Item.IronIngot, 'R', Item.Redstone, '#', Block.StonePressurePlate]);
+        AddRecipe(new ItemStack(Block.ActivatorRail, 6), ["X X", "X#X", "XRX", 'X', Item.IronIngot, 'R', Block.RedstoneTorch, '#', Item.Stick]);
         AddRecipe(new ItemStack(Item.Minecart, 1), ["# #", "###", '#', Item.IronIngot]);
         AddRecipe(new ItemStack(Item.Cauldron, 1), ["# #", "# #", "###", '#', Item.IronIngot]);
         AddRecipe(new ItemStack(Item.BrewingStand, 1), [" B ", "###", '#', Block.Cobblestone, 'B', Item.BlazeRod]);
         AddRecipe(new ItemStack(Block.JackLantern, 1), ["A", "B", 'A', Block.Pumpkin, 'B', Block.Torch]);
         AddRecipe(new ItemStack(Item.ChestMinecart, 1), ["A", "B", 'A', Block.Chest, 'B', Item.Minecart]);
         AddRecipe(new ItemStack(Item.FurnaceMinecart, 1), ["A", "B", 'A', Block.Furnace, 'B', Item.Minecart]);
+        AddRecipe(new ItemStack(Item.TntMinecart, 1), ["A", "B", 'A', Block.TNT, 'B', Item.Minecart]);
         AddRecipe(new ItemStack(Item.Boat, 1), ["# #", "###", '#', Block.Planks]);
         AddRecipe(new ItemStack(Item.Bucket, 1), ["# #", " # ", '#', Item.IronIngot]);
         AddRecipe(new ItemStack(Item.FlintAndSteel, 1), ["A ", " B", 'A', Item.IronIngot, 'B', Item.Flint]);
@@ -103,6 +105,12 @@ internal class CraftingManager
         AddRecipe(new ItemStack(Block.NetherQuartzBlock, 2, 2), ["#", "#", '#', Block.NetherQuartzBlock]);
         AddRecipe(new ItemStack(Block.QuartzStairs, 4), ["#  ", "## ", "###", '#', Block.NetherQuartzBlock]);
         AddRecipe(new ItemStack(Item.PumpkinPie, 1), ["ABC", 'A', Block.Pumpkin, 'B', Item.Sugar, 'C', Item.Egg]);
+        AddRecipe(new ItemStack(Item.Lead, 2), ["## ", "#X ", " ##", '#', Item.String, 'X', Item.Slimeball]);
+        AddRecipe(new ItemStack(Item.ArmorStand, 1), ["###", " # ", "#X#", '#', Item.Stick, 'X', new ItemStack(Block.Slab, 1, 0)]);
+        AddRecipe(new ItemStack(Item.FireworkRocket, 3), ["P", "G", 'P', Item.Paper, 'G', Item.Gunpowder]);
+        AddRecipe(new ItemStack(Item.EndCrystal, 1), ["###", "#X#", "#Y#", '#', Block.Glass, 'X', Item.EyeOfEnder, 'Y', Item.GhastTear]);
+        AddShapelessRecipe(new ItemStack(Item.RabbitStew, 1), Item.CookedRabbit, Item.Carrot, Item.BakedPotato, Block.BrownMushroom, Item.Bowl);
+        AddShapelessRecipe(new ItemStack(Item.BeetrootSoup, 1), Item.Beetroot, Item.Beetroot, Item.Beetroot, Item.Beetroot, Item.Beetroot, Item.Beetroot, Item.Bowl);
         AddShapelessRecipe(new ItemStack(Item.EyeOfEnder, 1), Item.EnderPearl, Item.BlazePowder);
         AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, Item.Coal);
         AddShapelessRecipe(new ItemStack(Item.FireCharge, 3), Item.Gunpowder, Item.BlazePowder, new ItemStack(Item.Coal, 1, 1));

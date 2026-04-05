@@ -46,6 +46,12 @@ public class EntityPig : EntityAnimal
 
     public override bool interact(EntityPlayer player)
     {
+        ItemStack? heldItem = player.inventory.getSelectedItem();
+        if (heldItem != null && heldItem.itemId == Item.Lead.id)
+        {
+            return false;
+        }
+
         if (!Saddled.Value || world.IsRemote || passenger != null && passenger != player)
         {
             return false;

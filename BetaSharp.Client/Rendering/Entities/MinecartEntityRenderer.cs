@@ -73,6 +73,10 @@ public class MinecartEntityRenderer : EntityRenderer
             {
                 BlockRenderer.RenderBlockOnInventory(Block.Furnace, 0, var1.getBrightnessAtEyes(tickDelta), Tessellator.instance);
             }
+            else if (var1.type == 3)
+            {
+                BlockRenderer.RenderBlockOnInventory(Block.TNT, 0, var1.getBrightnessAtEyes(tickDelta), Tessellator.instance);
+            }
 
             GLManager.GL.Rotate(-90.0F, 0.0F, 1.0F, 0.0F);
             GLManager.GL.Translate(0.0F, -(5.0F / 16.0F), 0.0F);

@@ -17,5 +17,7 @@ internal class RecipesIngots
             m.AddRecipe(ingot, "#", '#', block);
         }
 
+        m.AddRecipe(new ItemStack(Item.IronNugget, 9), "#", '#', Item.IronIngot);
+        m.AddRecipe(new ItemStack(Item.IronIngot, 1), ["###", "###", "###", '#', Item.IronNugget]);
     }
 }

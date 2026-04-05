@@ -27,6 +27,7 @@ class SlotArmor : Slot
     {
         return stack.getItem() is ItemArmor
             ? ((ItemArmor)stack.getItem()).armorType == armorType
-            : (stack.getItem().id == Block.Pumpkin.id || stack.getItem().id == Item.Skull.id) && armorType == 0;
+            : (stack.getItem().id == Block.Pumpkin.id || stack.getItem().id == Item.Skull.id) && armorType == 0
+              || stack.getItem().id == Item.Elytra.id && armorType == 1;
     }
 }

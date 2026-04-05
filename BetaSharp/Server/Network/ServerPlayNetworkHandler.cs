@@ -198,9 +198,7 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
             bool noClipMovement = player.noClip || player.capabilities.IsSpectatorMode;
             if (var19 > 100.0)
             {
-                _logger.LogWarning($"{player.name} moved too quickly!");
-                disconnect("You moved too quickly :( (Hacking?)");
-                return;
+                _logger.LogDebug("{PlayerName} exceeded moved-too-quickly threshold: {DistanceSquared}", player.name, var19);
             }
 
             float var21 = (1 / 16f);
@@ -557,6 +555,10 @@ public class ServerPlayNetworkHandler : NetHandler, ICommandOutput
         else if (packet.mode == 5)
         {
             player.setSprinting(false);
+        }
+        else if (packet.mode == 6)
+        {
+            player.TryStartGlidingWithElytra();
         }
     }
 

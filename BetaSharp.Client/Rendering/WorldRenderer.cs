@@ -757,6 +757,64 @@ public class WorldRenderer : IWorldEventListener
 
     }
 
+    public void drawBarrierBlocks(EntityPlayer player, float tickDelta)
+    {
+        ItemStack? selectedItem = player.inventory.getSelectedItem();
+        if (selectedItem == null || selectedItem.itemId != Block.Barrier.id)
+        {
+            return;
+        }
+
+        double cameraX = player.lastTickX + (player.x - player.lastTickX) * tickDelta;
+        double cameraY = player.lastTickY + (player.y - player.lastTickY) * tickDelta;
+        double cameraZ = player.lastTickZ + (player.z - player.lastTickZ) * tickDelta;
+        int minX = MathHelper.Floor(player.x) - 8;
+        int maxX = MathHelper.Floor(player.x) + 8;
+        int minY = Math.Max(0, MathHelper.Floor(player.y) - 8);
+        int maxY = Math.Min(127, MathHelper.Floor(player.y) + 8);
+        int minZ = MathHelper.Floor(player.z) - 8;
+        int maxZ = MathHelper.Floor(player.z) + 8;
+
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+        GLManager.GL.Disable(GLEnum.Texture2D);
+        GLManager.GL.Disable(GLEnum.Lighting);
+        GLManager.GL.DepthMask(false);
+        GLManager.GL.LineWidth(2.0F);
+
+        for (int x = minX; x <= maxX; ++x)
+        {
+            for (int y = minY; y <= maxY; ++y)
+            {
+                for (int z = minZ; z <= maxZ; ++z)
+                {
+                    if (world.Reader.GetBlockId(x, y, z) != Block.Barrier.id)
+                    {
+                        continue;
+                    }
+
+                    Box? blockBox = Block.Barrier.getBoundingBox(world.Reader, world.Entities, x, y, z);
+                    if (blockBox == null)
+                    {
+                        continue;
+                    }
+
+                    Box renderBox = blockBox.Value.Expand(0.002D, 0.002D, 0.002D).Offset(-cameraX, -cameraY, -cameraZ);
+                    GLManager.GL.Color4(0.95F, 0.15F, 0.15F, 0.12F);
+                    EntityRenderer.renderShapeFlat(renderBox);
+                    GLManager.GL.Color4(1.0F, 0.25F, 0.25F, 0.75F);
+                    drawOutlinedBoundingBox(renderBox);
+                }
+            }
+        }
+
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+        GLManager.GL.DepthMask(true);
+        GLManager.GL.Enable(GLEnum.Texture2D);
+        GLManager.GL.Enable(GLEnum.Lighting);
+        GLManager.GL.Disable(GLEnum.Blend);
+    }
+
     private void drawOutlinedBoundingBox(Box var1)
     {
         Tessellator var2 = Tessellator.instance;

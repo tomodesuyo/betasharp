@@ -1,3 +1,4 @@
+using BetaSharp.Entities;
 using BetaSharp.Util.Maths;
 
 namespace BetaSharp.Client.Rendering.Entities.Models;
@@ -16,6 +17,8 @@ public class ModelBiped : ModelBase
     public bool field_1279_h;
     public bool field_1278_i;
     public bool isSneak;
+    private bool _isElytraFlying;
+    private float _elytraMovementScale = 1.0F;
 
     public ModelBiped() : this(0.0f)
     {
@@ -75,20 +78,47 @@ public class ModelBiped : ModelBase
         bipedHeadwear.render(var6);
     }
 
+    public override void setLivingAnimations(EntityLiving entity, float limbAngle, float limbDistance, float tickDelta)
+    {
+        if (entity is EntityPlayer player && player.GetElytraFlightTicks() > 4)
+        {
+            _isElytraFlying = true;
+            _elytraMovementScale = (float)(entity.velocityX * entity.velocityX + entity.velocityY * entity.velocityY + entity.velocityZ * entity.velocityZ);
+            _elytraMovementScale /= 0.2F;
+            _elytraMovementScale *= _elytraMovementScale * _elytraMovementScale;
+            if (_elytraMovementScale < 1.0F)
+            {
+                _elytraMovementScale = 1.0F;
+            }
+        }
+        else
+        {
+            _isElytraFlying = false;
+            _elytraMovementScale = 1.0F;
+        }
+    }
+
     public override void setRotationAngles(float var1, float var2, float var3, float var4, float var5, float var6)
     {
         bipedHead.rotateAngleY = var4 / (180.0F / (float)Math.PI);
-        bipedHead.rotateAngleX = var5 / (180.0F / (float)Math.PI);
+        bipedHead.rotateAngleX = _isElytraFlying ? -(float)Math.PI / 4.0F : var5 / (180.0F / (float)Math.PI);
         bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY;
         bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX;
-        bipedRightArm.rotateAngleX = MathHelper.Cos(var1 * 0.6662F + (float)Math.PI) * 2.0F * var2 * 0.5F;
-        bipedLeftArm.rotateAngleX = MathHelper.Cos(var1 * 0.6662F) * 2.0F * var2 * 0.5F;
+        bipedBody.rotateAngleY = 0.0F;
+        bipedRightArm.rotationPointZ = 0.0F;
+        bipedRightArm.rotationPointX = -5.0F;
+        bipedLeftArm.rotationPointZ = 0.0F;
+        bipedLeftArm.rotationPointX = 5.0F;
+        bipedRightArm.rotateAngleX = MathHelper.Cos(var1 * 0.6662F + (float)Math.PI) * 2.0F * var2 * 0.5F / _elytraMovementScale;
+        bipedLeftArm.rotateAngleX = MathHelper.Cos(var1 * 0.6662F) * 2.0F * var2 * 0.5F / _elytraMovementScale;
         bipedRightArm.rotateAngleZ = 0.0F;
         bipedLeftArm.rotateAngleZ = 0.0F;
-        bipedRightLeg.rotateAngleX = MathHelper.Cos(var1 * 0.6662F) * 1.4F * var2;
-        bipedLeftLeg.rotateAngleX = MathHelper.Cos(var1 * 0.6662F + (float)Math.PI) * 1.4F * var2;
+        bipedRightLeg.rotateAngleX = MathHelper.Cos(var1 * 0.6662F) * 1.4F * var2 / _elytraMovementScale;
+        bipedLeftLeg.rotateAngleX = MathHelper.Cos(var1 * 0.6662F + (float)Math.PI) * 1.4F * var2 / _elytraMovementScale;
         bipedRightLeg.rotateAngleY = 0.0F;
         bipedLeftLeg.rotateAngleY = 0.0F;
+        bipedRightLeg.rotateAngleZ = 0.0F;
+        bipedLeftLeg.rotateAngleZ = 0.0F;
         if (isRiding)
         {
             bipedRightArm.rotateAngleX += (float)Math.PI * -0.2F;

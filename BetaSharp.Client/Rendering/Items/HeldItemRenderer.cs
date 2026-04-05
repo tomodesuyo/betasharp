@@ -42,13 +42,7 @@ public class HeldItemRenderer
             string texPath = item.itemId < 256 ? "/terrain.png" : "/gui/items.png";
             _game.textureManager.BindTexture(_game.textureManager.GetTextureId(texPath));
             int tileSize = _game.textureManager.GetAtlasTileSize(texPath);
-
             Tessellator var3 = Tessellator.instance;
-            int var4 = entity.getItemStackTextureId(item);
-            float var5 = (var4 % 16 * 16 + 0.0F) / 256.0F;
-            float var6 = (var4 % 16 * 16 + 15.99F) / 256.0F;
-            float var7 = (var4 / 16 * 16 + 0.0F) / 256.0F;
-            float var8 = (var4 / 16 * 16 + 15.99F) / 256.0F;
             float var9 = 1.0F;
             float var10 = 0.0F;
             float var11 = 0.3F;
@@ -60,90 +54,103 @@ public class HeldItemRenderer
             GLManager.GL.Rotate(335.0F, 0.0F, 0.0F, 1.0F);
             GLManager.GL.Translate(-(15.0F / 16.0F), -(1.0F / 16.0F), 0.0F);
             float var13 = 1.0F / 16.0F;
-            var3.startDrawingQuads();
-            var3.setNormal(0.0F, 0.0F, 1.0F);
-            var3.addVertexWithUV(0.0D, 0.0D, 0.0D, (double)var6, (double)var8);
-            var3.addVertexWithUV((double)var9, 0.0D, 0.0D, (double)var5, (double)var8);
-            var3.addVertexWithUV((double)var9, 1.0D, 0.0D, (double)var5, (double)var7);
-            var3.addVertexWithUV(0.0D, 1.0D, 0.0D, (double)var6, (double)var7);
-            var3.draw();
-            var3.startDrawingQuads();
-            var3.setNormal(0.0F, 0.0F, -1.0F);
-            var3.addVertexWithUV(0.0D, 1.0D, (double)(0.0F - var13), (double)var6, (double)var7);
-            var3.addVertexWithUV((double)var9, 1.0D, (double)(0.0F - var13), (double)var5, (double)var7);
-            var3.addVertexWithUV((double)var9, 0.0D, (double)(0.0F - var13), (double)var5, (double)var8);
-            var3.addVertexWithUV(0.0D, 0.0D, (double)(0.0F - var13), (double)var6, (double)var8);
-            var3.draw();
-            var3.startDrawingQuads();
-            var3.setNormal(-1.0F, 0.0F, 0.0F);
-
-            int var14;
-            float var15;
-            float var16;
-            float var17;
-            for (var14 = 0; var14 < tileSize; ++var14)
+            int passCount = item.getItem().requiresMultipleRenderPasses() ? 2 : 1;
+            for (int pass = 0; pass < passCount; ++pass)
             {
-                var15 = var14 / (float)tileSize;
-                var16 = var6 + (var5 - var6) * var15 - (1.0f / (tileSize * 32.0f));
-                var17 = var9 * var15;
-                var3.addVertexWithUV((double)var17, 0.0D, (double)(0.0F - var13), (double)var16, (double)var8);
-                var3.addVertexWithUV((double)var17, 0.0D, 0.0D, (double)var16, (double)var8);
-                var3.addVertexWithUV((double)var17, 1.0D, 0.0D, (double)var16, (double)var7);
-                var3.addVertexWithUV((double)var17, 1.0D, (double)(0.0F - var13), (double)var16, (double)var7);
+                int var4 = item.getItem().getTextureId(item.getDamage(), pass);
+                int color = item.getItem().getColorMultiplier(item.getDamage(), pass);
+                GLManager.GL.Color4((color >> 16 & 255) / 255.0F, (color >> 8 & 255) / 255.0F, (color & 255) / 255.0F, 1.0F);
+                float var5 = (var4 % 16 * 16 + 0.0F) / 256.0F;
+                float var6 = (var4 % 16 * 16 + 15.99F) / 256.0F;
+                float var7 = (var4 / 16 * 16 + 0.0F) / 256.0F;
+                float var8 = (var4 / 16 * 16 + 15.99F) / 256.0F;
+                var3.startDrawingQuads();
+                var3.setNormal(0.0F, 0.0F, 1.0F);
+                var3.addVertexWithUV(0.0D, 0.0D, 0.0D, (double)var6, (double)var8);
+                var3.addVertexWithUV((double)var9, 0.0D, 0.0D, (double)var5, (double)var8);
+                var3.addVertexWithUV((double)var9, 1.0D, 0.0D, (double)var5, (double)var7);
+                var3.addVertexWithUV(0.0D, 1.0D, 0.0D, (double)var6, (double)var7);
+                var3.draw();
+                var3.startDrawingQuads();
+                var3.setNormal(0.0F, 0.0F, -1.0F);
+                var3.addVertexWithUV(0.0D, 1.0D, (double)(0.0F - var13), (double)var6, (double)var7);
+                var3.addVertexWithUV((double)var9, 1.0D, (double)(0.0F - var13), (double)var5, (double)var7);
+                var3.addVertexWithUV((double)var9, 0.0D, (double)(0.0F - var13), (double)var5, (double)var8);
+                var3.addVertexWithUV(0.0D, 0.0D, (double)(0.0F - var13), (double)var6, (double)var8);
+                var3.draw();
+                var3.startDrawingQuads();
+                var3.setNormal(-1.0F, 0.0F, 0.0F);
+
+                int var14;
+                float var15;
+                float var16;
+                float var17;
+                for (var14 = 0; var14 < tileSize; ++var14)
+                {
+                    var15 = var14 / (float)tileSize;
+                    var16 = var6 + (var5 - var6) * var15 - (1.0f / (tileSize * 32.0f));
+                    var17 = var9 * var15;
+                    var3.addVertexWithUV((double)var17, 0.0D, (double)(0.0F - var13), (double)var16, (double)var8);
+                    var3.addVertexWithUV((double)var17, 0.0D, 0.0D, (double)var16, (double)var8);
+                    var3.addVertexWithUV((double)var17, 1.0D, 0.0D, (double)var16, (double)var7);
+                    var3.addVertexWithUV((double)var17, 1.0D, (double)(0.0F - var13), (double)var16, (double)var7);
+                }
+
+                var3.draw();
+                var3.startDrawingQuads();
+                var3.setNormal(1.0F, 0.0F, 0.0F);
+
+                for (var14 = 0; var14 < tileSize; ++var14)
+                {
+                    var15 = var14 / (float)tileSize;
+                    var16 = var6 + (var5 - var6) * var15 - (1.0f / (tileSize * 32.0f));
+                    var17 = var9 * var15 + 1.0F / tileSize;
+                    var3.addVertexWithUV((double)var17, 1.0D, (double)(0.0F - var13), (double)var16, (double)var7);
+                    var3.addVertexWithUV((double)var17, 1.0D, 0.0D, (double)var16, (double)var7);
+                    var3.addVertexWithUV((double)var17, 0.0D, 0.0D, (double)var16, (double)var8);
+                    var3.addVertexWithUV((double)var17, 0.0D, (double)(0.0F - var13), (double)var16, (double)var8);
+                }
+
+                var3.draw();
+                var3.startDrawingQuads();
+                var3.setNormal(0.0F, 1.0F, 0.0F);
+
+                for (var14 = 0; var14 < tileSize; ++var14)
+                {
+                    var15 = var14 / (float)tileSize;
+                    var16 = var8 + (var7 - var8) * var15 - (1.0f / (tileSize * 32.0f));
+                    var17 = var9 * var15 + 1.0F / tileSize;
+                    var3.addVertexWithUV(0.0D, (double)var17, 0.0D, (double)var6, (double)var16);
+                    var3.addVertexWithUV((double)var9, (double)var17, 0.0D, (double)var5, (double)var16);
+                    var3.addVertexWithUV((double)var9, (double)var17, (double)(0.0F - var13), (double)var5, (double)var16);
+                    var3.addVertexWithUV(0.0D, (double)var17, (double)(0.0F - var13), (double)var6, (double)var16);
+                }
+
+                var3.draw();
+                var3.startDrawingQuads();
+                var3.setNormal(0.0F, -1.0F, 0.0F);
+
+                for (var14 = 0; var14 < tileSize; ++var14)
+                {
+                    var15 = var14 / (float)tileSize;
+                    var16 = var8 + (var7 - var8) * var15 - (1.0f / (tileSize * 32.0f));
+                    var17 = var9 * var15;
+                    var3.addVertexWithUV((double)var9, (double)var17, 0.0D, (double)var5, (double)var16);
+                    var3.addVertexWithUV(0.0D, (double)var17, 0.0D, (double)var6, (double)var16);
+                    var3.addVertexWithUV(0.0D, (double)var17, (double)(0.0F - var13), (double)var6, (double)var16);
+                    var3.addVertexWithUV((double)var9, (double)var17, (double)(0.0F - var13), (double)var5, (double)var16);
+                }
+
+                var3.draw();
             }
 
-            var3.draw();
-            var3.startDrawingQuads();
-            var3.setNormal(1.0F, 0.0F, 0.0F);
-
-            for (var14 = 0; var14 < tileSize; ++var14)
-            {
-                var15 = var14 / (float)tileSize;
-                var16 = var6 + (var5 - var6) * var15 - (1.0f / (tileSize * 32.0f));
-                var17 = var9 * var15 + 1.0F / tileSize;
-                var3.addVertexWithUV((double)var17, 1.0D, (double)(0.0F - var13), (double)var16, (double)var7);
-                var3.addVertexWithUV((double)var17, 1.0D, 0.0D, (double)var16, (double)var7);
-                var3.addVertexWithUV((double)var17, 0.0D, 0.0D, (double)var16, (double)var8);
-                var3.addVertexWithUV((double)var17, 0.0D, (double)(0.0F - var13), (double)var16, (double)var8);
-            }
-
-            var3.draw();
-            var3.startDrawingQuads();
-            var3.setNormal(0.0F, 1.0F, 0.0F);
-
-            for (var14 = 0; var14 < tileSize; ++var14)
-            {
-                var15 = var14 / (float)tileSize;
-                var16 = var8 + (var7 - var8) * var15 - (1.0f / (tileSize * 32.0f));
-                var17 = var9 * var15 + 1.0F / tileSize;
-                var3.addVertexWithUV(0.0D, (double)var17, 0.0D, (double)var6, (double)var16);
-                var3.addVertexWithUV((double)var9, (double)var17, 0.0D, (double)var5, (double)var16);
-                var3.addVertexWithUV((double)var9, (double)var17, (double)(0.0F - var13), (double)var5, (double)var16);
-                var3.addVertexWithUV(0.0D, (double)var17, (double)(0.0F - var13), (double)var6, (double)var16);
-            }
-
-            var3.draw();
-            var3.startDrawingQuads();
-            var3.setNormal(0.0F, -1.0F, 0.0F);
-
-            for (var14 = 0; var14 < tileSize; ++var14)
-            {
-                var15 = var14 / (float)tileSize;
-                var16 = var8 + (var7 - var8) * var15 - (1.0f / (tileSize * 32.0f));
-                var17 = var9 * var15;
-                var3.addVertexWithUV((double)var9, (double)var17, 0.0D, (double)var5, (double)var16);
-                var3.addVertexWithUV(0.0D, (double)var17, 0.0D, (double)var6, (double)var16);
-                var3.addVertexWithUV(0.0D, (double)var17, (double)(0.0F - var13), (double)var6, (double)var16);
-                var3.addVertexWithUV((double)var9, (double)var17, (double)(0.0F - var13), (double)var5, (double)var16);
-            }
-
-            var3.draw();
             if (item.getItem().hasEffect(item))
             {
                 RenderFoilOnHeldItem(var13);
             }
 
             GLManager.GL.Disable(GLEnum.RescaleNormal);
+            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
         }
 
         GLManager.GL.PopMatrix();

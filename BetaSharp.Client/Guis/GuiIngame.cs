@@ -31,6 +31,10 @@ public class GuiIngame : Gui
     private bool _isRecordMessageRainbow = false;
     public float _damageGuiPartialTime;
     private float _prevVignetteBrightness = 1.0F;
+    private ItemStack? _itemActivationItem;
+    private int _itemActivationTicks;
+    private float _itemActivationOffX;
+    private float _itemActivationOffY;
 
     public GuiIngame(BetaSharp gameInstance)
     {
@@ -115,6 +119,8 @@ public class GuiIngame : Gui
         {
             RenderPortalOverlay(screenDistortion, scaledWidth, scaledHeight);
         }
+
+        RenderItemActivation(scaledWidth, scaledHeight, partialTicks);
 
         GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
         _game.textureManager.BindTexture(_game.textureManager.GetTextureId("/gui/gui.png"));
@@ -564,6 +570,44 @@ public class GuiIngame : Gui
         GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
     }
 
+    private void RenderItemActivation(int scaledWidth, int scaledHeight, float partialTicks)
+    {
+        if (_itemActivationItem == null || _itemActivationTicks <= 0)
+        {
+            return;
+        }
+
+        int elapsed = 40 - _itemActivationTicks;
+        float progress = (elapsed + partialTicks) / 40.0F;
+        float progress2 = progress * progress;
+        float progress3 = progress * progress2;
+        float curve = 10.25F * progress3 * progress2
+                      - 24.95F * progress2 * progress2
+                      + 25.5F * progress3
+                      - 13.8F * progress2
+                      + 4.0F * progress;
+        float angle = curve * (float)Math.PI;
+        float offsetX = _itemActivationOffX * (scaledWidth / 4.0F);
+        float offsetY = _itemActivationOffY * (scaledHeight / 4.0F);
+        float centerX = scaledWidth / 2.0F + offsetX * Math.Abs(MathHelper.Sin(angle * 2.0F));
+        float centerY = scaledHeight / 2.0F + offsetY * Math.Abs(MathHelper.Sin(angle * 2.0F));
+        float scale = 3.0F + 10.0F * MathHelper.Sin(angle);
+
+        GLManager.GL.PushMatrix();
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.Enable(GLEnum.AlphaTest);
+        GLManager.GL.Disable(GLEnum.CullFace);
+        GLManager.GL.Translate(centerX, centerY, 0.0F);
+        GLManager.GL.Scale(scale, scale, 1.0F);
+        GLManager.GL.Rotate(90.0F * Math.Abs(MathHelper.Sin(angle)), 0.0F, 0.0F, 1.0F);
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+        s_itemRenderer.renderItemIntoGUI(_game.fontRenderer, _game.textureManager, _itemActivationItem, -8, -8);
+        s_itemRenderer.renderItemOverlayIntoGUI(_game.fontRenderer, _game.textureManager, _itemActivationItem, -8, -8);
+        GLManager.GL.Enable(GLEnum.CullFace);
+        GLManager.GL.Disable(GLEnum.Blend);
+        GLManager.GL.PopMatrix();
+    }
+
     private void RenderPortalOverlay(float portalStrength, int screenWidth, int screenHeight)
     {
         if (portalStrength < 1.0F)
@@ -667,6 +711,15 @@ public class GuiIngame : Gui
 
     public void UpdateTick()
     {
+        if (_itemActivationTicks > 0)
+        {
+            --_itemActivationTicks;
+            if (_itemActivationTicks == 0)
+            {
+                _itemActivationItem = null;
+            }
+        }
+
         if (_recordPlayingUpFor > 0)
         {
             --_recordPlayingUpFor;
@@ -684,6 +737,14 @@ public class GuiIngame : Gui
     public void ClearChatMessages()
     {
         _chatMessageList.Clear();
+    }
+
+    public void DisplayItemActivation(ItemStack stack)
+    {
+        _itemActivationItem = stack.copy();
+        _itemActivationTicks = 40;
+        _itemActivationOffX = _rand.NextFloat() * 2.0F - 1.0F;
+        _itemActivationOffY = _rand.NextFloat() * 2.0F - 1.0F;
     }
 
     public void AddChatMessage(string message)

@@ -24,6 +24,12 @@ public class EntityClientPlayerMP : ClientPlayerEntity
     private bool lastOnGround;
     private bool wasSneaking;
     private bool wasSprinting;
+    private float _lastSentInputSideways;
+    private float _lastSentInputForward;
+    private float _lastSentInputPitch;
+    private float _lastSentInputYaw;
+    private bool _lastSentInputJumping;
+    private bool _lastSentInputSneaking;
 
     public EntityClientPlayerMP(BetaSharp game, World world, Session session, ClientNetworkHandler clientNetworkHandler) : base(game, world, session, 0)
     {
@@ -33,6 +39,11 @@ public class EntityClientPlayerMP : ClientPlayerEntity
     public override bool damage(Entity ent, int amount)
     {
         return false;
+    }
+
+    protected override void OnStartedGlidingWithElytra()
+    {
+        sendQueue.addToSendQueue(ClientCommandC2SPacket.Get(this, 6));
     }
 
     public override void heal(int amount)
@@ -78,6 +89,23 @@ public class EntityClientPlayerMP : ClientPlayerEntity
             wasSprinting = isSprinting;
         }
 
+        bool inputChanged = sidewaysSpeed != _lastSentInputSideways
+                            || forwardSpeed != _lastSentInputForward
+                            || pitch != _lastSentInputPitch
+                            || yaw != _lastSentInputYaw
+                            || movementInput.jump != _lastSentInputJumping
+                            || movementInput.sneak != _lastSentInputSneaking;
+        if (inputChanged)
+        {
+            sendQueue.addToSendQueue(PlayerInputC2SPacket.Get(sidewaysSpeed, forwardSpeed, pitch, yaw, movementInput.jump, movementInput.sneak));
+            _lastSentInputSideways = sidewaysSpeed;
+            _lastSentInputForward = forwardSpeed;
+            _lastSentInputPitch = pitch;
+            _lastSentInputYaw = yaw;
+            _lastSentInputJumping = movementInput.jump;
+            _lastSentInputSneaking = movementInput.sneak;
+        }
+
         double dx = x - oldPosX;
         double dMinY = boundingBox.MinY - lastSentMinY;
         double dy = y - oldPosY;
@@ -90,11 +118,11 @@ public class EntityClientPlayerMP : ClientPlayerEntity
         {
             if (rotationChanged)
             {
-                sendQueue.addToSendQueue(PlayerMovePositionAndOnGroundPacket.Get(velocityX, -999.0D, -999.0D, velocityZ, onGround));
+                sendQueue.addToSendQueue(PlayerMoveFullPacket.Get(velocityX, -999.0D, -999.0D, velocityZ, yaw, pitch, onGround));
             }
             else
             {
-                sendQueue.addToSendQueue(PlayerMoveFullPacket.Get(velocityX, -999.0D, -999.0D, velocityZ, yaw, pitch, onGround));
+                sendQueue.addToSendQueue(PlayerMovePositionAndOnGroundPacket.Get(velocityX, -999.0D, -999.0D, velocityZ, onGround));
             }
 
             positionChanged = false;
@@ -185,6 +213,12 @@ public class EntityClientPlayerMP : ClientPlayerEntity
         lastOnGround = onGround;
         wasSneaking = false;
         wasSprinting = false;
+        _lastSentInputSideways = 0.0F;
+        _lastSentInputForward = 0.0F;
+        _lastSentInputPitch = pitch;
+        _lastSentInputYaw = yaw;
+        _lastSentInputJumping = false;
+        _lastSentInputSneaking = false;
     }
 
     protected override void applyDamage(int amount)

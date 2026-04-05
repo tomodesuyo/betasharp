@@ -442,6 +442,11 @@ public abstract class EntityLiving : Entity
 
                 if (health <= 0)
                 {
+                    if (TryUseTotemOfUndying())
+                    {
+                        return true;
+                    }
+
                     if (var3)
                     {
                         world.Broadcaster.PlaySoundAtEntity(this, getDeathSound(), getSoundVolume(), (random.NextFloat() - random.NextFloat()) * 0.2F + 1.0F);
@@ -468,6 +473,72 @@ public abstract class EntityLiving : Entity
     protected virtual void applyDamage(int amount)
     {
         health -= amount;
+    }
+
+    protected virtual bool TryUseTotemOfUndying()
+    {
+        if (this is not EntityPlayer player)
+        {
+            return false;
+        }
+
+        ItemStack? totemStack = player.getHand();
+        if (totemStack == null || totemStack.itemId != Item.TotemOfUndying.id)
+        {
+            totemStack = null;
+            for (int slot = 0; slot < player.inventory.main.Length; ++slot)
+            {
+                ItemStack? stack = player.inventory.main[slot];
+                if (stack != null && stack.itemId == Item.TotemOfUndying.id)
+                {
+                    totemStack = stack;
+                    break;
+                }
+            }
+        }
+
+        if (totemStack == null)
+        {
+            return false;
+        }
+
+        if (!player.capabilities.IsCreativeMode)
+        {
+            --totemStack.count;
+            if (totemStack.count <= 0)
+            {
+                totemStack.onRemoved(player);
+            }
+        }
+
+        player.inventory.dirty = true;
+        if (player.getHand() == totemStack && totemStack.count <= 0)
+        {
+            player.clearStackInHand();
+        }
+        else if (totemStack.count <= 0)
+        {
+            for (int slot = 0; slot < player.inventory.main.Length; ++slot)
+            {
+                if (player.inventory.main[slot] == totemStack)
+                {
+                    player.inventory.main[slot] = null;
+                    break;
+                }
+            }
+        }
+
+        health = 1;
+        hearts = maxHealth;
+        damageForDisplay = 0;
+        hurtTime = 0;
+        deathTime = 0;
+        fallDistance = 0.0F;
+        clearPotionEffects();
+        addPotionEffect(new PotionEffect(Potion.Regeneration.Id, 900, 1));
+        addPotionEffect(new PotionEffect(Potion.Absorption.Id, 100, 1));
+        world.Broadcaster.EntityEvent(this, 35);
+        return true;
     }
 
     protected virtual int ApplyPotionDamageReduction(int amount)
@@ -1169,6 +1240,10 @@ public abstract class EntityLiving : Entity
     {
         return null;
     }
+
+    public float GetForwardInput() => forwardSpeed;
+
+    public float GetSidewaysInput() => sidewaysSpeed;
 
     public override void processServerEntityStatus(sbyte statusId)
     {

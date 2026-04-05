@@ -115,6 +115,17 @@ internal sealed class ItemPotion : Item
         return pass > 0 ? 0xFFFFFF : PotionHelper.GetColor(damage, false);
     }
 
+    public override bool hasEffect(ItemStack stack)
+    {
+        if (stack.getDamage() == 0)
+        {
+            return false;
+        }
+
+        List<PotionEffect>? effects = GetEffects(stack);
+        return effects != null && effects.Count > 0;
+    }
+
     public static bool IsSplash(int potionDamage)
     {
         return (potionDamage & 16384) != 0;

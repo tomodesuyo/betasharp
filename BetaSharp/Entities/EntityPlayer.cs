@@ -53,6 +53,12 @@ public abstract class EntityPlayer : EntityLiving
     private int damageSpill;
     public EntityFish fishHook = null;
     public GameMode GameMode;
+    private bool _lastJumpingForElytra;
+    private int _elytraFlightTicks;
+    private int _chorusFruitCooldown;
+    public float rotateElytraX;
+    public float rotateElytraY;
+    public float rotateElytraZ;
 
     public EntityPlayer(IWorldContext world) : base(world)
     {
@@ -85,6 +91,8 @@ public abstract class EntityPlayer : EntityLiving
     {
         SetGameMode(GameModes.Get(gameModeId));
     }
+
+    public virtual bool IsLocalPlayer => false;
 
     protected void TickSleep()
     {
@@ -270,6 +278,8 @@ public abstract class EntityPlayer : EntityLiving
 
     public override void tickMovement()
     {
+        UpdateElytraState();
+
         if (world.Difficulty == 0 && health < 20 && age % 20 * 12 == 0)
         {
             heal(1);
@@ -278,6 +288,11 @@ public abstract class EntityPlayer : EntityLiving
         if (flyToggleTimer > 0)
         {
             --flyToggleTimer;
+        }
+
+        if (_chorusFruitCooldown > 0)
+        {
+            --_chorusFruitCooldown;
         }
 
         inventory.inventoryTick();
@@ -470,6 +485,8 @@ public abstract class EntityPlayer : EntityLiving
 
         capabilities.readCapabilitiesFromNBT(nbt);
         SetGameMode(nbt.HasKey("playerGameType") ? nbt.GetInteger("playerGameType") : capabilities.gameMode);
+        SetFlag(7, nbt.GetBoolean("FallFlying"));
+        _elytraFlightTicks = GetFlag(7) ? 1 : 0;
     }
 
     public override void writeNbt(NBTTagCompound nbt)
@@ -488,6 +505,7 @@ public abstract class EntityPlayer : EntityLiving
 
         capabilities.writeCapabilitiesToNBT(nbt);
         nbt.SetInteger("playerGameType", capabilities.gameMode);
+        nbt.SetBoolean("FallFlying", GetFlag(7));
     }
 
     public virtual void openChestScreen(IInventory inventory)
@@ -504,6 +522,16 @@ public abstract class EntityPlayer : EntityLiving
 
     public override float getEyeHeight()
     {
+        if (isSleeping())
+        {
+            return 0.2F;
+        }
+
+        if (IsGlidingWithElytra())
+        {
+            return 0.4F;
+        }
+
         return 0.12F;
     }
 
@@ -1069,12 +1097,82 @@ public abstract class EntityPlayer : EntityLiving
             base.travel(x, z);
             velocityY = verticalVelocity * 0.6D;
         }
+        else if (IsGlidingWithElytra())
+        {
+            Vec3D lookDirection = getLook(1.0F);
+            float pitchRadians = pitch * ((float)System.Math.PI / 180.0F);
+            double horizontalLook = System.Math.Sqrt(lookDirection.x * lookDirection.x + lookDirection.z * lookDirection.z);
+            double horizontalSpeed = System.Math.Sqrt(velocityX * velocityX + velocityZ * velocityZ);
+            double lookLength = lookDirection.magnitude();
+            float lookScale = MathHelper.Cos(pitchRadians);
+            lookScale = (float)(lookScale * lookScale * System.Math.Min(1.0D, lookLength / 0.4D));
+
+            if (velocityY > -0.5D)
+            {
+                fallDistance = 1.0F;
+            }
+
+            velocityY += -0.08D + lookScale * 0.06D;
+            if (velocityY < 0.0D && horizontalLook > 0.0D)
+            {
+                double glideLift = velocityY * -0.1D * lookScale;
+                velocityY += glideLift;
+                velocityX += lookDirection.x / horizontalLook * glideLift;
+                velocityZ += lookDirection.z / horizontalLook * glideLift;
+            }
+
+            if (pitchRadians < 0.0F && horizontalLook > 0.0D)
+            {
+                double diveBoost = horizontalSpeed * -MathHelper.Sin(pitchRadians) * 0.04D;
+                velocityY += diveBoost * 3.2D;
+                velocityX -= lookDirection.x / horizontalLook * diveBoost;
+                velocityZ -= lookDirection.z / horizontalLook * diveBoost;
+            }
+
+            if (horizontalLook > 0.0D)
+            {
+                velocityX += (lookDirection.x / horizontalLook * horizontalSpeed - velocityX) * 0.1D;
+                velocityZ += (lookDirection.z / horizontalLook * horizontalSpeed - velocityZ) * 0.1D;
+            }
+
+            double previousHorizontalSpeed = horizontalSpeed;
+            move(velocityX, velocityY, velocityZ);
+            velocityX *= 0.99D;
+            velocityY *= 0.98D;
+            velocityZ *= 0.99D;
+
+            if (horizontalCollison && !world.IsRemote)
+            {
+                double currentHorizontalSpeed = System.Math.Sqrt(velocityX * velocityX + velocityZ * velocityZ);
+                float flyIntoWallDamage = (float)((previousHorizontalSpeed - currentHorizontalSpeed) * 10.0D - 3.0D);
+                if (flyIntoWallDamage > 0.0F)
+                {
+                    damage(null, MathHelper.Floor(flyIntoWallDamage));
+                }
+            }
+
+            if (onGround)
+            {
+                SetFlag(7, false);
+                _elytraFlightTicks = 0;
+            }
+        }
         else
         {
             base.travel(x, z);
         }
 
         updateMovementStat(base.x - var3, y - var5, base.z - var7);
+    }
+
+    public bool IsGlidingWithElytra()
+    {
+        return GetFlag(7);
+    }
+
+    public int GetElytraFlightTicks()
+    {
+        return _elytraFlightTicks;
     }
 
     protected override float getAirMovementSpeed()
@@ -1100,6 +1198,81 @@ public abstract class EntityPlayer : EntityLiving
     protected override bool ignoresFluidMovementSlowdown()
     {
         return capabilities.allowFlying && capabilities.isFlying && vehicle == null;
+    }
+
+    private void UpdateElytraState()
+    {
+        bool gliding = GetFlag(7);
+        if (gliding)
+        {
+            ItemStack? chestItem = inventory.armor[2];
+            bool canContinue = chestItem != null
+                               && chestItem.itemId == Item.Elytra.id
+                               && ItemElytra.IsUsable(chestItem)
+                               && !onGround
+                               && vehicle == null
+                               && !capabilities.isFlying
+                               && !isInWater()
+                               && !isTouchingLava();
+            if (canContinue)
+            {
+                if (!world.IsRemote && (age + 1) % 20 == 0)
+                {
+                    chestItem.damageItem(1, this);
+                    if (chestItem.count <= 0)
+                    {
+                        inventory.armor[2] = null;
+                        canContinue = false;
+                    }
+                }
+            }
+            else
+            {
+                gliding = false;
+            }
+        }
+
+        SetFlag(7, gliding);
+        _elytraFlightTicks = gliding ? _elytraFlightTicks + 1 : 0;
+        _lastJumpingForElytra = jumping;
+    }
+
+    public bool TryStartGlidingWithElytra()
+    {
+        if (!CanStartGlidingWithElytra())
+        {
+            return false;
+        }
+
+        SetFlag(7, true);
+        if (_elytraFlightTicks <= 0)
+        {
+            _elytraFlightTicks = 1;
+        }
+
+        return true;
+    }
+
+    private bool CanStartGlidingWithElytra()
+    {
+        return velocityY < 0.0D
+               && fallDistance > 0.0F
+               && ItemElytra.IsEquipped(this)
+               && !onGround
+               && vehicle == null
+               && !capabilities.isFlying
+               && !isInWater()
+               && !isTouchingLava();
+    }
+
+    public bool CanUseChorusFruit()
+    {
+        return _chorusFruitCooldown <= 0;
+    }
+
+    public void StartChorusFruitCooldown()
+    {
+        _chorusFruitCooldown = 20;
     }
 
     private void updateMovementStat(double x, double y, double z)

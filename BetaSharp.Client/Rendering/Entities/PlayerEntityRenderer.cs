@@ -19,6 +19,7 @@ public class PlayerEntityRenderer : LivingEntityRenderer
     private readonly ModelBiped modelBipedMain;
     private readonly ModelBiped modelArmorChestplate = new(1.0F);
     private readonly ModelBiped modelArmor = new(0.5F);
+    private readonly ModelElytra modelElytra = new();
     private static readonly string[] armorFilenamePrefix = ["cloth", "chain", "iron", "diamond", "gold"];
 
     public PlayerEntityRenderer() : base(new ModelBiped(0.0F), 0.5F)
@@ -174,9 +175,15 @@ public class PlayerEntityRenderer : LivingEntityRenderer
         if (var3 != null && var3.itemId == Item.Skull.id)
         {
             GLManager.GL.PushMatrix();
+            if (var1.isSneaking())
+            {
+                GLManager.GL.Translate(0.0F, 0.2F, 0.0F);
+            }
+
             modelBipedMain.bipedHead.transform(1.0F / 16.0F);
+            GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
             GLManager.GL.Scale(1.1875F, -1.1875F, -1.1875F);
-            SkullRenderHelper.RenderSkull(loadTexture, Math.Clamp(var3.getDamage(), BlockEntitySkull.Skeleton, BlockEntitySkull.Creeper), 180.0F);
+            SkullRenderHelper.RenderSkull(loadTexture, Math.Clamp(var3.getDamage(), BlockEntitySkull.Skeleton, BlockEntitySkull.Dragon), 180.0F);
             GLManager.GL.PopMatrix();
         }
         else if (var3 != null && var3.getItem().id < 256)
@@ -216,7 +223,27 @@ public class PlayerEntityRenderer : LivingEntityRenderer
             }
         }
 
-        if (LoadDownloadableImageTexture(var1.playerCloakUrl, null))
+        ItemStack chestStack = var1.inventory.armorItemInSlot(1);
+        bool hasElytra = chestStack != null && chestStack.itemId == Item.Elytra.id;
+
+        if (hasElytra)
+        {
+            GLManager.GL.PushMatrix();
+            loadTexture("/mob/elytra.png");
+            GLManager.GL.Translate(0.0F, 0.0F, 0.125F);
+            modelElytra.setLivingAnimations(var1, 0.0F, 0.0F, var2);
+            modelElytra.render(0.0F, 0.0F, var1.age + var2, 0.0F, 0.0F, 1.0F / 16.0F);
+            if (chestStack.getItem().hasEffect(chestStack))
+            {
+                setRenderPassModel(modelElytra);
+                RenderPassFoil(var1, 0.0F, 0.0F, var1.age + var2, 0.0F, 0.0F, 1.0F / 16.0F, var2);
+                setRenderPassModel(null);
+            }
+
+            GLManager.GL.PopMatrix();
+        }
+
+        if (!hasElytra && LoadDownloadableImageTexture(var1.playerCloakUrl, null))
         {
             GLManager.GL.PushMatrix();
             GLManager.GL.Translate(0.0F, 0.0F, 2.0F / 16.0F);
@@ -343,6 +370,22 @@ public class PlayerEntityRenderer : LivingEntityRenderer
             GLManager.GL.Rotate(getDeathMaxRotation(var1), 0.0F, 0.0F, 1.0F);
             GLManager.GL.Rotate(270.0F, 0.0F, 1.0F, 0.0F);
         }
+        else if (var1.IsGlidingWithElytra())
+        {
+            base.rotateCorpse(var1, var2, var3, var4);
+            float flightTicks = var1.GetElytraFlightTicks() + var4;
+            float glideRotation = Math.Clamp(flightTicks * flightTicks / 100.0F, 0.0F, 1.0F);
+            GLManager.GL.Rotate(glideRotation * (-90.0F - var1.pitch), 1.0F, 0.0F, 0.0F);
+            Vec3D look = var1.getLook(var4);
+            double horizontalMotion = var1.velocityX * var1.velocityX + var1.velocityZ * var1.velocityZ;
+            double horizontalLook = look.x * look.x + look.z * look.z;
+            if (horizontalMotion > 0.0D && horizontalLook > 0.0D)
+            {
+                double alignment = (var1.velocityX * look.x + var1.velocityZ * look.z) / (Math.Sqrt(horizontalMotion) * Math.Sqrt(horizontalLook));
+                double side = var1.velocityX * look.z - var1.velocityZ * look.x;
+                GLManager.GL.Rotate((float)(Math.Sign(side) * Math.Acos(Math.Clamp(alignment, -1.0D, 1.0D))) * 180.0F / (float)Math.PI, 0.0F, 1.0F, 0.0F);
+            }
+        }
         else
         {
             base.rotateCorpse(var1, var2, var3, var4);
@@ -363,6 +406,12 @@ public class PlayerEntityRenderer : LivingEntityRenderer
     protected override bool shouldRenderPass(EntityLiving var1, int var2, float var3)
     {
         return setArmorModel((EntityPlayer)var1, var2, var3);
+    }
+
+    protected override bool shouldRenderPassFoil(EntityLiving entity, int pass, float tickDelta)
+    {
+        ItemStack armorStack = ((EntityPlayer)entity).inventory.armorItemInSlot(3 - pass);
+        return armorStack != null && armorStack.getItem().hasEffect(armorStack);
     }
 
     protected override void renderMore(EntityLiving var1, float var2)

@@ -78,6 +78,11 @@ public class LivingEntityRenderer : EntityRenderer
                 if (shouldRenderPass(var1, var17, var9))
                 {
                     renderPassModel.render(var16, var15, var13, var11 - var10, var12, var14);
+                    if (shouldRenderPassFoil(var1, var17, var9))
+                    {
+                        RenderPassFoil(var1, var16, var15, var13, var11 - var10, var12, var14, var9);
+                    }
+
                     GLManager.GL.Disable(GLEnum.Blend);
                     GLManager.GL.Enable(GLEnum.AlphaTest);
                 }
@@ -197,6 +202,43 @@ public class LivingEntityRenderer : EntityRenderer
         return false;
     }
 
+    protected virtual bool shouldRenderPassFoil(EntityLiving entity, int pass, float tickDelta)
+    {
+        return false;
+    }
+
+    protected virtual void RenderPassFoil(EntityLiving entity, float limbAngle, float limbDistance, float age, float netHeadYaw, float headPitch, float scale, float tickDelta)
+    {
+        loadTexture("/misc/glint.png");
+        GLManager.GL.Enable(GLEnum.Blend);
+        GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.One);
+        GLManager.GL.DepthFunc(GLEnum.Equal);
+        GLManager.GL.DepthMask(false);
+        GLManager.GL.Disable(GLEnum.Lighting);
+        GLManager.GL.Color4(0.55F, 0.35F, 0.95F, 0.35F);
+
+        for (int i = 0; i < 2; ++i)
+        {
+            GLManager.GL.MatrixMode(GLEnum.Texture);
+            GLManager.GL.LoadIdentity();
+            GLManager.GL.Scale(0.33333334F, 0.33333334F, 0.33333334F);
+            GLManager.GL.Rotate(i == 0 ? 30.0F : -30.0F, 0.0F, 0.0F, 1.0F);
+            float scroll = (entity.age + tickDelta) * (i == 0 ? 0.001F : 0.004F) * 20.0F;
+            GLManager.GL.Translate(0.0F, scroll, 0.0F);
+            GLManager.GL.MatrixMode(GLEnum.Modelview);
+            renderPassModel.render(limbAngle, limbDistance, age, netHeadYaw, headPitch, scale);
+        }
+
+        GLManager.GL.MatrixMode(GLEnum.Texture);
+        GLManager.GL.LoadIdentity();
+        GLManager.GL.MatrixMode(GLEnum.Modelview);
+        GLManager.GL.Enable(GLEnum.Lighting);
+        GLManager.GL.DepthMask(true);
+        GLManager.GL.DepthFunc(GLEnum.Lequal);
+        GLManager.GL.Disable(GLEnum.Blend);
+        GLManager.GL.Color4(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
     protected virtual float getDeathMaxRotation(EntityLiving var1)
     {
         return 90.0F;
@@ -270,5 +312,43 @@ public class LivingEntityRenderer : EntityRenderer
     public override void render(Entity target, double x, double y, double z, float yaw, float tickDelta)
     {
         doRenderLiving((EntityLiving)target, x, y, z, yaw, tickDelta);
+    }
+
+    protected override void RenderAfterEntity(Entity target, Vec3D pos, float yaw, float tickDelta)
+    {
+        if (target is not EntityAnimal animal || !animal.TryGetLeashAnchor(tickDelta, out Vec3D leashAnchor))
+        {
+            return;
+        }
+
+        double startX = target.lastTickX + (target.x - target.lastTickX) * tickDelta;
+        double startY = target.lastTickY + (target.y - target.lastTickY) * tickDelta + target.height * 0.55D;
+        double startZ = target.lastTickZ + (target.z - target.lastTickZ) * tickDelta;
+        double endX = leashAnchor.x - Dispatcher.x;
+        double endY = leashAnchor.y - Dispatcher.y;
+        double endZ = leashAnchor.z - Dispatcher.z;
+        double relStartX = startX - Dispatcher.x;
+        double relStartY = startY - Dispatcher.y;
+        double relStartZ = startZ - Dispatcher.z;
+        double dx = endX - relStartX;
+        double dy = endY - relStartY;
+        double dz = endZ - relStartZ;
+
+        GLManager.GL.Disable(GLEnum.Texture2D);
+        GLManager.GL.Disable(GLEnum.Lighting);
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawing(3);
+        tessellator.setColorOpaque_I(0x5B472E);
+        const int segments = 24;
+        for (int i = 0; i <= segments; ++i)
+        {
+            float t = i / (float)segments;
+            double sag = System.Math.Sin(t * System.Math.PI) * 0.1D;
+            tessellator.addVertex(relStartX + dx * t, relStartY + dy * t - sag, relStartZ + dz * t);
+        }
+
+        tessellator.draw();
+        GLManager.GL.Enable(GLEnum.Lighting);
+        GLManager.GL.Enable(GLEnum.Texture2D);
     }
 }

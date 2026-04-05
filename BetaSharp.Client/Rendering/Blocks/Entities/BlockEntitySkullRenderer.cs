@@ -10,10 +10,10 @@ public sealed class BlockEntitySkullRenderer : BlockEntitySpecialRenderer
 {
     public override void renderTileEntityAt(BlockEntity blockEntity, double x, double y, double z, float tickDelta)
     {
-        RenderSkull((BlockEntitySkull)blockEntity, x, y, z);
+        RenderSkull((BlockEntitySkull)blockEntity, x, y, z, tickDelta);
     }
 
-    private void RenderSkull(BlockEntitySkull skull, double x, double y, double z)
+    private void RenderSkull(BlockEntitySkull skull, double x, double y, double z, float tickDelta)
     {
         int meta = skull.getPushedBlockData() & 7;
         float rotation = meta == 1 ? skull.GetSkullRotation() * 360.0F / 16.0F : 0.0F;
@@ -45,7 +45,7 @@ public sealed class BlockEntitySkullRenderer : BlockEntitySpecialRenderer
 
         GLManager.GL.Enable(GLEnum.RescaleNormal);
         GLManager.GL.Scale(-1.0F, -1.0F, 1.0F);
-        SkullRenderHelper.RenderSkull(bindTextureByName, skull.GetSkullType(), rotation);
+        SkullRenderHelper.RenderSkull(bindTextureByName, skull.GetSkullType(), rotation, skull.GetAnimationProgress(tickDelta));
         GLManager.GL.Disable(GLEnum.RescaleNormal);
         GLManager.GL.Enable(GLEnum.CullFace);
         GLManager.GL.PopMatrix();

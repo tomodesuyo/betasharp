@@ -11,6 +11,18 @@ public class PlayerInputC2SPacket() : Packet(PacketId.PlayerInputC2S)
     private float pitch;
     private float yaw;
 
+    public static PlayerInputC2SPacket Get(float sideways, float forward, float pitch, float yaw, bool jumping, bool sneaking)
+    {
+        var packet = Get<PlayerInputC2SPacket>(PacketId.PlayerInputC2S);
+        packet.sideways = sideways;
+        packet.forward = forward;
+        packet.pitch = pitch;
+        packet.yaw = yaw;
+        packet.jumping = jumping;
+        packet.sneaking = sneaking;
+        return packet;
+    }
+
     public override void Read(NetworkStream stream)
     {
         sideways = stream.ReadFloat();

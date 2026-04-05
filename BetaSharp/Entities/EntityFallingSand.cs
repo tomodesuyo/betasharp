@@ -61,9 +61,13 @@ public class EntityFallingSand : Entity
             int floorX = MathHelper.Floor(x);
             int floorY = MathHelper.Floor(y);
             int floorZ = MathHelper.Floor(z);
-            if (world.Reader.GetBlockId(floorX, floorY, floorZ) == blockId)
+            if (fallTime == 1 && world.Reader.GetBlockId(floorX, floorY, floorZ) == blockId)
             {
                 world.Writer.SetBlock(floorX, floorY, floorZ, 0);
+            }
+            else if (!world.IsRemote && fallTime == 1)
+            {
+                markDead();
             }
 
             if (onGround)
@@ -71,13 +75,17 @@ public class EntityFallingSand : Entity
                 velocityX *= (double)0.7F;
                 velocityZ *= (double)0.7F;
                 velocityY *= -0.5D;
-                markDead();
-                if ((!Block.Blocks[blockId].canPlaceAt(new CanPlaceAtContext(world, 0, floorX, floorY, floorZ)) || BlockSand.canFallThrough(new OnTickEvent(world, floorX, floorY - 1, floorZ, 0, blockId)) || !world.Writer.SetBlock(floorX, floorY, floorZ, blockId)) && !world.IsRemote)
+
+                if (world.Reader.GetBlockId(floorX, floorY, floorZ) != Block.MovingPiston.id)
                 {
-                    dropItem(blockId, 1);
+                    markDead();
+                    if ((!Block.Blocks[blockId].canPlaceAt(new CanPlaceAtContext(world, 0, floorX, floorY, floorZ)) || BlockSand.canFallThrough(new OnTickEvent(world, floorX, floorY - 1, floorZ, 0, blockId)) || !world.Writer.SetBlock(floorX, floorY, floorZ, blockId)) && !world.IsRemote)
+                    {
+                        dropItem(blockId, 1);
+                    }
                 }
             }
-            else if (fallTime > 100 && !world.IsRemote)
+            else if ((((fallTime > 100 && !world.IsRemote) && (floorY < 1 || floorY > 256)) || fallTime > 600) && !world.IsRemote)
             {
                 dropItem(blockId, 1);
                 markDead();

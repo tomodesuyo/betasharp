@@ -229,6 +229,7 @@ public class AssetManager
         defineAsset("misc/particlefield.png", AssetType.Binary);
         defineAsset("misc/mapbg.png", AssetType.Binary);
         defineAsset("misc/mapicons.png", AssetType.Binary);
+        defineAsset("misc/glint.png", AssetType.Binary);
         defineAsset("misc/pumpkinblur.png", AssetType.Binary);
         defineAsset("misc/shadow.png", AssetType.Binary);
         defineAsset("misc/tunnel.png", AssetType.Binary);
@@ -275,6 +276,30 @@ public class AssetManager
         {
             defineAsset($"mob/horse/{horseTexture}", AssetType.Binary);
         }
+        foreach (string horseArmorTexture in new[]
+                 {
+                     "horse_armor_diamond.png",
+                     "horse_armor_gold.png",
+                     "horse_armor_iron.png",
+                 })
+        {
+            defineAsset($"mob/horse/armor/{horseArmorTexture}", AssetType.Binary);
+        }
+        foreach (string boatTexture in new[]
+                 {
+                     "boat_acacia.png",
+                     "boat_birch.png",
+                     "boat_darkoak.png",
+                     "boat_jungle.png",
+                     "boat_oak.png",
+                     "boat_spruce.png",
+                 })
+        {
+            defineAsset($"mob/boat/{boatTexture}", AssetType.Binary);
+        }
+        defineAsset("mob/armorstand/wood.png", AssetType.Binary);
+        defineAsset("mob/elytra.png", AssetType.Binary);
+        defineAsset("mob/lead_knot.png", AssetType.Binary);
         defineAsset("mob/pig.png", AssetType.Binary);
         defineAsset("mob/pigman.png", AssetType.Binary);
         defineAsset("mob/pigzombie.png", AssetType.Binary);
@@ -299,7 +324,9 @@ public class AssetManager
         defineAsset("mob/silverfish.png", AssetType.Binary);
         defineAsset("mob/skeleton.png", AssetType.Binary);
         defineAsset("mob/skeleton_wither.png", AssetType.Binary);
+        defineAsset("mob/shulker.png", AssetType.Binary);
         defineAsset("mob/slime.png", AssetType.Binary);
+        defineAsset("mob/snowman.png", AssetType.Binary);
         defineAsset("mob/spider.png", AssetType.Binary);
         defineAsset("mob/spider_eyes.png", AssetType.Binary);
         defineAsset("mob/squid.png", AssetType.Binary);
@@ -326,6 +353,7 @@ public class AssetManager
         defineAsset("mob/wolf_angry.png", AssetType.Binary);
         defineAsset("mob/wolf_tame.png", AssetType.Binary);
         defineAsset("mob/zombie.png", AssetType.Binary);
+        defineAssetsFromDirectory("mob", AssetType.Binary);
 
         defineAsset("terrain/moon.png", AssetType.Binary);
         defineAsset("terrain/sun.png", AssetType.Binary);
@@ -460,6 +488,24 @@ public class AssetManager
         {
             string directory = assetPath[..idx];
             _assetDirectories.Add(directory);
+        }
+    }
+
+    private void defineAssetsFromDirectory(string assetDirectory, AssetType type)
+    {
+        foreach (string root in s_assetRoots)
+        {
+            string fullDirectory = Path.Combine(root, assetDirectory);
+            if (!Directory.Exists(fullDirectory))
+            {
+                continue;
+            }
+
+            foreach (string assetPath in Directory.GetFiles(fullDirectory, "*", SearchOption.AllDirectories))
+            {
+                string relativePath = Path.GetRelativePath(root, assetPath).Replace('\\', '/');
+                defineAsset(relativePath, type);
+            }
         }
     }
 

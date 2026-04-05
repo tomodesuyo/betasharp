@@ -157,6 +157,11 @@ public class ClientNetworkHandler : NetHandler
             entity = new EntityMinecart(worldClient, x, y, z, 2);
         }
 
+        if (packet.entityType == 77)
+        {
+            entity = new EntityMinecart(worldClient, x, y, z, 3);
+        }
+
         if (packet.entityType == 90)
         {
             entity = new EntityFish(worldClient, x, y, z);
@@ -180,6 +185,11 @@ public class ClientNetworkHandler : NetHandler
         if (packet.entityType == 72)
         {
             entity = new EntityEnderEye(worldClient, x, y, z);
+        }
+
+        if (packet.entityType == 76)
+        {
+            entity = new EntityFireworkRocket(worldClient, x, y, z);
         }
 
         if (packet.entityType == 63)
@@ -704,6 +714,23 @@ public class ClientNetworkHandler : NetHandler
         if (ent != null)
         {
             ent.processServerEntityStatus(packet.EntityStatus);
+            if (packet.EntityStatus == 35)
+            {
+                _game.ingameGUI.DisplayItemActivation(new ItemStack(Item.TotemOfUndying));
+                for (int i = 0; i < 30; ++i)
+                {
+                    double dx = (rand.NextDouble() - 0.5D) * ent.width;
+                    double dy = rand.NextDouble() * ent.height;
+                    double dz = (rand.NextDouble() - 0.5D) * ent.width;
+                    double vx = (rand.NextDouble() - 0.5D) * 0.2D;
+                    double vy = rand.NextDouble() * 0.2D;
+                    double vz = (rand.NextDouble() - 0.5D) * 0.2D;
+                    _game.particleManager.AddPortal(ent.x + dx, ent.y + dy, ent.z + dz, vx, vy, vz);
+                    _game.particleManager.AddReddust(ent.x + dx, ent.y + dy, ent.z + dz, 0.2F, 0.8F, 0.2F);
+                }
+
+                _game.world.Broadcaster.PlaySoundAtPos(ent.x, ent.y, ent.z, "random.pop", 0.8F, 0.75F);
+            }
         }
 
     }

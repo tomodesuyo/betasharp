@@ -18,10 +18,10 @@ public class BlockRail : Block
     public static bool isRail(IWorldContext level, int x, int y, int z)
     {
         int blockId = level.Reader.GetBlockId(x, y, z);
-        return blockId == Rail.id || blockId == PoweredRail.id || blockId == DetectorRail.id;
+        return blockId == Rail.id || blockId == PoweredRail.id || blockId == DetectorRail.id || blockId == ActivatorRail.id;
     }
 
-    public static bool isRail(int blockId) => blockId == Rail.id || blockId == PoweredRail.id || blockId == DetectorRail.id;
+    public static bool isRail(int blockId) => blockId == Rail.id || blockId == PoweredRail.id || blockId == DetectorRail.id || blockId == ActivatorRail.id;
 
     public bool isAlwaysStraight() => alwaysStraight;
 

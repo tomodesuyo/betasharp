@@ -43,6 +43,7 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityWolf), new WolfEntityRenderer(new ModelWolf(), 0.5F));
         RegisterRenderer(typeof(EntityChicken), new ChickenEntityRenderer(new ModelChicken(), 0.3F));
         RegisterRenderer(typeof(EntityRabbit), new LivingEntityRenderer(new ModelRabbit(), 0.3F));
+        RegisterRenderer(typeof(EntitySnowGolem), new SnowGolemEntityRenderer());
         RegisterRenderer(typeof(EntityHorse), new HorseEntityRenderer());
         RegisterRenderer(typeof(EntityCreeper), new CreeperEntityRenderer());
         RegisterRenderer(typeof(EntitySkeleton), new UndeadEntityRenderer(new ModelSkeleton(), 0.5F));
@@ -66,10 +67,12 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityEnderEye), new ProjectileEntityRenderer(Item.EyeOfEnder.getTextureId(0)));
         RegisterRenderer(typeof(EntityPotion), new ProjectileEntityRenderer(Item.Potion.getTextureId(0)));
         RegisterRenderer(typeof(EntityExpBottle), new ProjectileEntityRenderer(Item.ExpBottle.getTextureId(0)));
+        RegisterRenderer(typeof(EntityFireworkRocket), new ProjectileEntityRenderer(Item.FireworkRocket.getTextureId(0)));
         RegisterRenderer(typeof(EntityFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntitySmallFireball), new FireballEntityRenderer());
         RegisterRenderer(typeof(EntityWitherSkull), new WitherSkullEntityRenderer());
         RegisterRenderer(typeof(EntityItem), new ItemRenderer());
+        RegisterRenderer(typeof(EntityArmorStand), new ArmorStandEntityRenderer());
         RegisterRenderer(typeof(EntityTNTPrimed), new TntEntityRenderer());
         RegisterRenderer(typeof(EntityFallingSand), new FallingBlockEntityRenderer());
         RegisterRenderer(typeof(EntityMinecart), new MinecartEntityRenderer());
@@ -79,6 +82,7 @@ public class EntityRenderDispatcher
         RegisterRenderer(typeof(EntityVillager), new VillagerEntityRenderer());
         RegisterRenderer(typeof(EntityEnderman), new EndermanEntityRenderer());
         RegisterRenderer(typeof(EntitySilverfish), new SilverfishEntityRenderer());
+        RegisterRenderer(typeof(EntityShulker), new LivingEntityRenderer(new ModelShulker(), 0.0F));
         RegisterRenderer(typeof(EntityIronGolem), new IronGolemEntityRenderer());
         RegisterRenderer(typeof(EntityEnderCrystal), new EnderCrystalEntityRenderer());
         RegisterRenderer(typeof(EntityDragon), new DragonEntityRenderer());

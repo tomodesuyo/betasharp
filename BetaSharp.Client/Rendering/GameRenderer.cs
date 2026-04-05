@@ -474,6 +474,11 @@ public class GameRenderer
             GLManager.GL.Enable(GLEnum.AlphaTest);
         }
 
+        if (entity is EntityPlayer barrierPlayer)
+        {
+            worldRenderer.drawBarrierBlocks(barrierPlayer, tickDelta);
+        }
+
         renderSnow(tickDelta);
         GLManager.GL.Disable(GLEnum.Fog);
         if (_targetedEntity != null)

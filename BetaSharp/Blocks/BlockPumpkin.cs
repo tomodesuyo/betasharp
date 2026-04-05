@@ -56,6 +56,7 @@ internal class BlockPumpkin : Block
         }
 
         TrySpawnIronGolem(@event.World, @event.X, @event.Y, @event.Z);
+        TrySpawnSnowGolem(@event.World, @event.X, @event.Y, @event.Z);
     }
 
     private static void TrySpawnIronGolem(Worlds.Core.Systems.IWorldContext world, int x, int y, int z)
@@ -95,6 +96,32 @@ internal class BlockPumpkin : Block
         golem.SetPlayerCreated(true);
         golem.setPositionAndAnglesKeepPrevAngles(x + 0.5D, y - 1.95D, z + 0.5D, 0.0F, 0.0F);
         world.SpawnEntity(golem);
+
+        for (int i = 0; i < 120; ++i)
+        {
+            world.Broadcaster.AddParticle("snowballpoof", x + world.Random.NextFloat(), y - 2 + world.Random.NextFloat() * 3.9D, z + world.Random.NextFloat(), 0.0D, 0.0D, 0.0D);
+        }
+    }
+
+    private static void TrySpawnSnowGolem(Worlds.Core.Systems.IWorldContext world, int x, int y, int z)
+    {
+        if (world.IsRemote)
+        {
+            return;
+        }
+
+        if (world.Reader.GetBlockId(x, y - 1, z) != Block.SnowBlock.id || world.Reader.GetBlockId(x, y - 2, z) != Block.SnowBlock.id)
+        {
+            return;
+        }
+
+        world.Writer.SetBlockWithoutCallingOnPlaced(x, y, z, 0, 0);
+        world.Writer.SetBlockWithoutCallingOnPlaced(x, y - 1, z, 0, 0);
+        world.Writer.SetBlockWithoutCallingOnPlaced(x, y - 2, z, 0, 0);
+
+        EntitySnowGolem snowGolem = new(world);
+        snowGolem.setPositionAndAnglesKeepPrevAngles(x + 0.5D, y - 1.95D, z + 0.5D, 0.0F, 0.0F);
+        world.SpawnEntity(snowGolem);
 
         for (int i = 0; i < 120; ++i)
         {

@@ -404,6 +404,11 @@ public class EntityWolf : EntityAnimal
     public override bool interact(EntityPlayer player)
     {
         ItemStack heldItem = player.inventory.getSelectedItem();
+        if (heldItem != null && heldItem.itemId == Item.Lead.id)
+        {
+            return false;
+        }
+
         if (!isWolfTamed())
         {
             if (heldItem != null && heldItem.itemId == Item.Bone.id && !isWolfAngry())

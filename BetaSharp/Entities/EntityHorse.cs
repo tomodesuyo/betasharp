@@ -41,6 +41,11 @@ public sealed class EntityHorse : EntityAnimal
     public override bool interact(EntityPlayer player)
     {
         ItemStack? heldItem = player.inventory.getSelectedItem();
+        if (heldItem != null && heldItem.itemId == Item.Lead.id)
+        {
+            return false;
+        }
+
         if (heldItem != null && heldItem.itemId == Block.Hay.id && health < maxHealth)
         {
             heal(20);

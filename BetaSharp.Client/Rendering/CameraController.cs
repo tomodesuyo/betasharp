@@ -158,6 +158,11 @@ public class CameraController
     {
         EntityLiving cameraEntity = _game.camera;
         float eyeHeightOffset = cameraEntity.standingEyeHeight - 1.62F;
+        if (cameraEntity is EntityPlayer player && player.IsGlidingWithElytra())
+        {
+            eyeHeightOffset += 0.22F;
+        }
+
         double x = cameraEntity.prevX + (cameraEntity.x - cameraEntity.prevX) * (double)tickDelta;
         double y = cameraEntity.prevY + (cameraEntity.y - cameraEntity.prevY) * (double)tickDelta - (double)eyeHeightOffset;
         double z = cameraEntity.prevZ + (cameraEntity.z - cameraEntity.prevZ) * (double)tickDelta;

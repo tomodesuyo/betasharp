@@ -48,6 +48,7 @@ public class FluidsRenderer : IBlockRenderer
         float heightSw = GetFluidVertexHeight(ref ctx, pos.x, pos.y, pos.z + 1, material);
         float heightSe = GetFluidVertexHeight(ref ctx, pos.x + 1, pos.y, pos.z + 1, material);
         float heightNe = GetFluidVertexHeight(ref ctx, pos.x + 1, pos.y, pos.z, material);
+        const float surfaceInset = 0.001F;
 
         // TOP FACE (Flowing Surface)
         if (ctx.RenderAllFaces || isTopVisible)
@@ -78,6 +79,11 @@ public class FluidsRenderer : IBlockRenderer
                 centerU = (texU + 16) / 256.0F;
                 centerV = (texV + 16) / 256.0F;
             }
+
+            heightNw -= surfaceInset;
+            heightSw -= surfaceInset;
+            heightSe -= surfaceInset;
+            heightNe -= surfaceInset;
 
             // Calculate rotational offsets for the UVs to make the texture flow in the correct direction
             float sinAngle = MathHelper.Sin(flowAngle) * 8.0F / 256.0F;
@@ -140,8 +146,8 @@ public class FluidsRenderer : IBlockRenderer
                     h2 = heightNe;
                     x1 = pos.x;
                     x2 = pos.x + 1;
-                    z1 = pos.z;
-                    z2 = pos.z;
+                    z1 = pos.z + surfaceInset;
+                    z2 = pos.z + surfaceInset;
                 }
                 else if (side == 1) // South
                 {
@@ -149,15 +155,15 @@ public class FluidsRenderer : IBlockRenderer
                     h2 = heightSw;
                     x1 = pos.x + 1;
                     x2 = pos.x;
-                    z1 = pos.z + 1;
-                    z2 = pos.z + 1;
+                    z1 = pos.z + 1 - surfaceInset;
+                    z2 = pos.z + 1 - surfaceInset;
                 }
                 else if (side == 2) // West
                 {
                     h1 = heightSw;
                     h2 = heightNw;
-                    x1 = pos.x;
-                    x2 = pos.x;
+                    x1 = pos.x + surfaceInset;
+                    x2 = pos.x + surfaceInset;
                     z1 = pos.z + 1;
                     z2 = pos.z;
                 }
@@ -165,8 +171,8 @@ public class FluidsRenderer : IBlockRenderer
                 {
                     h1 = heightNe;
                     h2 = heightSe;
-                    x1 = pos.x + 1;
-                    x2 = pos.x + 1;
+                    x1 = pos.x + 1 - surfaceInset;
+                    x2 = pos.x + 1 - surfaceInset;
                     z1 = pos.z;
                     z2 = pos.z + 1;
                 }

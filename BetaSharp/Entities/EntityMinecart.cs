@@ -46,6 +46,7 @@ public class EntityMinecart : Entity, IInventory
     private double cartVelocityX;
     private double cartVelocityY;
     private double cartVelocityZ;
+    private int _tntFuse = -1;
 
     public EntityMinecart(IWorldContext world) : base(world)
     {
@@ -112,8 +113,25 @@ public class EntityMinecart : Entity, IInventory
                     passenger.setVehicle(this);
                 }
 
+                if (type == 3 && _tntFuse >= 0)
+                {
+                    ExplodeTntMinecart(velocityX * velocityX + velocityZ * velocityZ);
+                    return true;
+                }
+
                 markDead();
-                dropItem(Item.Minecart.id, 1, 0.0F);
+                if (type == 3)
+                {
+                    if (_tntFuse < 0)
+                    {
+                        dropItem(Item.TntMinecart.id, 1, 0.0F);
+                    }
+                }
+                else
+                {
+                    dropItem(Item.Minecart.id, 1, 0.0F);
+                }
+
                 if (type == 1)
                 {
                     EntityMinecart minecart = this;
@@ -220,6 +238,20 @@ public class EntityMinecart : Entity, IInventory
             --minecartCurrentDamage;
         }
 
+        if (type == 3)
+        {
+            if (_tntFuse > 0)
+            {
+                --_tntFuse;
+                world.Broadcaster.AddParticle("smoke", x, y + 0.5D, z, 0.0D, 0.0D, 0.0D);
+            }
+            else if (_tntFuse == 0)
+            {
+                ExplodeTntMinecart(velocityX * velocityX + velocityZ * velocityZ);
+                return;
+            }
+        }
+
         double var7;
         if (world.IsRemote && field_9415_k > 0)
         {
@@ -280,6 +312,10 @@ public class EntityMinecart : Entity, IInventory
                 {
                     var12 = (var11 & 8) != 0;
                     var13 = !var12;
+                }
+                else if (var9 == Block.ActivatorRail.id && (var11 & 8) != 0 && type == 3)
+                {
+                    IgniteTntMinecart();
                 }
 
                 if (((BlockRail)Block.Blocks[var9]).isAlwaysStraight())
@@ -611,6 +647,16 @@ public class EntityMinecart : Entity, IInventory
                 passenger = null;
             }
 
+            if (type == 3 && hasCollided)
+            {
+                double speedSq = velocityX * velocityX + velocityZ * velocityZ;
+                if (speedSq >= 0.01D)
+                {
+                    ExplodeTntMinecart(speedSq);
+                    return;
+                }
+            }
+
             if (var6 && random.NextInt(4) == 0)
             {
                 --fuel;
@@ -777,6 +823,11 @@ public class EntityMinecart : Entity, IInventory
             nbt.SetTag("Items", items);
         }
 
+        if (type == 3)
+        {
+            nbt.SetInteger("TNTFuse", _tntFuse);
+        }
+
     }
 
     public override void readNbt(NBTTagCompound nbt)
@@ -802,6 +853,11 @@ public class EntityMinecart : Entity, IInventory
                     cargoItems[slotIndex] = new ItemStack(itemTag);
                 }
             }
+        }
+
+        if (type == 3)
+        {
+            _tntFuse = nbt.GetInteger("TNTFuse");
         }
 
     }
@@ -958,6 +1014,22 @@ public class EntityMinecart : Entity, IInventory
     {
     }
 
+    public override void processServerEntityStatus(sbyte statusId)
+    {
+        if (statusId == 10 && type == 3)
+        {
+            if (_tntFuse < 0)
+            {
+                _tntFuse = 80;
+            }
+
+            world.Broadcaster.PlaySoundAtPos(x, y, z, "random.fuse", 1.0F, 1.0F);
+            return;
+        }
+
+        base.processServerEntityStatus(statusId);
+    }
+
     public override bool interact(EntityPlayer player)
     {
         if (type == 0)
@@ -1022,5 +1094,37 @@ public class EntityMinecart : Entity, IInventory
     public bool canPlayerUse(EntityPlayer player)
     {
         return dead ? false : player.getSquaredDistance(this) <= 64.0D;
+    }
+
+    private void IgniteTntMinecart()
+    {
+        if (type != 3 || _tntFuse >= 0)
+        {
+            return;
+        }
+
+        _tntFuse = 80;
+        if (!world.IsRemote)
+        {
+            world.Broadcaster.EntityEvent(this, 10);
+            world.Broadcaster.PlaySoundAtPos(x, y, z, "random.fuse", 1.0F, 1.0F);
+        }
+    }
+
+    private void ExplodeTntMinecart(double speedSq)
+    {
+        if (dead || world.IsRemote || type != 3)
+        {
+            return;
+        }
+
+        double speed = System.Math.Sqrt(speedSq);
+        if (speed > 5.0D)
+        {
+            speed = 5.0D;
+        }
+
+        world.CreateExplosion(this, x, y, z, (float)(4.0D + random.NextDouble() * 1.5D * speed));
+        markDead();
     }
 }

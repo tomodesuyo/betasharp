@@ -37,27 +37,50 @@ internal class ItemBoat : Item
         {
             return itemStack;
         }
-        else
+
+        Vec3D look = entityPlayer.getLook(1.0F);
+        List<Entity> entities = world.Entities.GetEntities(entityPlayer, entityPlayer.boundingBox.Stretch(look.x * rayLength, look.y * rayLength, look.z * rayLength).Expand(1.0D, 1.0D, 1.0D));
+        for (int i = 0; i < entities.Count; ++i)
         {
-            if (hitResult.Type == HitResultType.TILE)
+            Entity entity = entities[i];
+            if (!entity.isCollidable())
             {
-                int hitX = hitResult.BlockX;
-                int hitY = hitResult.BlockY;
-                int hitZ = hitResult.BlockZ;
-                if (!world.IsRemote)
-                {
-                    if (world.Reader.GetBlockId(hitX, hitY, hitZ) == Block.Snow.id)
-                    {
-                        --hitY;
-                    }
-
-                    world.SpawnEntity(new EntityBoat(world, (double)((float)hitX + 0.5F), (double)((float)hitY + 1.0F), (double)((float)hitZ + 0.5F)));
-                }
-
-                itemStack.ConsumeItem(entityPlayer);
+                continue;
             }
 
+            Box expandedBox = entity.boundingBox.Expand(entity.getTargetingMargin(), entity.getTargetingMargin(), entity.getTargetingMargin());
+            if (expandedBox.Contains(rayStart))
+            {
+                return itemStack;
+            }
+        }
+
+        if (hitResult.Type != HitResultType.TILE)
+        {
             return itemStack;
         }
+
+        int hitX = hitResult.BlockX;
+        int hitY = hitResult.BlockY;
+        int hitZ = hitResult.BlockZ;
+        int hitBlockId = world.Reader.GetBlockId(hitX, hitY, hitZ);
+        bool hitWater = hitBlockId == Block.Water.id || hitBlockId == Block.FlowingWater.id;
+        double spawnY = hitWater ? hitResult.Pos.y - 0.12D : hitResult.Pos.y;
+        EntityBoat boat = new(world, hitResult.Pos.x, spawnY, hitResult.Pos.z)
+        {
+            yaw = entityPlayer.yaw
+        };
+
+        if (world.Entities.GetEntityCollisionsScratch(boat, boat.boundingBox.Contract(0.1D, 0.0D, 0.1D)).Count > 0)
+        {
+            return itemStack;
+        }
+
+        if (!world.IsRemote && world.SpawnEntity(boat))
+        {
+            itemStack.ConsumeItem(entityPlayer);
+        }
+
+        return itemStack;
     }
 }

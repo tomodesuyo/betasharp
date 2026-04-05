@@ -1,4 +1,5 @@
 using BetaSharp.Blocks.Materials;
+using BetaSharp.Entities;
 using BetaSharp.Util.Hit;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds.Core.Systems;
@@ -7,6 +8,9 @@ namespace BetaSharp.Blocks;
 
 internal class BlockTrapDoor : Block
 {
+    private const int OpenBit = 4;
+    private const int TopHalfBit = 8;
+
     public BlockTrapDoor(int id, Material material) : base(id, material)
     {
         textureId = 84;
@@ -49,7 +53,16 @@ internal class BlockTrapDoor : Block
     public void updateBoundingBox(int meta)
     {
         float height = 3.0F / 16.0F;
-        setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, height, 1.0F);
+        bool isTopHalf = (meta & TopHalfBit) != 0;
+        if (isTopHalf)
+        {
+            setBoundingBox(0.0F, 1.0F - height, 0.0F, 1.0F, 1.0F, 1.0F);
+        }
+        else
+        {
+            setBoundingBox(0.0F, 0.0F, 0.0F, 1.0F, height, 1.0F);
+        }
+
         if (isOpen(meta))
         {
             if ((meta & 3) == 0)
@@ -110,7 +123,7 @@ internal class BlockTrapDoor : Block
     {
         if (!ctx.World.IsRemote)
         {
-            if (id > 0 && Blocks[id].canEmitRedstonePower())
+            if (ctx.BlockId == 0 || Blocks[ctx.BlockId].canEmitRedstonePower())
             {
                 bool isPowered = ctx.World.Redstone.IsPowered(ctx.X, ctx.Y, ctx.Z);
                 setOpen(ctx, isPowered);
@@ -126,16 +139,27 @@ internal class BlockTrapDoor : Block
 
     public override void onPlaced(OnPlacedEvent ctx)
     {
-        sbyte meta = ctx.Direction switch
+        int meta = ctx.Direction switch
         {
             2 => 0,
             3 => 1,
             4 => 2,
             5 => 3,
-            _ => ctx.Placer == null
-                ? (sbyte)0
-                : (sbyte)(MathHelper.Floor(ctx.Placer.yaw * 4.0F / 360.0F + 0.5D) & 3)
+            _ => GetFacingFromPlacer(ctx.Placer)
         };
+
+        bool topHalf = ctx.Direction == 0
+            || ctx.Direction is 2 or 3 or 4 or 5 && ctx.Placer != null && ctx.Placer.y >= ctx.Y + 0.5D;
+        if (topHalf)
+        {
+            meta |= TopHalfBit;
+        }
+
+        if (ctx.World.Redstone.IsPowered(ctx.X, ctx.Y, ctx.Z))
+        {
+            meta |= OpenBit;
+        }
+
         ctx.World.Writer.SetBlockMeta(ctx.X, ctx.Y, ctx.Z, meta);
     }
 
@@ -144,5 +168,13 @@ internal class BlockTrapDoor : Block
         return base.canPlaceAt(context);
     }
 
-    public static bool isOpen(int meta) => (meta & 4) != 0;
+    public static bool isOpen(int meta) => (meta & OpenBit) != 0;
+
+    private static int GetFacingFromPlacer(EntityLiving? placer)
+    {
+        return placer == null
+            ? 0
+            : MathHelper.Floor(placer.yaw * 4.0F / 360.0F + 0.5D) & 3;
+    }
+
 }

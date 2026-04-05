@@ -313,6 +313,11 @@ public abstract class EntityRenderer
             RenderOnFire(target, pos, tickDelta);
         }
 
+        RenderAfterEntity(target, pos, yaw, tickDelta);
+    }
+
+    protected virtual void RenderAfterEntity(Entity target, Vec3D pos, float yaw, float tickDelta)
+    {
     }
 
     public void RenderBoundingBox(Entity target, Vec3D pos, float yaw, float tickDelta)

@@ -291,6 +291,11 @@ public class CreativeScreenHandler : ScreenHandler
             return CreativeInventoryTab.Combat;
         }
 
+        if (item == Item.Elytra || item == Item.TotemOfUndying)
+        {
+            return CreativeInventoryTab.Combat;
+        }
+
         return CreativeInventoryTab.Materials;
     }
 
@@ -359,6 +364,7 @@ public class CreativeScreenHandler : ScreenHandler
                || itemId == Block.EndPortalFrame.id
                || itemId == Block.Silverfish.id
                || itemId == Block.Wall.id
+               || itemId == Block.Barrier.id
                || itemId == Block.SlimeBlock.id
                || itemId == Block.Carpet.id
                || itemId == Block.DeadBush.id;
@@ -386,7 +392,8 @@ public class CreativeScreenHandler : ScreenHandler
     {
         return itemId == Block.Rail.id
                || itemId == Block.PoweredRail.id
-               || itemId == Block.DetectorRail.id;
+               || itemId == Block.DetectorRail.id
+               || itemId == Block.ActivatorRail.id;
     }
 
     private static bool IsDecorationItem(int itemId)
@@ -394,6 +401,7 @@ public class CreativeScreenHandler : ScreenHandler
         return itemId == Item.Painting.id
                || itemId == Item.Sign.id
                || itemId == Item.Bed.id
+               || itemId == Item.ArmorStand.id
                || itemId == Item.Skull.id;
     }
 
@@ -410,6 +418,7 @@ public class CreativeScreenHandler : ScreenHandler
         return itemId == Item.Minecart.id
                || itemId == Item.ChestMinecart.id
                || itemId == Item.FurnaceMinecart.id
+               || itemId == Item.TntMinecart.id
                || itemId == Item.Boat.id
                || itemId == Item.Saddle.id
                || itemId == Item.IronHorseArmor.id
@@ -446,7 +455,9 @@ public class CreativeScreenHandler : ScreenHandler
                || itemId == Item.RecordWard.id
                || itemId == Item.RecordEleven.id
                || itemId == Item.RecordWait.id
-               || itemId == Item.Snowball.id;
+               || itemId == Item.Snowball.id
+               || itemId == Item.FireworkRocket.id
+               || itemId == Item.EndCrystal.id;
     }
 
     private static bool IsBrewingItem(int itemId)
@@ -528,7 +539,7 @@ public class CreativeScreenHandler : ScreenHandler
         AddMetadataVariants(Block.Sponge, 2);
         AddMetadataVariants(Item.Dye, 16, 1);
         AddMetadataVariants(Item.GoldenApple, 2);
-        AddMetadataVariants(Item.Skull, 5);
+        AddMetadataVariants(Item.Skull, 6);
     }
 
     private void AddMetadataVariants(Block block, int count, int start = 1)

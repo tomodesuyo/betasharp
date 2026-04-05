@@ -309,6 +309,11 @@ internal class EntityTrackerEntry
                 {
                     return EntitySpawnS2CPacket.Get(currentTrackedEntity, 12);
                 }
+
+                if (var1.type == 3)
+                {
+                    return EntitySpawnS2CPacket.Get(currentTrackedEntity, 77);
+                }
             }
 
             if (currentTrackedEntity is EntityBoat)
@@ -339,6 +344,10 @@ internal class EntityTrackerEntry
             else if (currentTrackedEntity is EntityEnderEye)
             {
                 return EntitySpawnS2CPacket.Get(currentTrackedEntity, 72);
+            }
+            else if (currentTrackedEntity is EntityFireworkRocket)
+            {
+                return EntitySpawnS2CPacket.Get(currentTrackedEntity, 76, 1);
             }
             else if (currentTrackedEntity is EntitySmallFireball smallFireball)
             {
